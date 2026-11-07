@@ -77,6 +77,25 @@ describe("cel.set", () => {
 		expect(sprite.frameDurations).toHaveLength(3);
 	});
 
+	test("a render frame out of range fails without writing the cel", () => {
+		const { workspace, spriteId, layer } = setup();
+		const error = thrown(() =>
+			run(workspace, {
+				spriteId,
+				layerId: layer.id,
+				frame: 0,
+				legend,
+				rows: ["R"],
+				render: { frames: [5] },
+			}),
+		);
+		expect(error.toJSON()).toMatchObject({
+			code: "out_of_range",
+			path: "render.frames",
+		});
+		expect(layer.cels.size).toBe(0);
+	});
+
 	test("a character missing from the legend points at its row", () => {
 		const { workspace, spriteId, layer } = setup();
 		const error = thrown(() =>

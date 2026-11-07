@@ -13,6 +13,7 @@ export const renderOptionFields = {
 };
 
 const GRID_MIN_SCALE = 4;
+const MAX_RENDER_PIXELS = 4096 * 4096;
 
 export function withGridRule<
 	T extends z.ZodType<{ scale: number; grid: boolean }>,
@@ -29,21 +30,45 @@ export type RenderOption = z.infer<typeof renderOptionSchema>;
 
 export type RenderedFrame = { frame: number; png: Uint8Array };
 
-export function renderPngs(
+export function checkRenderable(
 	sprite: Sprite,
 	option: { scale: number; grid: boolean },
 	frames: number[],
-	framesPath: string,
-): RenderedFrame[] {
+	pathPrefix: string,
+) {
 	const frameCount = sprite.frameDurations.length;
-	return frames.map((frame) => {
+	for (const frame of frames) {
 		if (frame >= frameCount) {
 			throw new OpError(
 				"out_of_range",
 				`Frame ${frame} is out of range, the sprite has ${frameCount} frames`,
-				{ path: framesPath },
+				{ path: `${pathPrefix}frames` },
 			);
 		}
+	}
+	const gridPixels = option.grid ? 1 : 0;
+	const width = sprite.width * option.scale + gridPixels;
+	const height = sprite.height * option.scale + gridPixels;
+	if (width * height > MAX_RENDER_PIXELS) {
+		throw new OpError(
+			"out_of_range",
+			`A ${width}x${height} render is over the ${MAX_RENDER_PIXELS} pixel limit`,
+			{
+				path: `${pathPrefix}scale`,
+				hint: "Lower the scale or render a smaller sprite",
+			},
+		);
+	}
+}
+
+export function renderPngs(
+	sprite: Sprite,
+	option: { scale: number; grid: boolean },
+	frames: number[],
+	pathPrefix: string,
+): RenderedFrame[] {
+	checkRenderable(sprite, option, frames, pathPrefix);
+	return frames.map((frame) => {
 		const image = upscale(
 			renderFrame(sprite, frame),
 			option.scale,

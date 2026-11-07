@@ -3,7 +3,8 @@ export type OpErrorCode =
 	| "unknown_op"
 	| "not_found"
 	| "out_of_range"
-	| "unsupported";
+	| "unsupported"
+	| "internal";
 
 export type OpErrorInfo = {
 	code: OpErrorCode;

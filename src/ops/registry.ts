@@ -3,6 +3,7 @@ import type { Rect } from "../core/image.ts";
 import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import {
+	checkRenderable,
 	type RenderedFrame,
 	renderOptionSchema,
 	renderPngs,
@@ -58,6 +59,15 @@ export function defineOp<S extends z.ZodObject>(
 			const input = parsed.data as z.infer<S> & {
 				render?: z.infer<typeof renderOptionSchema>;
 			};
+			const inputSpriteId = (input as { spriteId?: unknown }).spriteId;
+			if (withRender && input.render && inputSpriteId !== undefined) {
+				checkRenderable(
+					workspace.getSprite(String(inputSpriteId)),
+					input.render,
+					input.render.frames ?? [],
+					"render.",
+				);
+			}
 			const output = definition.run(workspace, input);
 			const result = {
 				...output,
@@ -65,15 +75,21 @@ export function defineOp<S extends z.ZodObject>(
 				warnings: output.warnings ?? [],
 			};
 			if (withRender && input.render) {
-				const spriteId =
-					(input as { spriteId?: unknown }).spriteId ?? output.spriteId;
+				const spriteId = inputSpriteId ?? output.spriteId;
+				if (spriteId === undefined) {
+					throw new OpError(
+						"internal",
+						`Operation "${definition.name}" has no spriteId to render`,
+						{ path: "render" },
+					);
+				}
 				const frames = input.render.frames ??
 					changedFrames(result.changed) ?? [0];
 				result.render = renderPngs(
 					workspace.getSprite(String(spriteId)),
 					input.render,
 					frames,
-					"render.frames",
+					"render.",
 				);
 			}
 			return result;
@@ -97,7 +113,16 @@ export function createRegistry(operations: Operation[]) {
 					hint: `Known operations: ${[...byName.keys()].join(", ")}`,
 				});
 			}
-			return op.call(workspace, input);
+			try {
+				return op.call(workspace, input);
+			} catch (error) {
+				if (error instanceof OpError) throw error;
+				throw new OpError(
+					"internal",
+					error instanceof Error ? error.message : String(error),
+					{ path: "" },
+				);
+			}
 		},
 
 		describeOps() {

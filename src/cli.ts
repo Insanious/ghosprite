@@ -3,7 +3,6 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { OpError } from "./errors.ts";
 import { operations } from "./ops/index.ts";
 import { createRegistry } from "./ops/registry.ts";
 import { Workspace } from "./workspace.ts";
@@ -84,7 +83,6 @@ async function run(args: string[]) {
 			}
 			console.log(JSON.stringify({ op: call.op, result }));
 		} catch (error) {
-			if (!(error instanceof OpError)) throw error;
 			console.log(JSON.stringify({ op: call.op, error }));
 			process.exit(1);
 		}

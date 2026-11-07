@@ -4,6 +4,7 @@ import { createSprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { createRegistry, defineOp } from "./registry.ts";
+import { renderPngs } from "./render.ts";
 
 const touch = defineOp({
 	name: "test.touch",
@@ -29,7 +30,24 @@ const bare = defineOp({
 	run: () => ({}),
 });
 
-const registry = createRegistry([touch, bare]);
+const explode = defineOp({
+	name: "test.explode",
+	description: "Throws a plain Error.",
+	input: z.object({}),
+	renderOption: false,
+	run: () => {
+		throw new Error("boom");
+	},
+});
+
+const spriteless = defineOp({
+	name: "test.spriteless",
+	description: "Mutates and returns no spriteId.",
+	input: z.object({}),
+	run: () => ({}),
+});
+
+const registry = createRegistry([touch, bare, explode, spriteless]);
 
 function setup() {
 	const workspace = new Workspace();
@@ -126,6 +144,71 @@ describe("callOp", () => {
 		expect(error.toJSON()).toMatchObject({
 			code: "out_of_range",
 			path: "render.frames",
+		});
+	});
+
+	test("a render over the pixel limit is out_of_range at render.scale", () => {
+		const workspace = new Workspace();
+		const spriteId = workspace.addSprite(
+			createSprite({
+				width: 100,
+				height: 100,
+				mode: "rgba",
+				palettes: [{ startFrame: 0, colors: [] }],
+				frameDurations: [100],
+			}),
+		);
+		const error = thrown(() =>
+			registry.callOp(workspace, "test.touch", {
+				spriteId,
+				render: { scale: 64 },
+			}),
+		);
+		expect(error.toJSON()).toMatchObject({
+			code: "out_of_range",
+			path: "render.scale",
+		});
+	});
+
+	test("the grid line counts toward the pixel limit", () => {
+		const workspace = new Workspace();
+		const spriteId = workspace.addSprite(
+			createSprite({
+				width: 64,
+				height: 64,
+				mode: "rgba",
+				palettes: [{ startFrame: 0, colors: [] }],
+				frameDurations: [100],
+			}),
+		);
+		const sprite = workspace.getSprite(spriteId);
+		expect(() =>
+			renderPngs(sprite, { scale: 64, grid: false }, [0], ""),
+		).not.toThrow();
+		const error = thrown(() =>
+			renderPngs(sprite, { scale: 64, grid: true }, [0], ""),
+		);
+		expect(error.toJSON()).toMatchObject({
+			code: "out_of_range",
+			path: "scale",
+		});
+	});
+
+	test("a render option on an op with no spriteId is an internal error", () => {
+		const { workspace } = setup();
+		const error = thrown(() =>
+			registry.callOp(workspace, "test.spriteless", { render: {} }),
+		);
+		expect(error.toJSON()).toMatchObject({ code: "internal", path: "render" });
+	});
+
+	test("a plain Error from an op becomes an internal OpError", () => {
+		const { workspace } = setup();
+		const error = thrown(() => registry.callOp(workspace, "test.explode", {}));
+		expect(error.toJSON()).toEqual({
+			code: "internal",
+			message: "boom",
+			path: "",
 		});
 	});
 

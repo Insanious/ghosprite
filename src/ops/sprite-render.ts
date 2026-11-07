@@ -14,6 +14,6 @@ export const spriteRender = defineOp({
 		const sprite = workspace.getSprite(input.spriteId);
 		const frames =
 			input.frames ?? sprite.frameDurations.map((_, frame) => frame);
-		return { render: renderPngs(sprite, input, frames, "frames") };
+		return { render: renderPngs(sprite, input, frames, "") };
 	},
 });
