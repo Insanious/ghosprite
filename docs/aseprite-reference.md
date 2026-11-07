@@ -53,7 +53,7 @@ CelData (shared between linked cels): image, bounds (x,y may be negative), opaci
 
 - **Linked cels:** several cels point to the same `CelData`. Image, position and opacity are shared; `zIndex` is not. Editing one changes all of them, and ghosprite keeps that: to edit one alone, unlink it first. On save, a link points to the **earliest** frame with the same data, on the same layer.
 - **Layer flags:** `Visible=1, Editable=2, LockMove=4, Background=8, Continuous=16, Collapsed=32, Reference=64`.
-- **Background layer:** at most one, always at the bottom, opaque, and it ignores blend mode and opacity.
+- **Background layer:** at most one, always at the bottom, and opaque. It always has opacity 255 and normal blend. The decoder enforces this by skipping both fields for background layers (`aseprite_decoder.cpp:596-602`). The compositor has no special case and applies layer opacity and blend mode as usual (`render.cpp:1070`).
 - **Visibility is inherited:** a layer is hidden if any of its parents is hidden.
 - **Palettes per frame:** `palette(frame)` returns the last palette whose start frame is at or before `frame`. Indexed images can change colour over an animation.
 - **Indexed mode:**
