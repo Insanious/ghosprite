@@ -268,3 +268,21 @@ export class ByteWriter {
 		return this.buffer.slice(0, this.offset);
 	}
 }
+
+/** The chunks written so far into one frame. */
+export type FrameChunks = { count: number };
+
+/** Writes a chunk header, runs `body`, then back-patches the chunk size. */
+export function writeChunk(
+	writer: ByteWriter,
+	frame: FrameChunks,
+	type: number,
+	body: () => void,
+): void {
+	const start = writer.position;
+	writer.dword(0);
+	writer.word(type);
+	body();
+	writer.patchDword(start, writer.position - start);
+	frame.count++;
+}
