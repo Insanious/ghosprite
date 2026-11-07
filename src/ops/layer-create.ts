@@ -54,8 +54,12 @@ export const layerCreate = defineOp({
 		const name =
 			input.name ??
 			`${input.group ? "Group" : "Layer"} ${countLayers(sprite, kind) + 1}`;
+		const hasUuids = [...walkRenderOrder(sprite.root)].some(
+			(layer) => layer.uuid !== undefined,
+		);
 		const init = {
 			id: workspace.nextId("layer"),
+			...(hasUuids && { uuid: crypto.randomUUID() }),
 			name,
 			opacity: input.opacity,
 			flags: { visible: input.visible },

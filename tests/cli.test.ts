@@ -87,6 +87,27 @@ describe("cli run", () => {
 		expect(lines).toHaveLength(3);
 	});
 
+	test("loads a fixture with a render, then saves it", async () => {
+		const target = join(scratch, "saved.aseprite");
+		const file = scriptFile("load-save.json", [
+			{
+				op: "sprite.load",
+				input: {
+					path: "tests/fixtures/sprites/groups3abc.aseprite",
+					render: { scale: 8, grid: true },
+				},
+			},
+			{ op: "sprite.save", input: { spriteId: "sprite-1", path: target } },
+		]);
+		await Bun.sleep(10);
+		const { lines, status } = cli(["run", file, "--out", scratch]);
+		expect(status).toBe(0);
+		expect(lines).toHaveLength(2);
+		expect(lines[0].result.spriteId).toBe("sprite-1");
+		expect(existsSync(lines[0].result.render[0].path)).toBe(true);
+		expect(existsSync(target)).toBe(true);
+	});
+
 	test("malformed JSON exits 2 with usage on stderr", () => {
 		const { status, stderr, lines } = cli(["run"], "{nope");
 		expect(status).toBe(2);
@@ -96,7 +117,7 @@ describe("cli run", () => {
 });
 
 describe("cli ops", () => {
-	test("lists all four ops", () => {
+	test("lists all six ops", () => {
 		const proc = Bun.spawnSync(["bun", "src/cli.ts", "ops"]);
 		const ops = JSON.parse(proc.stdout.toString());
 		expect(ops.map((o: { name: string }) => o.name)).toEqual([
@@ -104,6 +125,8 @@ describe("cli ops", () => {
 			"layer.create",
 			"cel.set",
 			"sprite.render",
+			"sprite.load",
+			"sprite.save",
 		]);
 	});
 });

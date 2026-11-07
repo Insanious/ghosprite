@@ -1,7 +1,10 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, test } from "bun:test";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 import { decodePng } from "../core/png.ts";
-import { findLayer } from "../core/sprite.ts";
+import { findLayer, walkRenderOrder } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
@@ -149,5 +152,92 @@ describe("sprite.render", () => {
 		);
 		expect(error.code).toBe("invalid_input");
 		expect(error.path).toBe("grid");
+	});
+});
+
+describe("sprite.load and sprite.save", () => {
+	const fixture = "tests/fixtures/sprites/groups3abc.aseprite";
+	const scratch = mkdtempSync(join(tmpdir(), "ghosprite-ops-test-"));
+	afterAll(() => rmSync(scratch, { recursive: true, force: true }));
+
+	test("load, save, load gives an equal model", () => {
+		const first = new Workspace();
+		const { spriteId } = call(first, "sprite.load", { path: fixture });
+		const saved = join(scratch, "round-trip.aseprite");
+		call(first, "sprite.save", { spriteId, path: saved });
+		const second = new Workspace();
+		const reloaded = call(second, "sprite.load", { path: saved });
+		expect(second.getSprite(reloaded.spriteId)).toEqual(
+			first.getSprite(spriteId),
+		);
+	});
+
+	test("a missing file is not_found at path", () => {
+		const error = failure(() =>
+			call(new Workspace(), "sprite.load", {
+				path: join(scratch, "missing.aseprite"),
+			}),
+		);
+		expect(error.code).toBe("not_found");
+		expect(error.path).toBe("path");
+	});
+
+	test("a malformed file is invalid_input at path", () => {
+		const path = join(scratch, "bad.aseprite");
+		writeFileSync(path, "not an aseprite file");
+		const error = failure(() => call(new Workspace(), "sprite.load", { path }));
+		expect(error.code).toBe("invalid_input");
+		expect(error.path).toBe("path");
+	});
+
+	test("an unsupported file is unsupported with a tilemap hint", () => {
+		const bytes = readFileSync(fixture);
+		const layerChunk = bytes.findIndex(
+			(byte, i) => i > 128 && byte === 0x04 && bytes[i + 1] === 0x20,
+		);
+		const layerTypeOffset = layerChunk + 2 + 2;
+		new DataView(bytes.buffer, bytes.byteOffset).setUint16(
+			layerTypeOffset,
+			2,
+			true,
+		);
+		const path = join(scratch, "tilemap-layer.aseprite");
+		writeFileSync(path, bytes);
+		const error = failure(() => call(new Workspace(), "sprite.load", { path }));
+		expect(error.code).toBe("unsupported");
+		expect(error.hint).toContain("Tilemaps");
+	});
+
+	test("an unwritable path is invalid_input at path", () => {
+		const { workspace, spriteId } = setup();
+		const error = failure(() =>
+			call(workspace, "sprite.save", {
+				spriteId,
+				path: join(scratch, "no-dir", "out.aseprite"),
+			}),
+		);
+		expect(error.code).toBe("invalid_input");
+		expect(error.path).toBe("path");
+	});
+
+	test("layer.create gives the new layer a UUID when the others have one", () => {
+		const workspace = new Workspace();
+		const { spriteId } = call(workspace, "sprite.load", { path: fixture });
+		const sprite = workspace.getSprite(spriteId);
+		for (const layer of walkRenderOrder(sprite.root)) {
+			layer.uuid = crypto.randomUUID();
+		}
+		const { layerId } = call(workspace, "layer.create", { spriteId });
+		expect(workspace.getLayer(spriteId, layerId).uuid).toBeDefined();
+		call(workspace, "sprite.save", {
+			spriteId,
+			path: join(scratch, "uuids.aseprite"),
+		});
+	});
+
+	test("layer.create adds no UUID when the others have none", () => {
+		const { workspace, spriteId } = setup();
+		const { layerId } = call(workspace, "layer.create", { spriteId });
+		expect(workspace.getLayer(spriteId, layerId).uuid).toBeUndefined();
 	});
 });
