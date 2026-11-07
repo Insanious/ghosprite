@@ -154,7 +154,10 @@ export function writePropertiesMaps(
 	for (const [key, map] of written) {
 		const id = key === "" ? 0 : extensionId(key);
 		if (id === undefined) {
-			throw new RangeError(`Extension "${key}" has no external file ID`);
+			throw new AsepriteFileError(
+				"unsupported",
+				`Extension "${key}" has no external file ID`,
+			);
 		}
 		writer.dword(id);
 		writeProperties(writer, map, 0);
@@ -178,7 +181,10 @@ function writeProperties(
 
 function checkWriteDepth(depth: number): void {
 	if (depth > MAX_DEPTH) {
-		throw new RangeError(`More than ${MAX_DEPTH} property levels`);
+		throw new AsepriteFileError(
+			"unsupported",
+			`More than ${MAX_DEPTH} property levels`,
+		);
 	}
 }
 
@@ -190,7 +196,10 @@ function writeValue(
 	checkWriteDepth(depth);
 	switch (property.type) {
 		case "null":
-			throw new RangeError("A null property cannot be stored in a file");
+			throw new AsepriteFileError(
+				"unsupported",
+				"A null property cannot be stored in a file",
+			);
 		case "bool":
 			writer.byte(property.value ? 1 : 0);
 			break;

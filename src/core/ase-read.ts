@@ -274,7 +274,11 @@ function readChunk(state: ReadState, type: number, end: number): void {
 			readUserData(state);
 			break;
 		case CHUNK_TILESET:
-			throw new AsepriteFileError("unsupported", "Tilesets are not supported");
+			throw new AsepriteFileError(
+				"unsupported",
+				"Tilesets are not supported",
+				"Tilemaps aren't supported yet",
+			);
 	}
 }
 
@@ -450,6 +454,7 @@ function readLayerChunk(state: ReadState): void {
 		throw new AsepriteFileError(
 			"unsupported",
 			"Tilemap layers are not supported",
+			"Tilemaps aren't supported yet",
 		);
 	}
 	if (layerType !== LAYER_IMAGE && layerType !== LAYER_GROUP) {
@@ -556,6 +561,7 @@ function readCelChunk(state: ReadState, end: number): void {
 		throw new AsepriteFileError(
 			"unsupported",
 			"Tilemap cels are not supported",
+			"Tilemaps aren't supported yet",
 		);
 	}
 	if (celType !== CEL_RAW && celType !== CEL_COMPRESSED) {

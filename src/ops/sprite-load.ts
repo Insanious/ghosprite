@@ -36,7 +36,7 @@ export const spriteLoad = defineOp({
 			if (error.reason === "unsupported") {
 				throw new OpError("unsupported", error.message, {
 					path: "path",
-					hint: "Tilemaps aren't supported yet",
+					hint: error.hint,
 				});
 			}
 			throw new OpError("invalid_input", error.message, { path: "path" });

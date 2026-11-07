@@ -4,11 +4,13 @@ export type AsepriteFileErrorReason = "malformed" | "unsupported";
 
 export class AsepriteFileError extends Error {
 	readonly reason: AsepriteFileErrorReason;
+	readonly hint?: string;
 
-	constructor(reason: AsepriteFileErrorReason, message: string) {
+	constructor(reason: AsepriteFileErrorReason, message: string, hint?: string) {
 		super(message);
 		this.name = "AsepriteFileError";
 		this.reason = reason;
+		this.hint = hint;
 	}
 }
 
@@ -219,7 +221,8 @@ export class ByteWriter {
 	string(value: string): void {
 		const encoded = textEncoder.encode(value);
 		if (encoded.length > 0xffff) {
-			throw new RangeError(
+			throw new AsepriteFileError(
+				"unsupported",
 				`String is ${encoded.length} bytes, over the 65535 limit`,
 			);
 		}
@@ -245,7 +248,7 @@ export class ByteWriter {
 	uuid(value: string): void {
 		const hex = value.replaceAll("-", "");
 		if (!/^[0-9a-fA-F]{32}$/.test(hex)) {
-			throw new RangeError(`"${value}" is not a UUID`);
+			throw new AsepriteFileError("unsupported", `"${value}" is not a UUID`);
 		}
 		for (let i = 0; i < 32; i += 2) {
 			this.byte(Number.parseInt(hex.slice(i, i + 2), 16));

@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { deflateSync } from "node:zlib";
 import { z } from "zod";
+import { AsepriteFileError } from "../core/ase-bytes.ts";
 import { writeAseprite } from "../core/ase-write.ts";
 import { OpError } from "../errors.ts";
 import { defineOp } from "./registry.ts";
@@ -12,9 +13,14 @@ export const spriteSave = defineOp({
 	input: z.object({ spriteId: z.string(), path: z.string() }),
 	renderOption: false,
 	run: (workspace, input) => {
-		const bytes = writeAseprite(workspace.getSprite(input.spriteId), {
-			deflate: deflateSync,
-		});
+		const sprite = workspace.getSprite(input.spriteId);
+		let bytes: Uint8Array;
+		try {
+			bytes = writeAseprite(sprite, { deflate: deflateSync });
+		} catch (error) {
+			if (!(error instanceof AsepriteFileError)) throw error;
+			throw new OpError("unsupported", error.message, { path: "spriteId" });
+		}
 		try {
 			writeFileSync(input.path, bytes);
 		} catch (error) {

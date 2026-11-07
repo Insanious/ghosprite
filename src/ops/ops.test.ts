@@ -1,8 +1,15 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
+import { buildFile, layerChunk } from "../../tests/helpers/ase-build.ts";
 import { decodePng } from "../core/png.ts";
 import { findLayer, walkRenderOrder } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
@@ -206,6 +213,33 @@ describe("sprite.load and sprite.save", () => {
 		const error = failure(() => call(new Workspace(), "sprite.load", { path }));
 		expect(error.code).toBe("unsupported");
 		expect(error.hint).toContain("Tilemaps");
+	});
+
+	test("an unknown blend mode is unsupported with no tilemap hint", () => {
+		const path = join(scratch, "blend.aseprite");
+		writeFileSync(
+			path,
+			buildFile({
+				frames: [[layerChunk({ name: "a", blend: 99 })]],
+			}),
+		);
+		const error = failure(() => call(new Workspace(), "sprite.load", { path }));
+		expect(error.code).toBe("unsupported");
+		expect(error.hint).toBeUndefined();
+	});
+
+	test("a null user property is unsupported at spriteId and writes no file", () => {
+		const { workspace, spriteId } = setup();
+		workspace
+			.getSprite(spriteId)
+			.userData.properties.set("", new Map([["a", { type: "null" }]]));
+		const path = join(scratch, "null-property.aseprite");
+		const error = failure(() =>
+			call(workspace, "sprite.save", { spriteId, path }),
+		);
+		expect(error.code).toBe("unsupported");
+		expect(error.path).toBe("spriteId");
+		expect(existsSync(path)).toBe(false);
 	});
 
 	test("an unwritable path is invalid_input at path", () => {

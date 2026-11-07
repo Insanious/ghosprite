@@ -121,7 +121,7 @@ test("writing an extension with no ID throws", () => {
 		],
 	]);
 	expect(() => writePropertiesMaps(new ByteWriter(), maps, idOf)).toThrow(
-		RangeError,
+		AsepriteFileError,
 	);
 });
 
@@ -163,7 +163,7 @@ test("the writer rejects nesting past the limit", () => {
 			new Map([["", new Map([["k", value]])]]),
 			idOf,
 		),
-	).toThrow(RangeError);
+	).toThrow(AsepriteFileError);
 });
 
 test("an unknown type ID is malformed", () => {
