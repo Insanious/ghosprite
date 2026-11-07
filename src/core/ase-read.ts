@@ -1,5 +1,14 @@
 import { AsepriteFileError, ByteReader } from "./ase-bytes.ts";
 import {
+	type ExternalFiles,
+	readCelExtraChunk,
+	readColorProfileChunk,
+	readExternalFilesChunk,
+	readSliceChunk,
+	readTagsChunk,
+	readUserDataChunk,
+} from "./ase-read-meta.ts";
+import {
 	bytesPerPixel,
 	type ColorMode,
 	copyImage,
@@ -12,6 +21,7 @@ import type { ZlibFn } from "./png.ts";
 import {
 	addLayer,
 	BLEND_MODES,
+	type Cel,
 	type CelData,
 	createGroupLayer,
 	createImageLayer,
@@ -23,7 +33,7 @@ import {
 	type Sprite,
 	setCel,
 } from "./sprite.ts";
-import { createUserData } from "./user-data.ts";
+import { createUserData, type UserData } from "./user-data.ts";
 
 const FILE_MAGIC = 0xa5e0;
 const FRAME_MAGIC = 0xf1fa;
@@ -39,7 +49,13 @@ const CHUNK_OLD_PALETTE_6BIT = 0x000b;
 const CHUNK_OLD_PALETTE_8BIT = 0x0004;
 const CHUNK_LAYER = 0x2004;
 const CHUNK_CEL = 0x2005;
+const CHUNK_CEL_EXTRA = 0x2006;
+const CHUNK_COLOR_PROFILE = 0x2007;
+const CHUNK_EXTERNAL_FILES = 0x2008;
+const CHUNK_TAGS = 0x2018;
 const CHUNK_PALETTE = 0x2019;
+const CHUNK_USER_DATA = 0x2020;
+const CHUNK_SLICE = 0x2022;
 const CHUNK_TILESET = 0x2023;
 
 const LAYER_IMAGE = 0;
@@ -86,6 +102,12 @@ type ReadState = {
 	groupStack: GroupLayer[];
 	hasBackground: boolean;
 	sawNewPalette: boolean;
+	externalFiles: ExternalFiles;
+	/** The next user data chunk replaces this. Undefined drops it. */
+	userDataTarget: UserData | undefined;
+	/** While user data walks the tags chunk's tags, the index of the one that is the target. */
+	tagCursor: number | undefined;
+	lastCel: Cel | undefined;
 };
 
 export function readAseprite(
@@ -105,6 +127,10 @@ export function readAseprite(
 		groupStack: [sprite.root],
 		hasBackground: false,
 		sawNewPalette: false,
+		externalFiles: new Map(),
+		userDataTarget: sprite.userData,
+		tagCursor: undefined,
+		lastCel: undefined,
 	};
 	for (let frame = 0; frame < header.frames; frame++) {
 		state.frame = frame;
@@ -226,9 +252,69 @@ function readChunk(state: ReadState, type: number, end: number): void {
 		case CHUNK_CEL:
 			readCelChunk(state, end);
 			break;
+		case CHUNK_CEL_EXTRA:
+			readCelExtra(state);
+			break;
+		case CHUNK_COLOR_PROFILE:
+			readColorProfile(state);
+			break;
+		case CHUNK_EXTERNAL_FILES:
+			readExternalFilesChunk(state.reader, state.externalFiles);
+			break;
+		case CHUNK_TAGS:
+			readTags(state, end);
+			break;
+		case CHUNK_SLICE: {
+			const slice = readSliceChunk(state.reader, end);
+			state.sprite.slices.push(slice);
+			setUserDataTarget(state, slice.userData);
+			break;
+		}
+		case CHUNK_USER_DATA:
+			readUserData(state);
+			break;
 		case CHUNK_TILESET:
 			throw new AsepriteFileError("unsupported", "Tilesets are not supported");
 	}
+}
+
+function setUserDataTarget(
+	state: ReadState,
+	target: UserData | undefined,
+): void {
+	state.userDataTarget = target;
+	state.tagCursor = undefined;
+}
+
+function readTags(state: ReadState, end: number): void {
+	state.sprite.tags.push(...readTagsChunk(state.reader, end));
+	setUserDataTarget(state, state.sprite.tags[0]?.userData);
+	if (state.userDataTarget) state.tagCursor = 0;
+}
+
+/** Tags' user data chunks follow the tags chunk one per tag, in order. */
+function readUserData(state: ReadState): void {
+	const userData = readUserDataChunk(state.reader, state.externalFiles);
+	const target = state.userDataTarget;
+	if (!target) return;
+	target.text = userData.text;
+	target.color = userData.color;
+	target.properties = userData.properties;
+	if (state.tagCursor === undefined) return;
+	const next = state.tagCursor + 1;
+	setUserDataTarget(state, state.sprite.tags[next]?.userData);
+	if (state.userDataTarget) state.tagCursor = next;
+}
+
+function readCelExtra(state: ReadState): void {
+	const bounds = readCelExtraChunk(state.reader);
+	if (bounds && state.lastCel) state.lastCel.data.preciseBounds = bounds;
+}
+
+function readColorProfile(state: ReadState): void {
+	const profile = readColorProfileChunk(state.reader);
+	if (profile) state.sprite.colorProfile = profile;
+	else state.warnings.push("A colour profile of an unknown type was skipped");
 }
 
 function blackPalette(size: number): Palette["colors"] {
@@ -420,6 +506,7 @@ function readLayerChunk(state: ReadState): void {
 		layerType === LAYER_GROUP ? createGroupLayer(init) : createImageLayer(init);
 	addLayer(sprite, layer, parent);
 	state.layers.push(layer);
+	setUserDataTarget(state, layer.userData);
 	if (layer.kind === "group") state.groupStack.push(layer);
 }
 
@@ -461,7 +548,8 @@ function readCelChunk(state: ReadState, end: number): void {
 	}
 
 	if (celType === CEL_LINKED) {
-		readLinkedCel(state, layer, { x, y, opacity, zIndex });
+		const cel = readLinkedCel(state, layer, { x, y, opacity, zIndex });
+		setLastCel(state, cel);
 		return;
 	}
 	if (celType === CEL_TILEMAP) {
@@ -476,20 +564,29 @@ function readCelChunk(state: ReadState, end: number): void {
 
 	const width = reader.word();
 	const height = reader.word();
-	if (width === 0 || height === 0) return;
+	if (width === 0 || height === 0) {
+		setUserDataTarget(state, undefined);
+		return;
+	}
 	const image = createImage(width, height, sprite.mode);
 	const pixels =
 		celType === CEL_RAW
 			? reader.read(image.data.length)
 			: inflatePixels(state, image, reader.read(end - reader.position));
 	image.data.set(pixels);
-	setCel(
+	const cel = setCel(
 		sprite,
 		layer,
 		state.frame,
 		{ image, x, y, opacity, userData: createUserData() },
 		zIndex,
 	);
+	setLastCel(state, cel);
+}
+
+function setLastCel(state: ReadState, cel: Cel): void {
+	state.lastCel = cel;
+	setUserDataTarget(state, cel.data.userData);
 }
 
 function inflatePixels(
@@ -520,7 +617,7 @@ function readLinkedCel(
 	state: ReadState,
 	layer: ImageLayer,
 	placement: { x: number; y: number; opacity: number; zIndex: number },
-): void {
+): Cel {
 	const linkFrame = state.reader.word();
 	const target = layer.cels.get(linkFrame);
 	if (!target) {
@@ -541,5 +638,5 @@ function readLinkedCel(
 					opacity,
 					userData: createUserData(),
 				};
-	setCel(state.sprite, layer, state.frame, data, zIndex);
+	return setCel(state.sprite, layer, state.frame, data, zIndex);
 }
