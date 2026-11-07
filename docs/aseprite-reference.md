@@ -194,7 +194,7 @@ Each Aseprite tool combines **ink × controller × stroke type × point shape**.
   - rectangles (outline/filled, corner radius)
   - ellipses (`algo_ellipse`/`algo_ellipsefill`)
   - bezier (`algo_spline`, 4 points)
-  - **pixel-perfect** (`algo_line_perfect` plus removal of L-shaped corner pixels)
+  - **pixel-perfect** (`algo_line_continuous`, the same join as plain lines, plus removal of L-shaped corner pixels; `algo_line_perfect` is only used when snapping to a grid or an angle)
 - **Point shapes:**
   - single pixel
   - brush stamp: circle, square, line or image brush, with pattern alignment
@@ -202,7 +202,7 @@ Each Aseprite tool combines **ink × controller × stroke type × point shape**.
   - spray (random pixels in a radius)
   - All of them emit horizontal spans. That's where clipping and tiled-mode wrapping happen; a span crossing the edge is split in two.
 - **Inks:**
-  - **simple:** opaque copy if opacity is 255 and the colour is opaque, otherwise alpha blend. Indexed images are always treated as opaque.
+  - **simple:** resolved by the colour: an alpha-0 colour uses the copy ink, and any other colour uses the plain paint ink. A probe found that an opaque colour at opacity 128 gives an opaque pixel, so treat Aseprite's output as the spec. Indexed images are always treated as opaque.
   - **alpha compositing:** the normal blend.
   - **copy:** overwrites including alpha.
   - **lock alpha:** replaces colour, keeps the destination's alpha.
@@ -214,7 +214,7 @@ Each Aseprite tool combines **ink × controller × stroke type × point shape**.
   - **jumble:** random swaps with nearby pixels.
   - **selection inks:** add, subtract, intersect.
 - **Symmetry:** horizontal, vertical or both. Image brushes are flipped for each mirrored copy.
-- **Pixel-perfect with arbitrary brushes:** Aseprite saves and restores the area under each point. For 1-px brushes, a geometric pass over the point list gives the same result.
+- **Pixel-perfect with arbitrary brushes:** Aseprite saves the area under the last point and restores it when that point is dropped as an L-corner, before the next point is stamped. That gives the same result as never stamping it, so a geometric pass over the point list works for any brush. Line brushes skip the corner removal unless their angle is 0, 90 or 180.
 - **Cels are stored trimmed** (`ExpandCelCanvas`). Drawing outside the cel bounds must grow the cel, draw, then trim it again, while keeping links. Alternatively, draw into a canvas-sized buffer and trim on commit.
 
 ## 8. Document operations: where the logic is
