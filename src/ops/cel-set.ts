@@ -9,6 +9,7 @@ import {
 	unionRects,
 } from "../core/image.ts";
 import { framesSharingData, setCel } from "../core/sprite.ts";
+import { createUserData } from "../core/user-data.ts";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { defineOp } from "./registry.ts";
@@ -95,7 +96,10 @@ export const celSet = defineOp({
 			);
 			Object.assign(existing.data, edited);
 		} else {
-			setCel(sprite, layer, input.frame, edited);
+			setCel(sprite, layer, input.frame, {
+				...edited,
+				userData: createUserData(),
+			});
 		}
 
 		const clipped = intersectRects(rect, {

@@ -12,6 +12,7 @@ import {
 	type ImageLayer,
 	setCel,
 } from "../src/core/sprite.ts";
+import { createUserData } from "../src/core/user-data.ts";
 
 type ColourAt = (x: number, y: number) => [number, number, number, number];
 
@@ -85,6 +86,7 @@ function build() {
 			x,
 			y,
 			opacity,
+			userData: createUserData(),
 		});
 	};
 

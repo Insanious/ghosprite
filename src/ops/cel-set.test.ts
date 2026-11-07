@@ -8,6 +8,7 @@ import {
 	createSprite,
 	setCel,
 } from "../core/sprite.ts";
+import { createUserData } from "../core/user-data.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { celSet } from "./cel-set.ts";
@@ -216,6 +217,7 @@ describe("cel.set", () => {
 			x: 0,
 			y: 0,
 			opacity: 255,
+			userData: createUserData(),
 		});
 		const result = run(workspace, {
 			spriteId,
@@ -269,7 +271,13 @@ describe("cel.set", () => {
 
 	test("editing a linked cel reports every linked frame and changes both renders", () => {
 		const { workspace, spriteId, layer, sprite } = setup();
-		const data = { image: createImage(1, 1, "rgba"), x: 0, y: 0, opacity: 255 };
+		const data = {
+			image: createImage(1, 1, "rgba"),
+			x: 0,
+			y: 0,
+			opacity: 255,
+			userData: createUserData(),
+		};
 		setCel(sprite, layer, 0, data);
 		setCel(sprite, layer, 2, data);
 		const result = run(workspace, {

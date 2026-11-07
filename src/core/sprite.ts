@@ -1,4 +1,4 @@
-import type { ColorMode, Image } from "./image.ts";
+import type { ColorMode, Image, Rect } from "./image.ts";
 import type { Palette } from "./palette.ts";
 import type { Slice } from "./slice.ts";
 import type { Tag } from "./tag.ts";
@@ -44,6 +44,9 @@ export type CelData = {
 	x: number;
 	y: number;
 	opacity: number;
+	userData: UserData;
+	/** From the cel extra chunk. */
+	preciseBounds?: Rect;
 };
 
 /** Linked cels share one `CelData`; `zIndex` belongs to the cel. */
@@ -55,6 +58,8 @@ export type Cel = {
 
 type LayerBase = {
 	id: string;
+	/** Either every layer in a sprite has one or none does. */
+	uuid?: string;
 	name: string;
 	opacity: number;
 	blendMode: BlendMode;
@@ -75,6 +80,12 @@ export type GroupLayer = LayerBase & {
 
 export type Layer = ImageLayer | GroupLayer;
 
+/** A passthrough of the colour profile chunk; never used for rendering. */
+export type ColorProfile =
+	| { type: "none"; fixedGamma?: number }
+	| { type: "srgb"; fixedGamma?: number }
+	| { type: "icc"; icc: Uint8Array; fixedGamma?: number };
+
 export type Sprite = {
 	mode: ColorMode;
 	width: number;
@@ -86,10 +97,15 @@ export type Sprite = {
 	tags: Tag[];
 	slices: Slice[];
 	userData: UserData;
+	composeGroups: boolean;
+	pixelRatio: { width: number; height: number };
+	gridBounds: Rect;
+	colorProfile: ColorProfile;
 };
 
 export type LayerInit = {
 	id: string;
+	uuid?: string;
 	name: string;
 	opacity?: number;
 	blendMode?: BlendMode;
@@ -99,6 +115,7 @@ export type LayerInit = {
 function layerBase(init: LayerInit): LayerBase {
 	return {
 		id: init.id,
+		...(init.uuid !== undefined && { uuid: init.uuid }),
 		name: init.name,
 		opacity: init.opacity ?? 255,
 		blendMode: init.blendMode ?? "normal",
@@ -147,6 +164,10 @@ export function createSprite(init: {
 		tags: [],
 		slices: [],
 		userData: createUserData(),
+		composeGroups: false,
+		pixelRatio: { width: 1, height: 1 },
+		gridBounds: { x: 0, y: 0, width: 16, height: 16 },
+		colorProfile: { type: "srgb" },
 	};
 }
 

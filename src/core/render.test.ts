@@ -12,6 +12,7 @@ import {
 	type Sprite,
 	setCel,
 } from "./sprite.ts";
+import { createUserData } from "./user-data.ts";
 
 const RED = [255, 0, 0, 255];
 const BLUE = [0, 0, 255, 255];
@@ -48,6 +49,7 @@ function solidCel(
 		x: opts.x ?? 0,
 		y: opts.y ?? 0,
 		opacity: opts.opacity ?? 255,
+		userData: createUserData(),
 	});
 }
 
@@ -110,7 +112,13 @@ describe("renderFrame", () => {
 		const left = imageLayer(sprite, { id: "a" });
 		const image = createImage(3, 3, "rgba");
 		setPixel(image, 2, 1, RED);
-		setCel(sprite, left, 0, { image, x: -2, y: -1, opacity: 255 });
+		setCel(sprite, left, 0, {
+			image,
+			x: -2,
+			y: -1,
+			opacity: 255,
+			userData: createUserData(),
+		});
 		const right = imageLayer(sprite, { id: "b" });
 		solidCel(sprite, right, 0, BLUE, { x: 3, y: 3, width: 3, height: 3 });
 
@@ -148,7 +156,13 @@ describe("renderFrame", () => {
 		const layer = imageLayer(sprite);
 		const image = createImage(1, 1, "indexed");
 		setPixel(image, 0, 0, [1]);
-		const data = { image, x: 0, y: 0, opacity: 255 };
+		const data = {
+			image,
+			x: 0,
+			y: 0,
+			opacity: 255,
+			userData: createUserData(),
+		};
 		setCel(sprite, layer, 0, data);
 		setCel(sprite, layer, 3, data);
 		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual(RED);
@@ -174,7 +188,13 @@ describe("renderFrame", () => {
 		const layer = imageLayer(sprite);
 		const image = createImage(2, 1, "indexed");
 		setPixel(image, 1, 0, [1]);
-		setCel(sprite, layer, 0, { image, x: 0, y: 0, opacity: 255 });
+		setCel(sprite, layer, 0, {
+			image,
+			x: 0,
+			y: 0,
+			opacity: 255,
+			userData: createUserData(),
+		});
 		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual([0, 0, 0, 0]);
 
 		const background = createImageLayer({
@@ -198,7 +218,13 @@ describe("renderFrame", () => {
 		const layer = imageLayer(sprite);
 		const image = createImage(1, 1, "grayscale");
 		setPixel(image, 0, 0, [100, 255]);
-		setCel(sprite, layer, 0, { image, x: 0, y: 0, opacity: 255 });
+		setCel(sprite, layer, 0, {
+			image,
+			x: 0,
+			y: 0,
+			opacity: 255,
+			userData: createUserData(),
+		});
 		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual([
 			100, 100, 100, 255,
 		]);
@@ -209,7 +235,13 @@ describe("renderFrame", () => {
 		const layer = imageLayer(sprite);
 		const image = createImage(1, 1, "rgba");
 		setPixel(image, 0, 0, RED);
-		const data = { image, x: 1, y: 0, opacity: 255 };
+		const data = {
+			image,
+			x: 1,
+			y: 0,
+			opacity: 255,
+			userData: createUserData(),
+		};
 		setCel(sprite, layer, 0, data);
 		setCel(sprite, layer, 1, data);
 		expect(renderFrame(sprite, 0).data).toEqual(renderFrame(sprite, 1).data);

@@ -12,6 +12,7 @@ import {
 	setCel,
 	walkRenderOrder,
 } from "./sprite.ts";
+import { createUserData } from "./user-data.ts";
 
 function newSprite(mode: "rgba" | "indexed" = "rgba") {
 	return createSprite({
@@ -24,10 +25,42 @@ function newSprite(mode: "rgba" | "indexed" = "rgba") {
 }
 
 function newData(mode: "rgba" | "indexed" = "rgba"): CelData {
-	return { image: createImage(4, 4, mode), x: 0, y: 0, opacity: 255 };
+	return {
+		image: createImage(4, 4, mode),
+		x: 0,
+		y: 0,
+		opacity: 255,
+		userData: createUserData(),
+	};
 }
 
+describe("createSprite", () => {
+	test("sets the round-trip defaults", () => {
+		const sprite = newSprite();
+		expect(sprite.composeGroups).toBe(false);
+		expect(sprite.pixelRatio).toEqual({ width: 1, height: 1 });
+		expect(sprite.gridBounds).toEqual({ x: 0, y: 0, width: 16, height: 16 });
+		expect(sprite.colorProfile).toEqual({ type: "srgb" });
+	});
+
+	test("layers have no uuid unless given one", () => {
+		expect(createImageLayer({ id: "a", name: "A" }).uuid).toBeUndefined();
+		expect(createGroupLayer({ id: "g", name: "G", uuid: "u" }).uuid).toBe("u");
+	});
+});
+
 describe("linked cels", () => {
+	test("linked cels share one userData object", () => {
+		const sprite = newSprite();
+		const layer = createImageLayer({ id: "a", name: "A" });
+		addLayer(sprite, layer, sprite.root);
+		const data = newData();
+		const first = setCel(sprite, layer, 0, data);
+		const second = setCel(sprite, layer, 1, data);
+		first.data.userData.text = "note";
+		expect(second.data.userData.text).toBe("note");
+	});
+
 	test("a pixel written through one cel shows in the other frame", () => {
 		const sprite = newSprite();
 		const layer = createImageLayer({ id: "a", name: "A" });
