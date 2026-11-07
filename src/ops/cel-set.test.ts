@@ -210,7 +210,7 @@ describe("cel.set", () => {
 		});
 	});
 
-	test("moving an existing cel reports the union of the old and new rects", () => {
+	test("moving an existing cel reports the pixels that changed", () => {
 		const { workspace, spriteId, layer, sprite } = setup();
 		setCel(sprite, layer, 0, {
 			image: createImage(2, 2, "rgba"),
@@ -232,9 +232,59 @@ describe("cel.set", () => {
 			{
 				layerId: layer.id,
 				frame: 0,
-				rect: { x: 0, y: 0, width: 4, height: 4 },
+				rect: { x: 2, y: 2, width: 2, height: 2 },
 			},
 		]);
+	});
+
+	test("a transparent right column is trimmed", () => {
+		const { workspace, spriteId, layer } = setup();
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			legend,
+			rows: ["R.", "R."],
+		});
+		expect(layer.cels.get(0)?.data.image.width).toBe(1);
+	});
+
+	test("all-transparent rows remove the cel", () => {
+		const { workspace, spriteId, layer, sprite } = setup();
+		setCel(sprite, layer, 0, {
+			image: createImage(1, 1, "rgba"),
+			x: 0,
+			y: 0,
+			opacity: 255,
+			userData: createUserData(),
+		});
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			legend,
+			rows: ["."],
+		});
+		expect(layer.cels.size).toBe(0);
+	});
+
+	test("an opacity change reports the cel's bounds", () => {
+		const { workspace, spriteId, layer } = setup();
+		const input = {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			legend,
+			rows: ["R"],
+		};
+		run(workspace, input);
+		const result = run(workspace, { ...input, opacity: 100 });
+		expect(result.changed[0]?.rect).toEqual({
+			x: 0,
+			y: 0,
+			width: 1,
+			height: 1,
+		});
 	});
 
 	test("a cel partly off-canvas reports a clipped rect", () => {

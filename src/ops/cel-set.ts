@@ -1,22 +1,15 @@
 import { z } from "zod";
+import { commitCel } from "../core/cel-edit.ts";
 import {
 	createImage,
-	type Image,
 	intersectRects,
 	isEmptyRect,
-	type Rect,
 	setPixel,
 	unionRects,
 } from "../core/image.ts";
-import { framesSharingData, setCel } from "../core/sprite.ts";
-import { createUserData } from "../core/user-data.ts";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { defineOp } from "./registry.ts";
-
-function boundsOf(image: Image, x: number, y: number): Rect {
-	return { x, y, width: image.width, height: image.height };
-}
 
 export const celSet = defineOp({
 	name: "cel.set",
@@ -84,34 +77,32 @@ export const celSet = defineOp({
 			});
 		});
 
-		const edited = { image, x: input.x, y: input.y, opacity: input.opacity };
-		const existing = layer.cels.get(input.frame);
-		let frames = [input.frame];
-		let rect = boundsOf(image, input.x, input.y);
-		if (existing) {
-			frames = framesSharingData(layer, existing.data);
-			rect = unionRects(
-				boundsOf(existing.data.image, existing.data.x, existing.data.y),
-				rect,
-			);
-			Object.assign(existing.data, edited);
-		} else {
-			setCel(sprite, layer, input.frame, {
-				...edited,
-				userData: createUserData(),
-			});
-		}
-
-		const clipped = intersectRects(rect, {
-			x: 0,
-			y: 0,
-			width: sprite.width,
-			height: sprite.height,
+		const commit = commitCel(sprite, layer, input.frame, {
+			image,
+			x: input.x,
+			y: input.y,
 		});
+		let rect = commit.rect;
+		const cel = layer.cels.get(input.frame);
+		if (cel && cel.data.opacity !== input.opacity) {
+			cel.data.opacity = input.opacity;
+			rect = unionRects(
+				rect,
+				intersectRects(
+					{
+						x: cel.data.x,
+						y: cel.data.y,
+						width: cel.data.image.width,
+						height: cel.data.image.height,
+					},
+					{ x: 0, y: 0, width: sprite.width, height: sprite.height },
+				),
+			);
+		}
 		return {
-			changed: isEmptyRect(clipped)
+			changed: isEmptyRect(rect)
 				? []
-				: frames.map((frame) => ({ layerId: layer.id, frame, rect: clipped })),
+				: commit.frames.map((frame) => ({ layerId: layer.id, frame, rect })),
 		};
 	},
 });
