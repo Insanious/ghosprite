@@ -2,7 +2,8 @@ export type OpErrorCode =
 	| "invalid_input"
 	| "unknown_op"
 	| "not_found"
-	| "out_of_range";
+	| "out_of_range"
+	| "unsupported";
 
 export type OpErrorInfo = {
 	code: OpErrorCode;
