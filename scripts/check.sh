@@ -9,5 +9,5 @@ if [ $# -gt 0 ]; then
 	bun test "$@"
 else
 	bun test --pass-with-no-tests
-	bun build src/index.ts --outdir dist --target bun
+	bun build src/cli.ts --outdir dist --target bun
 fi
