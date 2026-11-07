@@ -13,7 +13,7 @@ A headless pixel-art sprite engine for AI agents, modelled on Aseprite's documen
 ## Commands
 
 - `bun run check`: what CI runs. Biome, typecheck, all tests, then the build. Stops at the first failure.
-- `bun run check <filter>`: Biome, typecheck, and only the tests matching `<filter>`, with no build.
+- `bun run check <bun test args>`: Biome, typecheck, then `bun test <args>`, with no build. Pass a path fragment to run matching test files (`bun run check blend`), or `-t "<name>"` to run a single test.
 
 Iterate with the narrow form, and run the full `bun run check` before committing.
 

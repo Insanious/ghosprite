@@ -6,8 +6,8 @@ set -eu
 biome ci .
 tsc --noEmit
 if [ $# -gt 0 ]; then
-	bun --bun vitest run "$@"
+	bun test "$@"
 else
-	bun --bun vitest run --passWithNoTests
+	bun test --pass-with-no-tests
 	bun build src/index.ts --outdir dist --target bun
 fi
