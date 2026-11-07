@@ -151,7 +151,7 @@ Read the spec at `docs/ase-file-specs.md`. The reference code is `src/dio` (MIT)
   - 2: group blend mode and opacity are valid (the file expects composited groups).
   - 4: layers have UUIDs.
 - **Chunk types:**
-  - `0x0004` and `0x000B`: old palettes. Ignore them once a `0x2019` palette chunk has been seen. The writer still emits `0x0004` when the palette has ≤256 colours and all are opaque.
+  - `0x0004` and `0x000B`: old palettes. Ignore them once a `0x2019` palette chunk has been seen. The writer picks one chunk type for the whole file and never writes both: `0x0004` when every palette has ≤256 colours and all are opaque, otherwise `0x2019` (`aseprite_encoder.cpp:41-49`). A palette chunk is written in frame 0 and in each frame where the palette changes. A `0x2019` chunk covers only the changed range of entries, while a `0x0004` chunk always holds the whole palette (`aseprite_encoder.cpp:376-393`).
   - `0x2004` layer, `0x2005` cel, `0x2006` cel extra, `0x2007` colour profile, `0x2008` external files.
   - `0x2016` mask (deprecated), `0x2017` path (unused).
   - `0x2018` tags, `0x2019` palette, `0x2020` user data, `0x2022` slice, `0x2023` tileset.
