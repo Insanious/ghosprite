@@ -1,4 +1,11 @@
+import {
+	blendHslColor,
+	blendHslHue,
+	blendHslLuminosity,
+	blendHslSaturation,
+} from "./blend-hsl.ts";
 import type { Rgba } from "./image.ts";
+import type { BlendMode } from "./sprite.ts";
 
 /** Rounded a*b/255, from pixman. */
 export function mul8(a: number, b: number): number {
@@ -128,3 +135,49 @@ export const blendExclusion = channelBlender((b, s) => b + s - 2 * mul8(b, s));
 export const blendAddition = channelBlender((b, s) => Math.min(b + s, 255));
 export const blendSubtract = channelBlender((b, s) => Math.max(b - s, 0));
 export const blendDivide = channelBlender(divide);
+
+function modeBlender(mode: Exclude<BlendMode, "normal">): Blender {
+	switch (mode) {
+		case "multiply":
+			return blendMultiply;
+		case "screen":
+			return blendScreen;
+		case "overlay":
+			return blendOverlay;
+		case "darken":
+			return blendDarken;
+		case "lighten":
+			return blendLighten;
+		case "color-dodge":
+			return blendColorDodge;
+		case "color-burn":
+			return blendColorBurn;
+		case "hard-light":
+			return blendHardLight;
+		case "soft-light":
+			return blendSoftLight;
+		case "difference":
+			return blendDifference;
+		case "exclusion":
+			return blendExclusion;
+		case "hsl-hue":
+			return blendHslHue;
+		case "hsl-saturation":
+			return blendHslSaturation;
+		case "hsl-color":
+			return blendHslColor;
+		case "hsl-luminosity":
+			return blendHslLuminosity;
+		case "addition":
+			return blendAddition;
+		case "subtract":
+			return blendSubtract;
+		case "divide":
+			return blendDivide;
+	}
+}
+
+/** The blender Aseprite uses with new blend on, which is its default. */
+export function blenderFor(mode: BlendMode): Blender {
+	return mode === "normal" ? blendNormal : withNewBlend(modeBlender(mode));
+}

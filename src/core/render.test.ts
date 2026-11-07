@@ -4,6 +4,7 @@ import { createImage, getPixel, setPixel } from "./image.ts";
 import { renderFrame } from "./render.ts";
 import {
 	addLayer,
+	BLEND_MODES,
 	createGroupLayer,
 	createImageLayer,
 	createSprite,
@@ -248,11 +249,140 @@ describe("renderFrame", () => {
 		expect(getPixel(renderFrame(sprite, 1), 1, 0)).toEqual(RED);
 	});
 
-	test("a visible multiply layer throws, a hidden one doesn't", () => {
+	test("every blend mode renders", () => {
+		for (const blendMode of BLEND_MODES) {
+			const sprite = rgbaSprite();
+			solidCel(sprite, imageLayer(sprite, { id: "a" }), 0, RED);
+			const top = imageLayer(sprite, { id: "b", blendMode });
+			solidCel(sprite, top, 0, [10, 200, 90, 180]);
+			expect(() => renderFrame(sprite, 0)).not.toThrow();
+		}
+	});
+
+	test("a multiply layer blends with the layers below", () => {
 		const sprite = rgbaSprite();
-		const layer = imageLayer(sprite, { blendMode: "multiply" });
-		expect(() => renderFrame(sprite, 0)).toThrow("not supported yet");
-		layer.flags.visible = false;
-		expect(() => renderFrame(sprite, 0)).not.toThrow();
+		solidCel(sprite, imageLayer(sprite, { id: "a" }), 0, [200, 100, 50, 255]);
+		const top = imageLayer(sprite, { id: "b", blendMode: "multiply" });
+		solidCel(sprite, top, 0, [128, 128, 128, 255]);
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual([100, 50, 25, 255]);
+	});
+
+	test("a negative z-index moves a cel below a layer in another group", () => {
+		const sprite = rgbaSprite();
+		const groupA = createGroupLayer({ id: "ga", name: "ga" });
+		addLayer(sprite, groupA, sprite.root);
+		const a = createImageLayer({ id: "a", name: "a" });
+		addLayer(sprite, a, groupA);
+		const groupB = createGroupLayer({ id: "gb", name: "gb" });
+		addLayer(sprite, groupB, sprite.root);
+		const b = createImageLayer({ id: "b", name: "b" });
+		addLayer(sprite, b, groupB);
+		solidCel(sprite, a, 0, RED);
+		const cel = solidCel(sprite, b, 0, BLUE);
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual(BLUE);
+		cel.zIndex = -2;
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual(RED);
+	});
+
+	test("a hidden layer still takes an order slot", () => {
+		const sprite = rgbaSprite();
+		solidCel(sprite, imageLayer(sprite, { id: "a" }), 0, RED);
+		imageLayer(sprite, { id: "h", flags: { visible: false } });
+		const cel = solidCel(sprite, imageLayer(sprite, { id: "b" }), 0, BLUE);
+		cel.zIndex = -1;
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual(BLUE);
+	});
+
+	test("a cel sorted below the background layer is still drawn on top of it", () => {
+		const sprite = rgbaSprite();
+		const background = imageLayer(sprite, {
+			id: "bg",
+			flags: { background: true },
+		});
+		solidCel(sprite, background, 0, RED);
+		const cel = solidCel(sprite, imageLayer(sprite, { id: "t" }), 0, BLUE);
+		cel.zIndex = -5;
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual(BLUE);
+	});
+
+	test("an all-zero source pixel leaves the backdrop alone, other alpha-0 pixels blend", () => {
+		const sprite = rgbaSprite();
+		solidCel(sprite, imageLayer(sprite, { id: "a" }), 0, [200, 10, 10, 0]);
+		const top = imageLayer(sprite, { id: "b" });
+		solidCel(sprite, top, 0, [0, 0, 0, 0]);
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual([200, 10, 10, 0]);
+		solidCel(sprite, top, 0, [5, 5, 5, 0]);
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual([5, 5, 5, 0]);
+	});
+
+	test("an indexed source pixel at the transparent index leaves the backdrop alone", () => {
+		const sprite = createSprite({
+			width: 1,
+			height: 1,
+			mode: "indexed",
+			palettes: [
+				{
+					startFrame: 0,
+					colors: [
+						{ r: 7, g: 7, b: 7, a: 255 },
+						{ r: 200, g: 10, b: 10, a: 0 },
+					],
+				},
+			],
+		});
+		for (const [id, index] of [
+			["a", 1],
+			["b", 0],
+		] as const) {
+			const layer = imageLayer(sprite, { id });
+			const image = createImage(1, 1, "indexed");
+			setPixel(image, 0, 0, [index]);
+			setCel(sprite, layer, 0, {
+				image,
+				x: 0,
+				y: 0,
+				opacity: 255,
+				userData: createUserData(),
+			});
+		}
+		expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual([200, 10, 10, 0]);
+	});
+
+	describe("with composeGroups", () => {
+		test("group opacity applies once to the combined children", () => {
+			const sprite = rgbaSprite();
+			sprite.composeGroups = true;
+			const group = createGroupLayer({ id: "g", name: "g", opacity: 128 });
+			addLayer(sprite, group, sprite.root);
+			for (const [id, colour] of [
+				["r", RED],
+				["b", BLUE],
+			] as const) {
+				const child = createImageLayer({ id, name: id });
+				addLayer(sprite, child, group);
+				solidCel(sprite, child, 0, colour);
+			}
+			expect(getPixel(renderFrame(sprite, 0), 0, 0)).toEqual([0, 0, 255, 128]);
+		});
+
+		test("a child's z-index doesn't move it out of its group", () => {
+			const sprite = rgbaSprite(2, 1);
+			sprite.composeGroups = true;
+			solidCel(sprite, imageLayer(sprite, { id: "l" }), 0, [255, 255, 0, 255], {
+				width: 2,
+			});
+			const group = createGroupLayer({ id: "g", name: "g" });
+			addLayer(sprite, group, sprite.root);
+			const red = createImageLayer({ id: "r", name: "r" });
+			addLayer(sprite, red, group);
+			solidCel(sprite, red, 0, RED);
+			const blue = createImageLayer({ id: "b", name: "b" });
+			addLayer(sprite, blue, group);
+			const cel = solidCel(sprite, blue, 0, BLUE, { width: 2 });
+			cel.zIndex = -10;
+			const out = renderFrame(sprite, 0);
+			expect(getPixel(out, 0, 0)).toEqual(RED);
+			expect(getPixel(out, 1, 0)).toEqual(BLUE);
+		});
 	});
 });
