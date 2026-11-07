@@ -1,6 +1,6 @@
 # Aseprite reference notes
 
-Research notes from analysing the Aseprite source at commit `3669f47` (29 Oct 2026), https://github.com/aseprite/aseprite. A local checkout at this commit is at `~/Programming/aseprite`. Read and grep it there rather than fetching from GitHub. If it's missing (e.g. in CI or a cloud session), use the GitHub repo at `3669f47`. Line counts are `wc -l`. Use this as a map of where behaviour lives and which details are easy to get wrong. The format spec in `docs/ase-file-specs.md` in the Aseprite repo is the authoritative source for the file format.
+Research notes from analysing the Aseprite source at commit `3669f47` (29 Oct 2026), https://github.com/aseprite/aseprite. A local checkout at this commit is at `~/Programming/aseprite`. Read and grep it there rather than fetching from GitHub. A build of that commit is at `~/Programming/aseprite/build/bin/aseprite` (not on `PATH`); it runs headless with `-b` and supports `--script`. If it's missing (e.g. in CI or a cloud session), use the GitHub repo at `3669f47`. Line counts are `wc -l`. Use this as a map of where behaviour lives and which details are easy to get wrong. The format spec in `docs/ase-file-specs.md` in the Aseprite repo is the authoritative source for the file format.
 
 ## 1. Licensing (important)
 
@@ -8,7 +8,8 @@ Research notes from analysing the Aseprite source at commit `3669f47` (29 Oct 20
 |---|---|---|
 | `src/doc`, `src/render`, `src/dio`, `src/undo`, `src/psd`, `src/tga`, `src/flic`, `laf/*` | **MIT** | Can be ported line for line |
 | `third_party/pixman` (source of `MUL_UN8`/`DIV_UN8`) | MIT | Can be ported |
-| `src/app/**` (tools, inks, commands, `cmd/`, exporter, CLI, Lua scripting, file glue) | **Aseprite EULA** | Do not copy. Reimplement from behaviour, the docs and the JSON schema |
+| `tests/` (Lua scripts, CLI scripts, sample sprites) | MIT | Can be copied and ported |
+| `src/app/**` (tools, inks, commands, `cmd/`, exporter, CLI, Lua scripting, file glue), `src/filters` | **Aseprite EULA** | Do not copy. Reimplement from behaviour, the docs and the JSON schema |
 
 The hardest-to-get-right parts are all MIT-licensed: the blend maths, the compositor and the `.aseprite` codec.
 
@@ -32,9 +33,9 @@ The hardest-to-get-right parts are all MIT-licensed: the blend maths, the compos
 | Document ops (EULA) | `src/app/doc_api.cpp` | 921 | crop/canvas, addFrame, copyFrame, moveFrame, adjustTags, linked-cel handling |
 | Floating selection transform (EULA) | `src/app/ui/editor/pixels_movement.cpp` | 1,625 | About 600 lines of logic; the rest is mouse handling |
 | Sprite sheet export (EULA) | `src/app/doc_exporter.cpp` | 1,763 | Use its behaviour and JSON schema |
-| Filters | `src/filters/*` | 2,673 | Algorithms: outline, convolution, median, hue/sat, etc. |
+| Filters (EULA) | `src/filters/*` | 2,673 | Behaviour reference only: outline, convolution, median, hue/sat, etc. |
 | Lua API (EULA) | `src/app/script/*` | 19.6k | API design reference |
-| Tests as spec | `tests/scripts/*.lua` (77 files), `tests/cli/*.sh`, `tests/sprites/` | ~10k | Turn these into golden tests |
+| Tests as spec | `tests/scripts/*.lua` (67 files), `tests/cli/*.sh`, `tests/sprites/` | ~10k | Turn these into golden tests |
 
 ## 3. Data model and its invariants
 
@@ -50,7 +51,7 @@ Cel:    frame, layer, zIndex (per cel, NOT shared), data → CelData
 CelData (shared between linked cels): image, bounds (x,y may be negative), opacity
 ```
 
-- **Linked cels:** several cels point to the same `CelData`. Image, position and opacity are shared; `zIndex` is not. Editing one changes all of them. Decide explicitly between unlink-before-edit and copy-on-write. On save, a link points to the **earliest** frame with the same data, on the same layer.
+- **Linked cels:** several cels point to the same `CelData`. Image, position and opacity are shared; `zIndex` is not. Editing one changes all of them, and ghosprite keeps that: to edit one alone, unlink it first. On save, a link points to the **earliest** frame with the same data, on the same layer.
 - **Layer flags:** `Visible=1, Editable=2, LockMove=4, Background=8, Continuous=16, Collapsed=32, Reference=64`.
 - **Background layer:** at most one, always at the bottom, opaque, and it ignores blend mode and opacity.
 - **Visibility is inherited:** a layer is hidden if any of its parents is hidden.
@@ -236,6 +237,8 @@ Aseprite's `src/app/cmd/` holds about 100 one-field undo classes (about 10k line
 
 ## 9. Filters
 
+`src/filters` is under the EULA: reimplement these from behaviour, don't port the code.
+
 Outline (3×3/5×5 neighbourhood mask, inside or outside, fill and background colour), replace colour (with tolerance), hue/saturation (HSL/HSV), brightness/contrast (lookup table), colour curve (spline lookup table), convolution matrix (keep the stock matrices from `data/convmatr.def`), median/despeckle, and invert.
 
 - Filters can target individual channels (R, G, B, A, gray, index).
@@ -317,15 +320,20 @@ Outline (3×3/5×5 neighbourhood mask, inside or outside, fill and background co
 6. **Linked cels plus shifting tag ranges** on frame insert, move and delete.
 7. **Tilemaps.** Defer them.
 8. **Rotation and RotSprite parity.** Don't aim for exact matches; use a simple sampler.
-9. **GIF encoding:** global vs local palette, reserving a transparent index, and per-frame disposal and cropping optimisation. A library is good enough for a first version.
+9. **GIF encoding:** global vs local palette, reserving a transparent index, and per-frame disposal and cropping optimisation. A library outside the pixel core is good enough for a first version.
 
 ## 14. Testing resources
 
-- `tests/scripts/*.lua` (77 files, for example `drawing.lua`, `image.lua`, `layer.lua`, `pixel_perfect.lua`, `app_transaction.lua`, `color_quantization.lua`): read them as behaviour specs and port them to Vitest cases.
-- `tests/sprites/`: sample `.aseprite` files for read/write round-trip tests.
+- `tests/scripts/*.lua` (67 files, for example `drawing.lua`, `image.lua`, `layer.lua`, `pixel_perfect.lua`, `app_transaction.lua`, `color_quantization.lua`): read them as behaviour specs and port them to `bun test` cases.
+- `tests/sprites/`: 20 sample `.aseprite` files for read/write round-trip tests. They have no expected PNGs.
 - `tests/cli/sheet.sh`, `save-as.sh`: expected export behaviour.
 - `src/doc/algorithm/polygon_tests.cpp` (796 lines), `flip_tests.cpp`, `src/render/render_tests.cpp`, `ordered_dither_tests.cpp`: values to assert against.
-- Optional reference renderer: `aseprite -b in.aseprite --save-as out.png` (and `--sheet`/`--data`) to generate golden images for exact-match checks.
+- Golden images: render them once with `aseprite -b in.aseprite --save-as out.png` (and `--sheet`/`--data`) and commit them as fixtures for exact-match checks. CI never runs Aseprite. Fixtures come in three kinds:
+  1. Renders of each frame of the sample sprites in `tests/sprites`.
+  2. Sprites built for one purpose by committed Lua scripts (`--script`), such as a grid of blend-mode, alpha and opacity combinations.
+  3. Aseprite's own output for behaviour under the EULA (inks, pixel-perfect lines, sprite sheets), which serves as the spec.
+
+  Build step 1 needs one normal-blend fixture. Step 2 needs the blend grid and the sample sprites, step 3 the drawing outputs, and step 4 the sheet PNG and JSON.
 
 ## 15. What disappears compared with Aseprite
 
@@ -337,5 +345,5 @@ Of about 316k first-party C++ lines:
 The remaining ~159k shrinks to an estimated 15–20k lines of TypeScript because of:
 - One-class-per-field undo commands replaced by setters.
 - One implementation per operation instead of one per pixel format.
-- Libraries for image codecs.
+- Libraries for compression and for GIF/WebP encoding.
 - Dropping fixed-point maths, object ID registries and threading/progress code.

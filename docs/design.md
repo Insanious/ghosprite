@@ -22,7 +22,7 @@ The concepts are Aseprite's, so files and sprite sheets work with existing tools
 - per-frame palettes
 - typed user properties
 
-Images are RGBA. The model can hold indexed images, but operations work in RGBA for now.
+Images are RGBA. The model can hold indexed and grayscale images, and reads, writes and renders them, but operations work in RGBA for now and reject the other modes.
 
 ghosprite reads and writes `.aseprite` files, so its documents open in Aseprite and in existing importers.
 
@@ -63,18 +63,19 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - Coordinates are in sprite (canvas) space unless the call says it uses cel-local space.
 - Colours are accepted as `"#rrggbb"`, `"#rrggbbaa"`, `{r,g,b,a}` or `{index:n}`. The public API never uses packed integers.
 - Every mutating operation returns `{ changed: [{layerId, frame, rect}], checkpointId?, warnings[] }`.
+- Any operation accepts an optional `render: { scale?, grid?, frames? }`. When it's given, the result also includes `render`: a PNG of the affected frames, defaulting to the frames in `changed`.
 - Errors are structured: `{ code, message, path, hint }`.
 - Colour is treated as sRGB. Any ICC profile in a file is passed through unchanged.
 
 ## Build order
 
-1. Model, compositor (normal blend), PNG export, and a scaled render with a pixel grid. This is the first point where an agent can see what it made.
-2. `.aseprite` read and write, all 19 blend modes, groups, z-index, linked cels.
-3. Drawing: shapes, flood fill, brushes, inks, symmetry.
+1. The full document model (groups, z-index and linked cels included), compositor (normal blend), PNG export, and a scaled render with a pixel grid. The operation registry (one schema per operation), the workspace, the shared mutating-operation result, and a minimal CLI to call operations. This is the first point where an agent can see what it made.
+2. `.aseprite` read and write, all 19 blend modes, and compositing of groups, z-index and linked cels.
+3. Drawing: shapes, flood fill, brushes, inks, symmetry, tiled mode, and clipping to a mask.
 4. Document operations, plus sprite sheet export with JSON.
 5. The MCP server, `describe()`, batches, checkpoints, journal, diffs, contact sheets.
 6. Filters, colour quantization and dithering, palette files, GIF/WebP export.
-7. Selections and region transforms.
+7. Selection operations and region transforms.
 
 ## Never
 
@@ -85,7 +86,7 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 
 ## Not yet
 
-- Indexed colour mode across all operations.
+- Indexed and grayscale modes across all operations.
 - Tilemaps.
 - RotSprite parity.
 - Text.
