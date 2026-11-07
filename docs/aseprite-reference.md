@@ -1,6 +1,6 @@
 # Aseprite reference notes
 
-Research notes from analysing the Aseprite source at commit `3669f47` (29 Oct 2026), https://github.com/aseprite/aseprite. Line counts are `wc -l`. Use this as a map of where behaviour lives and which details are easy to get wrong. The format spec in `docs/ase-file-specs.md` in the Aseprite repo is the authoritative source for the file format.
+Research notes from analysing the Aseprite source at commit `3669f47` (29 Oct 2026), https://github.com/aseprite/aseprite. A local checkout at this commit is at `~/Programming/aseprite`. Read and grep it there rather than fetching from GitHub. If it's missing (e.g. in CI or a cloud session), use the GitHub repo at `3669f47`. Line counts are `wc -l`. Use this as a map of where behaviour lives and which details are easy to get wrong. The format spec in `docs/ase-file-specs.md` in the Aseprite repo is the authoritative source for the file format.
 
 ## 1. Licensing (important)
 
