@@ -1,8 +1,11 @@
 import { expect, test } from "bun:test";
 import { readdirSync } from "node:fs";
 import { deflateSync } from "node:zlib";
-import { read, readFixture } from "../../tests/helpers/ase-build.ts";
-import { ByteReader } from "./ase-bytes.ts";
+import {
+	chunkTypes,
+	read,
+	readFixture,
+} from "../../tests/helpers/ase-build.ts";
 import { writeAseprite } from "./ase-write.ts";
 import { createImage } from "./image.ts";
 import {
@@ -23,34 +26,6 @@ function write(sprite: Sprite): Uint8Array {
 
 function roundTrip(sprite: Sprite): Sprite {
 	return read(write(sprite)).sprite;
-}
-
-/** The chunk types of each frame, in file order. */
-function chunkTypes(bytes: Uint8Array): number[][] {
-	const reader = new ByteReader(bytes);
-	reader.seek(6);
-	const frameCount = reader.word();
-	reader.seek(128);
-	const frames: number[][] = [];
-	for (let frame = 0; frame < frameCount; frame++) {
-		const frameStart = reader.position;
-		const frameSize = reader.dword();
-		reader.skip(2);
-		reader.skip(2);
-		reader.skip(2);
-		reader.skip(2);
-		const count = reader.dword();
-		const types: number[] = [];
-		for (let i = 0; i < count; i++) {
-			const start = reader.position;
-			const size = reader.dword();
-			types.push(reader.word());
-			reader.seek(start + size);
-		}
-		reader.seek(frameStart + frameSize);
-		frames.push(types);
-	}
-	return frames;
 }
 
 function describeLayers(layers: Iterable<Layer>) {

@@ -6,6 +6,14 @@ export type TagDirection =
 	| "ping-pong"
 	| "ping-pong-reverse";
 
+/** Indexed by the direction byte of the file's tags chunk. */
+export const TAG_DIRECTIONS: TagDirection[] = [
+	"forward",
+	"reverse",
+	"ping-pong",
+	"ping-pong-reverse",
+];
+
 export type Tag = {
 	name: string;
 	from: number;

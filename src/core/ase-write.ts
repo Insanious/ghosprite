@@ -1,4 +1,11 @@
 import { ByteWriter, type FrameChunks, writeChunk } from "./ase-bytes.ts";
+import {
+	collectExtensionIds,
+	writeExternalFilesChunk,
+	writeSlices,
+	writeTags,
+	writeUserData,
+} from "./ase-write-meta.ts";
 import type { Rgba } from "./image.ts";
 import type { Palette } from "./palette.ts";
 import { paletteAt } from "./palette.ts";
@@ -50,6 +57,7 @@ type WriteState = {
 	flags: number;
 	/** Whether every palette chunk is the `0x2019` kind. */
 	newPaletteChunks: boolean;
+	extensionIds: Map<string, number>;
 	/** Every layer in layer-chunk order, which is how cels refer to them. */
 	layers: { layer: Layer; level: number }[];
 };
@@ -66,6 +74,7 @@ export function writeAseprite(
 		deflate: options.deflate,
 		flags: headerFlags(sprite, layers),
 		newPaletteChunks: needsNewPaletteChunks(sprite),
+		extensionIds: collectExtensionIds(sprite, layers),
 		layers,
 	};
 	writeHeader(state);
@@ -146,15 +155,15 @@ function writeFrame(state: WriteState, frame: number): void {
 	writer.write(new Uint8Array(FRAME_HEADER_SIZE));
 
 	if (frame === 0) {
-		// The external files chunk goes first.
+		writeExternalFilesChunk(state, chunks);
 		writeColorProfile(state, chunks);
 	}
 	writePaletteIfChanged(state, chunks, frame);
 	if (frame === 0) {
-		// Sprite user data goes here, then the tags chunk with one user data
-		// chunk per tag.
+		writeUserData(state, chunks, sprite.userData);
+		writeTags(state, chunks);
 		writeLayerChunks(state, chunks);
-		// The slice chunks go here.
+		writeSlices(state, chunks);
 	}
 	writeCels(state, chunks, frame);
 
@@ -279,7 +288,7 @@ function writeOldPaletteChunk(
 function writeLayerChunks(state: WriteState, chunks: FrameChunks): void {
 	for (const { layer, level } of state.layers) {
 		writeLayerChunk(state, chunks, layer, level);
-		// The layer's user data chunk goes here.
+		writeUserData(state, chunks, layer.userData);
 	}
 }
 
@@ -358,7 +367,7 @@ function writeCel(
 	});
 	if (isLink) return;
 	if (data.preciseBounds) writeCelExtraChunk(state, chunks, cel);
-	// The cel's user data chunk goes here, only after a cel that is not a link.
+	writeUserData(state, chunks, data.userData);
 }
 
 function writeCelExtraChunk(

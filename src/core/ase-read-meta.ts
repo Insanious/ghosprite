@@ -3,7 +3,7 @@ import { readPropertiesMaps } from "./ase-properties.ts";
 import type { Rect } from "./image.ts";
 import type { Slice, SliceKey } from "./slice.ts";
 import type { ColorProfile } from "./sprite.ts";
-import type { Tag, TagDirection } from "./tag.ts";
+import { TAG_DIRECTIONS, type Tag } from "./tag.ts";
 import { createUserData, type UserData } from "./user-data.ts";
 
 const USER_DATA_HAS_TEXT = 1;
@@ -19,13 +19,6 @@ const COLOR_PROFILE_ICC = 2;
 const COLOR_PROFILE_HAS_GAMMA = 1;
 
 const CEL_EXTRA_PRECISE_BOUNDS = 1;
-
-const TAG_DIRECTIONS: TagDirection[] = [
-	"forward",
-	"reverse",
-	"ping-pong",
-	"ping-pong-reverse",
-];
 
 /** Extension ID to the file name that the external files chunk gives it. */
 export type ExternalFiles = Map<number, string>;

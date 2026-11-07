@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { deflateSync, inflateSync } from "node:zlib";
-import { ByteWriter } from "../../src/core/ase-bytes.ts";
+import { ByteReader, ByteWriter } from "../../src/core/ase-bytes.ts";
 import { readAseprite } from "../../src/core/ase-read.ts";
 import type { Layer } from "../../src/core/sprite.ts";
 
@@ -146,4 +146,32 @@ export function buildFile(options: {
 	}
 	w.patchDword(0, w.position);
 	return w.toBytes();
+}
+
+/** The chunk types of each frame, in file order. */
+export function chunkTypes(bytes: Uint8Array): number[][] {
+	const reader = new ByteReader(bytes);
+	reader.seek(6);
+	const frameCount = reader.word();
+	reader.seek(128);
+	const frames: number[][] = [];
+	for (let frame = 0; frame < frameCount; frame++) {
+		const frameStart = reader.position;
+		const frameSize = reader.dword();
+		reader.skip(2);
+		reader.skip(2);
+		reader.skip(2);
+		reader.skip(2);
+		const count = reader.dword();
+		const types: number[] = [];
+		for (let i = 0; i < count; i++) {
+			const start = reader.position;
+			const size = reader.dword();
+			types.push(reader.word());
+			reader.seek(start + size);
+		}
+		reader.seek(frameStart + frameSize);
+		frames.push(types);
+	}
+	return frames;
 }
