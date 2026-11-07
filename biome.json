@@ -26,7 +26,11 @@
 	},
 	"overrides": [
 		{
-			"includes": ["src/core/**", "!src/core/**/*.test.ts"],
+			"includes": [
+				"src/core/**",
+				"!src/core/draw/**",
+				"!src/core/**/*.test.ts"
+			],
 			"linter": {
 				"rules": {
 					"style": {
@@ -36,6 +40,26 @@
 								"patterns": [
 									{
 										"group": ["*", "../**", "!./**"],
+										"message": "The pixel core imports nothing outside src/core."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/core/draw/**", "!src/core/**/*.test.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["*", "../../**", "!./**", "!../*.ts"],
 										"message": "The pixel core imports nothing outside src/core."
 									}
 								]
