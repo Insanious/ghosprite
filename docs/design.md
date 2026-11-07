@@ -63,7 +63,7 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - Coordinates are in sprite (canvas) space unless the call says it uses cel-local space.
 - Colours are accepted as `"#rrggbb"`, `"#rrggbbaa"`, `{r,g,b,a}` or `{index:n}`. The public API never uses packed integers.
 - Every mutating operation returns `{ changed: [{layerId, frame, rect}], checkpointId?, warnings[] }`.
-- Any operation accepts an optional `render: { scale?, grid?, frames? }`. When it's given, the result also includes `render`: a PNG of the affected frames, defaulting to the frames in `changed`.
+- Any operation accepts an optional `render: { scale?, grid?, frames? }`. When it's given, the result also includes `render`: a PNG of the affected frames, defaulting to the frames in `changed`. `render` holds PNG bytes and each front end decides how to return them: the CLI writes files and returns their paths, and the MCP server returns image blocks.
 - Errors are structured: `{ code, message, path, hint }`.
 - Colour is treated as sRGB. Any ICC profile in a file is passed through unchanged.
 
