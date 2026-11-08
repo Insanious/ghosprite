@@ -188,6 +188,18 @@ test("an image brush paints its own colours", () => {
 	expect(at(2, 2)).toEqual([0, 0, 255, 255]);
 });
 
+test("overlapping stamps of a semi-transparent image brush compound", () => {
+	const stamp = createImage(2, 1, "rgba");
+	stamp.data.set([255, 0, 0, 128, 255, 0, 0, 128]);
+	const image = draw(
+		4,
+		{ kind: "line", points: pts([1, 1], [2, 1]), pixelPerfect: false },
+		{ brush: imageBrush(stamp) },
+	);
+	const alphaAt = (x: number) => image.data[(4 + x) * 4 + 3];
+	expect([alphaAt(0), alphaAt(1), alphaAt(2)]).toEqual([128, 192, 128]);
+});
+
 test("a brush stamp wraps in tiled mode", () => {
 	const brush = createBrush({ type: "square", size: 3, angle: 0 });
 	const image = draw(

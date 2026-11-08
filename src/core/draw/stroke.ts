@@ -171,13 +171,18 @@ export function drawShape(
 		source: Rgba,
 		fromImageBrush = false,
 	) => {
+		// Aseprite compounds image-brush stamps, while shape-brush strokes and blur read the pre-stroke pixels.
+		const backdropData =
+			fromImageBrush && ink !== "blur" && ink !== "jumble"
+				? image.data
+				: before;
 		for (let x = x1; x <= x2; x++) {
 			const offset = ((y - target.y) * image.width + x - target.x) * 4;
 			const backdrop = {
-				r: before[offset],
-				g: before[offset + 1],
-				b: before[offset + 2],
-				a: before[offset + 3],
+				r: backdropData[offset],
+				g: backdropData[offset + 1],
+				b: backdropData[offset + 2],
+				a: backdropData[offset + 3],
 			};
 			const around: Surroundings = {
 				pixelAt: (dx, dy) => snapshotAt(x + dx, y + dy),

@@ -685,6 +685,706 @@
 					"opacity": 128
 				}
 			}
+		],
+		"stroke-simple-overlap": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05080"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					]
+				}
+			}
+		],
+		"stroke-simple-overlap-reverse": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05080"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 6,
+							"y": 7
+						},
+						{
+							"x": 5,
+							"y": 7
+						}
+					]
+				}
+			}
+		],
+		"stroke-simple-overlap-clear": [
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"s": "#e0302080"
+						},
+						"rows": ["ss"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					]
+				}
+			}
+		],
+		"stroke-simple-band": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"r": "#e03020",
+							"s": "#e0302060"
+						},
+						"rows": ["sss", "srs", "sss"]
+					},
+					"points": [
+						{
+							"x": 3,
+							"y": 7
+						},
+						{
+							"x": 12,
+							"y": 7
+						}
+					]
+				}
+			}
+		],
+		"stroke-alphaCompositing-overlap-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05080"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					],
+					"ink": "alphaCompositing",
+					"opacity": 128
+				}
+			}
+		],
+		"stroke-lockAlpha-overlap-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f80",
+						"b": "#60a0d0c0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05080"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					],
+					"ink": "lockAlpha",
+					"opacity": 128
+				}
+			}
+		],
+		"stroke-copy-overlap": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05080"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					],
+					"ink": "copy"
+				}
+			}
+		],
+		"stroke-eraser-overlap": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05040"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					],
+					"ink": "eraser"
+				}
+			}
+		],
+		"stroke-eraser-overlap-soft-backdrop": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f80",
+						"b": "#60a0d0c0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05040"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					],
+					"ink": "eraser"
+				}
+			}
+		],
+		"stroke-eraser-mixed": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"r": "#e03020",
+							"s": "#e0302080",
+							"z": "#ff000000"
+						},
+						"rows": ["rsz", "srs", "zsr"]
+					},
+					"points": [
+						{
+							"x": 6,
+							"y": 7
+						},
+						{
+							"x": 8,
+							"y": 7
+						}
+					],
+					"ink": "eraser",
+					"opacity": 128
+				}
+			}
+		],
+		"stroke-eraser-band": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"r": "#e03020",
+							"s": "#e0302060"
+						},
+						"rows": ["sss", "srs", "sss"]
+					},
+					"points": [
+						{
+							"x": 3,
+							"y": 7
+						},
+						{
+							"x": 12,
+							"y": 7
+						}
+					],
+					"ink": "eraser"
+				}
+			}
+		],
+		"stroke-blur-overlap-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05080"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 5,
+							"y": 7
+						},
+						{
+							"x": 6,
+							"y": 7
+						}
+					],
+					"ink": "blur",
+					"opacity": 128
+				}
+			}
+		],
+		"stroke-symmetry-overlap": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05080"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 7,
+							"y": 7
+						}
+					],
+					"symmetry": {
+						"mode": "horizontal",
+						"x": 7.5
+					}
+				}
+			}
+		],
+		"stroke-symmetry-overlap-eraser": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							"a": "#e0302080",
+							"b": "#30c05040"
+						},
+						"rows": ["ab"]
+					},
+					"points": [
+						{
+							"x": 7,
+							"y": 7
+						}
+					],
+					"ink": "eraser",
+					"symmetry": {
+						"mode": "horizontal",
+						"x": 7.5
+					}
+				}
+			}
 		]
 	}
 }

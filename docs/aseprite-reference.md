@@ -213,6 +213,7 @@ Each Aseprite tool combines **ink × controller × stroke type × point shape**.
   - **blur:** 3×3 average, reading from a source copy.
   - **jumble:** random swaps with nearby pixels.
   - **selection inks:** add, subtract, intersect.
+  - **stamp compounding:** stamps of an image brush compound. Each one, and each mirrored copy, blends over what the earlier stamps of the same stroke left. Shape-brush strokes and the blur ink read the pre-stroke pixels.
 - **Symmetry:** horizontal, vertical or both. Image brushes are flipped for each mirrored copy.
 - **Pixel-perfect with arbitrary brushes:** Aseprite saves the area under the last point and restores it when that point is dropped as an L-corner, before the next point is stamped. That gives the same result as never stamping it, so a geometric pass over the point list works for any brush. Line brushes skip the corner removal unless their angle is 0, 90 or 180.
 - **Cels are stored trimmed** (`ExpandCelCanvas`). Drawing outside the cel bounds must grow the cel, draw, then trim it again, while keeping links. Alternatively, draw into a canvas-sized buffer and trim on commit.
