@@ -1,0 +1,57 @@
+{ "frames": {
+   "base-props 0.aseprite": {
+    "frame": { "x": 0, "y": 0, "w": 16, "h": 12 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 12 },
+    "sourceSize": { "w": 16, "h": 12 },
+    "duration": 100
+   },
+   "base-props 1.aseprite": {
+    "frame": { "x": 16, "y": 0, "w": 16, "h": 12 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 12 },
+    "sourceSize": { "w": 16, "h": 12 },
+    "duration": 250
+   },
+   "base-props 2.aseprite": {
+    "frame": { "x": 32, "y": 0, "w": 16, "h": 12 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 12 },
+    "sourceSize": { "w": 16, "h": 12 },
+    "duration": 40
+   },
+   "base-props 3.aseprite": {
+    "frame": { "x": 48, "y": 0, "w": 16, "h": 12 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 16, "h": 12 },
+    "sourceSize": { "w": 16, "h": 12 },
+    "duration": 500
+   }
+ },
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.x-3669f47-dev",
+  "image": "rows-default.png",
+  "format": "RGBA8888",
+  "size": { "w": 64, "h": 12 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "all", "from": 0, "to": 3, "direction": "forward", "color": "#14c814ff" },
+   { "name": "walk", "from": 0, "to": 2, "direction": "forward", "color": "#ff0000ff", "data": "walk text", "properties": {"loop": true, "speed": 1.5} },
+   { "name": "idle", "from": 3, "to": 3, "direction": "pingpong", "repeat": "2", "color": "#0080ffff" }
+  ],
+  "layers": [
+   { "name": "bg", "opacity": 255, "blendMode": "normal" },
+   { "name": "body", "opacity": 255, "blendMode": "normal", "properties": {"Zed": 1, "alpha": 2, "d025": 0.25, "dHuge": 1e+20, "dMillions": 1.23457e+08, "dNegZero": -0, "dThird": 0.333333, "dThree": 3, "dTiny": 1e-07, "flagOff": false, "flagOn": true, "i300": 300, "i42": 42, "i70000": 70000, "iBig": 4611686018427387905, "iMin": -9223372036854775808, "iNeg300": -300, "iNeg5": -5, "iNeg70000": -70000, "iShift40": 1099511627776, "ints": "[unsupported type]", "k10": 3, "k9": 4, "mixed": "[unsupported type]", "nested": {"flag": true, "inner": {"big": 4611686018427387905, "list": "[unsupported type]"}}, "point": "[unsupported type]", "rect": "[unsupported type]", "size": "[unsupported type]", "text": "quote \" backslash \\ newline \n unicode é✓", "uuid": "[unsupported type]", "com.example.ext": {"label": "hello", "score": 9}}, "cels": [{ "frame": 0, "color": "#0a141eff", "data": "cel text", "properties": {"cel": "zero", "n": 1} }, { "frame": 1, "properties": {"n": 5, "shared": true} }, { "frame": 2, "properties": {"n": 5, "shared": true} }] },
+   { "name": "fx", "properties": {"depth": 2, "kind": "group"} },
+   { "name": "glow", "group": "fx", "opacity": 200, "blendMode": "screen" }
+  ],
+  "slices": [
+   { "name": "hit", "color": "#ffc800ff", "properties": {"solid": true, "weight": 7}, "keys": [{ "frame": 0, "bounds": {"x": 2, "y": 2, "w": 8, "h": 8 }, "center": {"x": 2, "y": 2, "w": 4, "h": 4 }, "pivot": {"x": 4, "y": 7 } }] }
+  ]
+ }
+}

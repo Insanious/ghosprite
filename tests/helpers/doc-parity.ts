@@ -19,7 +19,7 @@ import { firstDifference } from "./draw-parity.ts";
 
 type Call = { op: string; input: Record<string, unknown> };
 type GroupFile = {
-	base: "base" | "base-clear" | "base-layers";
+	base: "base" | "base-clear" | "base-layers" | "base-props";
 	cases: Record<string, Call[]>;
 };
 
@@ -247,9 +247,30 @@ function readPng(path: string): Image {
 	return decodePng(new Uint8Array(readFileSync(path)), inflateSync);
 }
 
+// TypeScript's ESNext lib doesn't declare these two JSON features yet.
+const rawJSON = (JSON as unknown as { rawJSON(text: string): object }).rawJSON;
+type Reviver = (
+	key: string,
+	value: unknown,
+	context: { source: string },
+) => unknown;
+
 function withoutApp(json: { meta: Record<string, unknown> }): string {
 	const { app: _app, version: _version, ...meta } = json.meta;
-	return JSON.stringify({ ...json, meta });
+	return JSON.stringify({ ...json, meta }, (_key, value) =>
+		typeof value === "bigint" ? rawJSON(String(value)) : value,
+	);
+}
+
+/** Parses JSON keeping integer literals beyond 2^53 exact, as bigints. */
+function parseExact(text: string): { meta: Record<string, unknown> } {
+	const reviver: Reviver = (_key, value, context) =>
+		typeof value === "number" &&
+		!Number.isSafeInteger(value) &&
+		/^-?\d+$/.test(context.source)
+			? BigInt(context.source)
+			: value;
+	return JSON.parse(text, reviver as (key: string, value: unknown) => unknown);
 }
 
 /**
@@ -283,10 +304,10 @@ export function sheetParity(group: string) {
 					golden.height,
 				]);
 				expect(firstDifference(ours, golden, { x: 0, y: 0 })).toBeUndefined();
-				const oursJson = JSON.parse(
+				const oursJson = parseExact(
 					readFileSync(join(directory, `${name}.json`), "utf8"),
 				);
-				const goldenJson = JSON.parse(
+				const goldenJson = parseExact(
 					readFileSync(fixturePath(`${group}/${name}.json`), "utf8"),
 				);
 				expect(withoutApp(oursJson)).toBe(withoutApp(goldenJson));

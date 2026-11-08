@@ -1,0 +1,9 @@
+{
+	"base": "base-props",
+	"cases": {
+		"rows-default": [{ "op": "sprite.exportSheet", "input": {} }],
+		"array": [
+			{ "op": "sprite.exportSheet", "input": { "dataFormat": "array" } }
+		]
+	}
+}

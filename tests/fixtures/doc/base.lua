@@ -2,6 +2,8 @@
 --   base.aseprite       16x12, 4 frames, layers bg, body, group fx { glow, ghost }
 --   base-clear.aseprite the same without bg
 --   base-layers.aseprite 3 frames of padded cels, for layer.mergeDown and sprite.flatten
+--   base-props.aseprite the same as base plus custom user-data properties on body, its
+--                       cels, fx, walk, hit and the sprite, for the sheet JSON goldens
 -- Every layer name is unique. Only glow is continuous, since sprite:newLayer()
 -- makes layers that aren't.
 
@@ -183,10 +185,83 @@ local function build_layers()
   return sprite
 end
 
+-- Integers are literals or shifts, since `^` always gives a float. Uuid is fixed,
+-- since a random one would change between runs. Empty maps are left out because
+-- Aseprite doesn't save them. No integer-like keys: a JS object reorders them.
+local function build_props()
+  local sprite = build(true)
+  local body, fx, walk, hit
+  for _, layer in ipairs(sprite.layers) do
+    if layer.name == "body" then body = layer end
+    if layer.name == "fx" then fx = layer end
+  end
+  for _, tag in ipairs(sprite.tags) do
+    if tag.name == "walk" then walk = tag end
+  end
+  hit = sprite.slices[1]
+
+  body.properties = {
+    flagOn = true,
+    flagOff = false,
+    i42 = 42,
+    iNeg5 = -5,
+    i300 = 300,
+    iNeg300 = -300,
+    i70000 = 70000,
+    iNeg70000 = -70000,
+    iShift40 = 1 << 40,
+    iBig = (1 << 62) + 1,
+    iMin = math.mininteger,
+    d025 = 0.25,
+    dThird = 1 / 3,
+    dMillions = 123456789.5,
+    dTiny = 1e-7,
+    dHuge = 1e20,
+    dThree = 3.0,
+    dNegZero = -0.0,
+    text = 'quote " backslash \\ newline \n unicode é✓',
+    point = Point(3, -4),
+    size = Size(5, 6),
+    rect = Rectangle(1, 2, 3, 4),
+    uuid = Uuid("12345678-1234-5678-9abc-def012345678"),
+    ints = { 1, 2, 3 },
+    mixed = { 1, "two", 3.5, true, { 4 } },
+    nested = { inner = { big = (1 << 62) + 1, list = { 7, 8 } }, flag = true },
+    Zed = 1,
+    alpha = 2,
+    k10 = 3,
+    k9 = 4,
+  }
+  body.properties("com.example.ext").score = 9
+  body.properties("com.example.ext").label = "hello"
+
+  fx.properties = { depth = 2, kind = "group" }
+
+  local frame1 = body:cel(2)
+  frame1.properties = { shared = true, n = 5 }
+
+  local frame0 = body:cel(1)
+  frame0.color = Color { r = 10, g = 20, b = 30, a = 255 }
+  frame0.data = "cel text"
+  frame0.properties = { cel = "zero", n = 1 }
+
+  walk.data = "walk text"
+  walk.properties = { speed = 1.5, loop = true }
+
+  hit.properties = { solid = true, weight = 7 }
+
+  sprite.data = "sprite text"
+  sprite.color = Color { r = 1, g = 2, b = 3, a = 255 }
+  sprite.properties = { author = "ghosprite", version = 3 }
+
+  return sprite
+end
+
 for _, spec in ipairs {
   { "base", function() return build(true) end },
   { "base-clear", function() return build(false) end },
   { "base-layers", build_layers },
+  { "base-props", build_props },
 } do
   local sprite = spec[2]()
   sprite:saveAs(dir .. "/" .. spec[1] .. ".aseprite")

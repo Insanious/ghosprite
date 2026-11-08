@@ -31,12 +31,12 @@ for group in "$@"; do
 		"$aseprite" -b --script-param cases="$group" --script "$doc/doc.lua"
 		rm -rf "$scratch/first"
 		mkdir "$scratch/first"
-		cp "$doc/base.aseprite" "$doc/base-clear.aseprite" "$doc/base-layers.aseprite" "$scratch/first"
+		cp "$doc/base.aseprite" "$doc/base-clear.aseprite" "$doc/base-layers.aseprite" "$doc/base-props.aseprite" "$scratch/first"
 		cp -r "$doc/$group" "$scratch/first/$group"
 		"$aseprite" -b --script-param cases="$group" --script "$doc/doc.lua"
 		rm -rf "$scratch/second"
 		mkdir "$scratch/second"
-		cp "$doc/base.aseprite" "$doc/base-clear.aseprite" "$doc/base-layers.aseprite" "$scratch/second"
+		cp "$doc/base.aseprite" "$doc/base-clear.aseprite" "$doc/base-layers.aseprite" "$doc/base-props.aseprite" "$scratch/second"
 		cp -r "$doc/$group" "$scratch/second/$group"
 		if ! diff -r "$scratch/first" "$scratch/second" >/dev/null; then
 			echo "$group: a second run wrote different bytes" >&2

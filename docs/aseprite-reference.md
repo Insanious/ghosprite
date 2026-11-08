@@ -277,15 +277,26 @@ Outline (3×3/5×5 neighbourhood mask, inside or outside, fill and background co
     "duration": 100 } },
   "meta": { "app": "...", "version": "...", "image": "sheet.png",
     "format": "RGBA8888" | "I8", "size": {"w":64,"h":64}, "scale": "1",
-    "frameTags": [{"name":"walk","from":0,"to":3,"direction":"forward","repeat":"2"?,"color":"#..","data":".."}],
-    "layers": [{"name":"..","group":"..","opacity":255,"blendMode":"normal","color":"..","data":"..",
-                "cels":[{"frame":0,"opacity":255,"zIndex":0,"color":"..","data":".."}]}],
-    "slices": [{"name":"..","color":"..","data":"..",
+    "frameTags": [{"name":"walk","from":0,"to":3,"direction":"forward","repeat":"2"?,"color":"#..","data":"..","properties":{..}?}],
+    "layers": [{"name":"..","group":"..","opacity":255,"blendMode":"normal","color":"..","data":"..","properties":{..}?,
+                "cels":[{"frame":0,"opacity":255,"zIndex":0,"color":"..","data":"..","properties":{..}?}]}],
+    "slices": [{"name":"..","color":"..","data":"..","properties":{..}?,
                 "keys":[{"frame":0,"bounds":{..},"center":{..}?,"pivot":{..}?}]}] } }
 ```
 
 - `frame` is the rect of the actual content. Inner padding and extrusion are already subtracted.
 - **Keep the name `frameTags`.** Engines depend on it.
+- **User-data `properties`** (goldens `tests/fixtures/doc/sheet-props`, from `base-props`):
+  - Layers, groups, cels, tags and slices write `properties` after `color` and `data`. Sprite user data (text, color, properties) doesn't reach `meta`.
+  - The user's own keys sit directly inside `properties`. Each extension map nests under its extension ID, after all the user's keys. Keys are in byte order at every level: `Zed` before `alpha`, `k10` before `k9`.
+  - A cel with only properties is listed in `cels` with `frame` and `properties`. A linked cel repeats the same properties at each frame it appears in (frames 1 and 2 of `body`).
+  - bool is `true`/`false`. Integers of every size are plain decimal digits, exact up to int64 (`4611686018427387905`, `-9223372036854775808`).
+  - Floats use C's default stream format, 6 significant digits: `0.25`, `0.333333`, `1.23457e+08`, `1e-07`, `1e+20`, `3`, `-0`.
+  - A string is quoted. `"`, `\` and newline are escaped, and non-ASCII is written as is.
+  - A nested map is an object in the same key order.
+  - Point, Size, Rectangle, Uuid and vectors (of any elements, at any depth) are all the string `"[unsupported type]"`.
+  - `fixed`, null and uint64 above the int64 maximum can't be made from Lua, so no golden covers them.
+  - Integer-like keys (`"10"`) follow JS object order in ghosprite, not Aseprite's byte order.
 - **Filename template tokens:** `{fullname} {path} {name} {title} {extension} {layer} {group} {slice} {tag} {innertag} {outertag} {frame} {tagframe} {duration}`, plus padded or offset variants such as `{frame001}` (the digit count sets padding, the number sets the starting value).
 
 ## 12. Lessons from the Lua API (API v41)
