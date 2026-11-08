@@ -9,6 +9,7 @@
 --   draw.polygon -> contour, a filled polygon through the points
 --   draw.fill -> paint_bucket, with contiguous and tolerance
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
+--   filter.invert, filter.replaceColor -> the InvertColor and ReplaceColor commands on the case's layer
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
 -- A call's symmetry is set as document preferences around the tool call.
@@ -157,6 +158,29 @@ local function reset_state(sprite)
   app.preferences.document(sprite).tiled.mode = 0
 end
 
+local CHANNELS = {
+  r = FilterChannels.RED,
+  g = FilterChannels.GREEN,
+  b = FilterChannels.BLUE,
+  a = FilterChannels.ALPHA,
+}
+
+-- Only set when the case lists channels, since Aseprite then uses the command's own default.
+local function filter_channels(input, params)
+  if not input.channels then return end
+  local bits = 0
+  for _, name in ipairs(input.channels) do bits = bits | CHANNELS[name] end
+  params.channels = bits
+end
+
+local function run_filter(sprite, layer, command, input, params)
+  app.layer = layer
+  app.frame = sprite.frames[1]
+  params.ui = false
+  filter_channels(input, params)
+  app.command[command](params)
+end
+
 local function apply_op(sprite, layer, call)
   local input = call.input
   if call.op == "cel.set" then
@@ -172,6 +196,10 @@ local function apply_op(sprite, layer, call)
     draw_box(layer, "ellipse", input)
   elseif call.op == "draw.fill" then
     draw_fill(layer, input)
+  elseif call.op == "filter.invert" then
+    run_filter(sprite, layer, "InvertColor", input, {})
+  elseif call.op == "filter.replaceColor" then
+    run_filter(sprite, layer, "ReplaceColor", input, { from = color(input.from), to = color(input.to), tolerance = input.tolerance or 0 })
   else
     error("unsupported op " .. call.op)
   end

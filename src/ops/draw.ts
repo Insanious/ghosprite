@@ -14,7 +14,7 @@ import type { ImageLayer, Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import { toRgba } from "./color.ts";
-import type { drawFields } from "./draw-options.ts";
+import type { drawFields, maskSchema } from "./draw-options.ts";
 import { requireRgba } from "./require-rgba.ts";
 import { imageFromRows } from "./rows.ts";
 
@@ -46,7 +46,7 @@ export function resolveTarget(
 	return { sprite, layer };
 }
 
-function toMask(spec: NonNullable<DrawInput["mask"]>): Mask {
+export function toMask(spec: z.output<typeof maskSchema>): Mask {
 	if ("rect" in spec) return maskFromRect(spec.rect);
 	if ("polygon" in spec) return maskFromPolygon(spec.polygon);
 	const rows = spec.rows.map((row) => Array.from(row));

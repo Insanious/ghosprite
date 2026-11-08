@@ -9,6 +9,8 @@ import { drawLine } from "./draw-line.ts";
 import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
 import { drawSpray } from "./draw-spray.ts";
+import { filterInvert } from "./filter-invert.ts";
+import { filterReplaceColor } from "./filter-replace-color.ts";
 import { frameCreate } from "./frame-create.ts";
 import { frameDelete } from "./frame-delete.ts";
 import { frameDuplicate } from "./frame-duplicate.ts";
@@ -77,4 +79,6 @@ export const operations: Operation[] = [
 	paletteLoad,
 	paletteSave,
 	paletteQuantize,
+	filterInvert,
+	filterReplaceColor,
 ];

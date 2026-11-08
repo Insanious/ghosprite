@@ -35,6 +35,7 @@
 			"includes": [
 				"src/core/**",
 				"!src/core/draw/**",
+				"!src/core/filter/**",
 				"!src/core/**/*.test.ts"
 			],
 			"linter": {
@@ -56,7 +57,11 @@
 			}
 		},
 		{
-			"includes": ["src/core/draw/**", "!src/core/**/*.test.ts"],
+			"includes": [
+				"src/core/draw/**",
+				"src/core/filter/**",
+				"!src/core/**/*.test.ts"
+			],
 			"linter": {
 				"rules": {
 					"style": {
