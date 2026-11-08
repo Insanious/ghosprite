@@ -1,6 +1,24 @@
 import { describe, expect, test } from "bun:test";
+import {
+	opaquePixels,
+	selectedPixels,
+	spriteWithSelectedShape,
+} from "../../tests/helpers/selection-fixture.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
-import { rotateImage } from "./rotate.ts";
+import { rotateImage, rotateSprite } from "./rotate.ts";
+
+describe("rotateSprite selections", () => {
+	test.each([90, 180, 270] as const)(
+		"%i keeps a selection over its pixels",
+		(angle) => {
+			const sprite = spriteWithSelectedShape();
+			rotateSprite(sprite, angle);
+			expect(selectedPixels(sprite, "selection-1")).toEqual(
+				opaquePixels(sprite),
+			);
+		},
+	);
+});
 
 function sample() {
 	const image = createImage(3, 2, "rgba");

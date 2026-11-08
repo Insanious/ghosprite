@@ -1,7 +1,7 @@
 import { algoEllipsefill } from "./draw/algo.ts";
 import { maskFromBits } from "./draw/mask.ts";
 import type { Mask } from "./draw/spans.ts";
-import { isEmptyRect, type Rect, unionRects } from "./image.ts";
+import { type Image, isEmptyRect, type Rect, unionRects } from "./image.ts";
 
 export type CombineMode = "add" | "subtract" | "intersect";
 
@@ -92,4 +92,25 @@ export function maskFromEllipse(rect: Rect): Mask {
 		}
 	});
 	return trimMask(mask);
+}
+
+/** Replaces each non-empty selection with `transform` of it, keeping creation order. */
+export function transformSelections(
+	sprite: { selections: Map<string, Mask> },
+	transform: (mask: Mask) => Mask,
+): void {
+	for (const [id, mask] of sprite.selections) {
+		if (mask.bounds.width === 0 || mask.bounds.height === 0) continue;
+		sprite.selections.set(id, transform(mask));
+	}
+}
+
+/** The mask's bits as an indexed image, so image ops can move them. */
+export function maskAsImage(mask: Mask): Image {
+	return {
+		width: mask.bounds.width,
+		height: mask.bounds.height,
+		mode: "indexed",
+		data: mask.bits,
+	};
 }

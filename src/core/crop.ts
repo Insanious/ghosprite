@@ -9,6 +9,7 @@ import {
 	unionRects,
 } from "./image.ts";
 import { renderFrame } from "./render.ts";
+import { transformSelections } from "./selection.ts";
 import { type CelData, imageLayers, type Sprite } from "./sprite.ts";
 
 /** `source` cut to `rect` (in source pixels); area outside `source` is `fill`. */
@@ -39,7 +40,7 @@ export function cropImage(source: Image, rect: Rect, fill: Rgba): Image {
  * Makes `rect`, in the current canvas space, the new canvas. Cels on ordinary
  * layers move by `-rect.x, -rect.y` and are never cut. A background layer's cels
  * are cropped to the new canvas, and new area is filled with `background` at
- * alpha 255. Slice keys move like cels.
+ * alpha 255. Slice keys and selections move like cels.
  */
 export function cropSprite(
 	sprite: Sprite,
@@ -85,6 +86,14 @@ export function cropSprite(
 			};
 		}
 	}
+	transformSelections(sprite, (mask) => ({
+		...mask,
+		bounds: {
+			...mask.bounds,
+			x: mask.bounds.x - rect.x,
+			y: mask.bounds.y - rect.y,
+		},
+	}));
 	sprite.width = rect.width;
 	sprite.height = rect.height;
 }

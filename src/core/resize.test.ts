@@ -1,6 +1,55 @@
 import { describe, expect, test } from "bun:test";
+import {
+	opaquePixels,
+	selectedPixels,
+	spriteWithSelectedShape,
+} from "../../tests/helpers/selection-fixture.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
-import { resizeImage } from "./resize.ts";
+import { resizeImage, resizeSprite } from "./resize.ts";
+
+describe("resizeSprite selections", () => {
+	test.each([2, 3])(
+		"scaling by %i keeps a selection over its pixels",
+		(factor) => {
+			const sprite = spriteWithSelectedShape();
+			resizeSprite(sprite, sprite.width * factor, sprite.height * factor);
+			expect(selectedPixels(sprite, "selection-1")).toEqual(
+				opaquePixels(sprite),
+			);
+		},
+	);
+
+	test("doubling doubles a selection's size", () => {
+		const sprite = spriteWithSelectedShape();
+		resizeSprite(sprite, 12, 8);
+		expect(sprite.selections.get("selection-1")?.bounds).toEqual({
+			x: 2,
+			y: 0,
+			width: 6,
+			height: 6,
+		});
+	});
+
+	test("a 1x1 selection shrunk by half keeps one pixel", () => {
+		const sprite = spriteWithSelectedShape();
+		sprite.selections.set("selection-1", {
+			bounds: { x: 3, y: 2, width: 1, height: 1 },
+			bits: Uint8Array.from([1]),
+		});
+		resizeSprite(sprite, 3, 2);
+		expect(selectedPixels(sprite, "selection-1")).toEqual(["1,1"]);
+	});
+
+	test("an empty selection stays empty", () => {
+		const sprite = spriteWithSelectedShape();
+		sprite.selections.set("selection-1", {
+			bounds: { x: 0, y: 0, width: 0, height: 0 },
+			bits: new Uint8Array(0),
+		});
+		resizeSprite(sprite, 12, 8);
+		expect(sprite.selections.get("selection-1")?.bounds.width).toBe(0);
+	});
+});
 
 describe("resizeImage", () => {
 	test("1x1 to 3x2 repeats the pixel", () => {

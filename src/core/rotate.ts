@@ -1,4 +1,5 @@
 import { bytesPerPixel, createImage, type Image } from "./image.ts";
+import { maskAsImage, transformSelections } from "./selection.ts";
 import { type CelData, imageLayers, type Sprite } from "./sprite.ts";
 
 export type RotateAngle = 90 | 180 | 270;
@@ -34,7 +35,7 @@ export function rotateImage(src: Image, angle: RotateAngle): Image {
 	return dst;
 }
 
-/** Turns every cel and the canvas clockwise. Linked cels are rotated once. */
+/** Turns every cel, selection and the canvas clockwise. Linked cels are rotated once. */
 export function rotateSprite(sprite: Sprite, angle: RotateAngle): void {
 	const rotated = new Set<CelData>();
 	for (const layer of imageLayers(sprite.root)) {
@@ -57,6 +58,20 @@ export function rotateSprite(sprite: Sprite, angle: RotateAngle): void {
 			delete data.preciseBounds;
 		}
 	}
+	transformSelections(sprite, (mask) => {
+		const { x, y, width, height } = mask.bounds;
+		const turned = rotateImage(maskAsImage(mask), angle);
+		const origin =
+			angle === 90
+				? { x: sprite.height - y - height, y: x }
+				: angle === 180
+					? { x: sprite.width - x - width, y: sprite.height - y - height }
+					: { x: y, y: sprite.width - x - width };
+		return {
+			bounds: { ...origin, width: turned.width, height: turned.height },
+			bits: turned.data,
+		};
+	});
 	if (angle !== 180) {
 		[sprite.width, sprite.height] = [sprite.height, sprite.width];
 	}

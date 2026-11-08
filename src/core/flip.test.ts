@@ -1,6 +1,24 @@
 import { describe, expect, test } from "bun:test";
-import { flipImage } from "./flip.ts";
+import {
+	opaquePixels,
+	selectedPixels,
+	spriteWithSelectedShape,
+} from "../../tests/helpers/selection-fixture.ts";
+import { flipImage, flipSprite } from "./flip.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
+
+describe("flipSprite selections", () => {
+	test.each(["horizontal", "vertical"] as const)(
+		"%s keeps a selection over its pixels",
+		(direction) => {
+			const sprite = spriteWithSelectedShape();
+			flipSprite(sprite, direction);
+			expect(selectedPixels(sprite, "selection-1")).toEqual(
+				opaquePixels(sprite),
+			);
+		},
+	);
+});
 
 function sample() {
 	const image = createImage(3, 2, "rgba");

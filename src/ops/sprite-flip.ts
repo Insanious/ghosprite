@@ -5,7 +5,8 @@ import { defineOp } from "./registry.ts";
 
 export const spriteFlip = defineOp({
 	name: "sprite.flip",
-	description: "Mirror the whole sprite. Slices are not moved.",
+	description:
+		"Mirror the whole sprite. Selections are mirrored with it. Slices are not moved.",
 	input: z.object({
 		spriteId: z.string(),
 		direction: z.enum(["horizontal", "vertical"]),
