@@ -103,6 +103,16 @@ export function runDraw(workspace: Workspace, input: DrawInput, shape: Shape) {
 		brush,
 		tiled: input.tiled,
 		mask: input.mask && toMask(input.mask),
+		symmetry: input.symmetry && {
+			x:
+				input.symmetry.mode === "vertical"
+					? undefined
+					: (input.symmetry.x ?? sprite.width / 2),
+			y:
+				input.symmetry.mode === "horizontal"
+					? undefined
+					: (input.symmetry.y ?? sprite.height / 2),
+		},
 	});
 	const commit = commitCel(sprite, layer, input.frame, canvas);
 	return {

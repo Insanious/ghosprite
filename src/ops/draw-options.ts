@@ -55,6 +55,24 @@ const maskSchema = z.union([
 			});
 		}),
 ]);
+const axisSchema = z.number().multipleOf(0.5);
+
+export const symmetrySchema = z
+	.strictObject({
+		mode: z.enum(["horizontal", "vertical", "both"]),
+		x: axisSchema
+			.optional()
+			.describe(
+				"Vertical mirror line for horizontal and both, in sprite space; whole numbers fall between pixels, halves on pixel centres. Defaults to half the canvas width",
+			),
+		y: axisSchema
+			.optional()
+			.describe(
+				"Horizontal mirror line for vertical and both. Defaults to half the canvas height",
+			),
+	})
+	.optional()
+	.describe("Mirror the drawing across one or both axes");
 
 export const drawFields = {
 	spriteId: z.string(),
@@ -75,4 +93,5 @@ export const drawFields = {
 		.describe(
 			"Limit drawing to a rect, a polygon, or rows where every non-space character is inside",
 		),
+	symmetry: symmetrySchema,
 };

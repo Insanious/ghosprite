@@ -1,0 +1,394 @@
+{
+	"width": 24,
+	"height": 24,
+	"cases": {
+		"horizontal-line": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{
+							"x": 2,
+							"y": 3
+						},
+						{
+							"x": 9,
+							"y": 14
+						}
+					],
+					"symmetry": {
+						"mode": "horizontal"
+					}
+				}
+			}
+		],
+		"vertical-line": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{
+							"x": 2,
+							"y": 3
+						},
+						{
+							"x": 9,
+							"y": 14
+						}
+					],
+					"symmetry": {
+						"mode": "vertical"
+					}
+				}
+			}
+		],
+		"both-line": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{
+							"x": 2,
+							"y": 3
+						},
+						{
+							"x": 9,
+							"y": 14
+						}
+					],
+					"symmetry": {
+						"mode": "both"
+					}
+				}
+			}
+		],
+		"pixel-centre-axis": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{
+							"x": 2,
+							"y": 3
+						},
+						{
+							"x": 9,
+							"y": 14
+						}
+					],
+					"symmetry": {
+						"mode": "both",
+						"x": 11.5,
+						"y": 11.5
+					}
+				}
+			}
+		],
+		"off-centre-axis": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{
+							"x": 2,
+							"y": 3
+						},
+						{
+							"x": 9,
+							"y": 14
+						}
+					],
+					"symmetry": {
+						"mode": "both",
+						"x": 14,
+						"y": 7.5
+					}
+				}
+			}
+		],
+		"overlapping-ellipse": [
+			{
+				"op": "draw.ellipse",
+				"input": {
+					"color": "#2040e080",
+					"ink": "alphaCompositing",
+					"rect": {
+						"x": 6,
+						"y": 4,
+						"width": 12,
+						"height": 9
+					},
+					"filled": true,
+					"symmetry": {
+						"mode": "both",
+						"x": 10,
+						"y": 8
+					}
+				}
+			}
+		],
+		"image-brush": [
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							".": "#00000000",
+							"r": "#e03020",
+							"b": "#2040e0",
+							"g": "#20a040"
+						},
+						"rows": ["rb.", ".gr", "..b"]
+					},
+					"points": [
+						{
+							"x": 3,
+							"y": 4
+						},
+						{
+							"x": 8,
+							"y": 6
+						}
+					],
+					"symmetry": {
+						"mode": "both"
+					}
+				}
+			}
+		],
+		"circle-brush-size-4": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 4
+					},
+					"points": [
+						{
+							"x": 4,
+							"y": 5
+						},
+						{
+							"x": 8,
+							"y": 9
+						}
+					],
+					"symmetry": {
+						"mode": "both"
+					}
+				}
+			}
+		],
+		"line-brush-diagonal": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "line",
+						"size": 5,
+						"angle": 45
+					},
+					"points": [
+						{
+							"x": 3,
+							"y": 4
+						},
+						{
+							"x": 8,
+							"y": 10
+						}
+					],
+					"symmetry": {
+						"mode": "both"
+					}
+				}
+			}
+		],
+		"pixel-perfect-polyline": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"pixelPerfect": true,
+					"points": [
+						{
+							"x": 2,
+							"y": 2
+						},
+						{
+							"x": 6,
+							"y": 3
+						},
+						{
+							"x": 7,
+							"y": 8
+						},
+						{
+							"x": 10,
+							"y": 9
+						}
+					],
+					"symmetry": {
+						"mode": "both"
+					}
+				}
+			}
+		],
+		"rect-crossing-axis": [
+			{
+				"op": "draw.rect",
+				"input": {
+					"color": "#e03020",
+					"rect": {
+						"x": 8,
+						"y": 3,
+						"width": 7,
+						"height": 5
+					},
+					"symmetry": {
+						"mode": "horizontal"
+					}
+				}
+			}
+		],
+		"filled-rect-off-axis": [
+			{
+				"op": "draw.rect",
+				"input": {
+					"color": "#e03020",
+					"rect": {
+						"x": 2,
+						"y": 3,
+						"width": 5,
+						"height": 4
+					},
+					"filled": true,
+					"symmetry": {
+						"mode": "both",
+						"x": 9.5
+					}
+				}
+			}
+		],
+		"line-brush-0-horizontal": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "line",
+						"size": 5,
+						"angle": 0
+					},
+					"points": [
+						{
+							"x": 3,
+							"y": 4
+						},
+						{
+							"x": 8,
+							"y": 10
+						}
+					],
+					"symmetry": {
+						"mode": "horizontal"
+					}
+				}
+			}
+		],
+		"line-brush-90-vertical-pixel-perfect": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "line",
+						"size": 5,
+						"angle": 90
+					},
+					"points": [
+						{
+							"x": 3,
+							"y": 3
+						},
+						{
+							"x": 5,
+							"y": 4
+						},
+						{
+							"x": 6,
+							"y": 7
+						},
+						{
+							"x": 9,
+							"y": 8
+						}
+					],
+					"symmetry": {
+						"mode": "vertical"
+					},
+					"pixelPerfect": true
+				}
+			}
+		],
+		"line-brush-30-both": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "line",
+						"size": 5,
+						"angle": 30
+					},
+					"points": [
+						{
+							"x": 3,
+							"y": 4
+						},
+						{
+							"x": 9,
+							"y": 8
+						}
+					],
+					"symmetry": {
+						"mode": "both"
+					}
+				}
+			}
+		],
+		"filled-polygon-horizontal": [
+			{
+				"op": "draw.polygon",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{
+							"x": 2,
+							"y": 3
+						},
+						{
+							"x": 9,
+							"y": 5
+						},
+						{
+							"x": 5,
+							"y": 12
+						}
+					],
+					"symmetry": {
+						"mode": "horizontal"
+					}
+				}
+			}
+		]
+	}
+}

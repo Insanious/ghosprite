@@ -10,6 +10,7 @@
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
+-- A call's symmetry is set as document preferences around the tool call.
 -- The eraser ink is the eraser tool. A colour is "#rrggbb[aa]" or {r, g, b, a}.
 
 local dir = debug.getinfo(1, "S").source:sub(2):match("^(.*)[/\\]") or "."
@@ -61,6 +62,17 @@ local INKS = {
   lockAlpha = Ink.LOCK_ALPHA,
 }
 
+local MODES = { horizontal = 1, vertical = 2, both = 3 }
+
+local function set_symmetry(sprite, symmetry)
+  local settings = app.preferences.document(sprite).symmetry
+  app.preferences.symmetry_mode.enabled = symmetry ~= nil
+  if symmetry == nil then return end
+  settings.mode = MODES[symmetry.mode]
+  settings.x_axis = symmetry.x or sprite.width / 2
+  settings.y_axis = symmetry.y or sprite.height / 2
+end
+
 local function use_tool(tool, layer, input)
   local points = {}
   for i, p in ipairs(input.points) do points[i] = Point(p.x, p.y) end
@@ -75,7 +87,9 @@ local function use_tool(tool, layer, input)
   }
   if tool ~= "eraser" then params.ink = INKS[input.ink or "simple"] end
   if input.pixelPerfect then params.freehandAlgorithm = 1 end
+  set_symmetry(layer.sprite, input.symmetry)
   app.useTool(params)
+  set_symmetry(layer.sprite, nil)
 end
 
 local function draw_line(layer, input)
@@ -91,7 +105,7 @@ local function draw_box(layer, tool, input)
   if input.ink == "eraser" then error("draw." .. tool .. " cannot be recorded with the eraser ink") end
   local r = input.rect
   local corners = { { x = r.x, y = r.y }, { x = r.x + r.width - 1, y = r.y + r.height - 1 } }
-  use_tool((input.filled and "filled_" or "") .. tool, layer, { color = input.color, brush = input.brush, opacity = input.opacity, ink = input.ink, points = corners })
+  use_tool((input.filled and "filled_" or "") .. tool, layer, { color = input.color, brush = input.brush, opacity = input.opacity, ink = input.ink, symmetry = input.symmetry, points = corners })
 end
 
 local TILED = { x = 1, y = 2, both = 3 }
