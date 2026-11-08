@@ -127,6 +127,8 @@ describe("cli ops", () => {
 			"draw.line",
 			"draw.bezier",
 			"draw.polygon",
+			"draw.rect",
+			"draw.ellipse",
 			"sprite.render",
 			"sprite.load",
 			"sprite.save",

@@ -7,6 +7,7 @@
 --   cel.set   -> sprite:newCel with an image built from the legend
 --   draw.line -> pencil, with freehandAlgorithm=1 when pixelPerfect
 --   draw.polygon -> contour, a filled polygon through the points
+--   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
 -- The eraser ink is the eraser tool. A colour is "#rrggbb[aa]" or {r, g, b, a}.
 
 local dir = debug.getinfo(1, "S").source:sub(2):match("^(.*)[/\\]") or "."
@@ -84,6 +85,13 @@ local function draw_polygon(layer, input)
   use_tool("contour", layer, input)
 end
 
+local function draw_box(layer, tool, input)
+  if input.ink == "eraser" then error("draw." .. tool .. " cannot be recorded with the eraser ink") end
+  local r = input.rect
+  local corners = { { x = r.x, y = r.y }, { x = r.x + r.width - 1, y = r.y + r.height - 1 } }
+  use_tool((input.filled and "filled_" or "") .. tool, layer, { color = input.color, brush = input.brush, opacity = input.opacity, ink = input.ink, points = corners })
+end
+
 local function apply(sprite, layer, call)
   local input = call.input
   if call.op == "cel.set" then
@@ -93,6 +101,10 @@ local function apply(sprite, layer, call)
     draw_line(layer, input)
   elseif call.op == "draw.polygon" then
     draw_polygon(layer, input)
+  elseif call.op == "draw.rect" then
+    draw_box(layer, "rectangle", input)
+  elseif call.op == "draw.ellipse" then
+    draw_box(layer, "ellipse", input)
   else
     error("unsupported op " .. call.op)
   end
