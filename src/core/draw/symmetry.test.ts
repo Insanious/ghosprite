@@ -40,4 +40,23 @@ describe("symmetryCopies", () => {
 		const [, mirrored] = symmetryCopies(line(1, 1), brush, { x: 8 });
 		expect(mirrored.brush.lineAngle).toBe(135);
 	});
+
+	test("a fill seed mirrors with a 1-px footprint whatever the brush", () => {
+		const brush = createBrush({ type: "circle", size: 4, angle: 0 });
+		const fill: Shape = {
+			kind: "fill",
+			point: { x: 1, y: 2 },
+			contiguous: true,
+			tolerance: 0,
+		};
+		const points = symmetryCopies(fill, brush, { x: 8, y: 8 }).map(
+			(copy) => (copy.shape as { point: { x: number; y: number } }).point,
+		);
+		expect(points).toEqual([
+			{ x: 1, y: 2 },
+			{ x: 14, y: 2 },
+			{ x: 1, y: 13 },
+			{ x: 14, y: 13 },
+		]);
+	});
 });

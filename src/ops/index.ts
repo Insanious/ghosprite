@@ -1,6 +1,7 @@
 import { celSet } from "./cel-set.ts";
 import { drawBezier } from "./draw-bezier.ts";
 import { drawEllipse } from "./draw-ellipse.ts";
+import { drawFill } from "./draw-fill.ts";
 import { drawLine } from "./draw-line.ts";
 import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
@@ -20,6 +21,7 @@ export const operations: Operation[] = [
 	drawPolygon,
 	drawRect,
 	drawEllipse,
+	drawFill,
 	spriteRender,
 	spriteLoad,
 	spriteSave,

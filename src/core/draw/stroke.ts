@@ -1,7 +1,7 @@
 // Reimplemented from behaviour observed in Aseprite, not from its tool sources.
 
 import type { CelCanvas } from "../cel-edit.ts";
-import type { Rect, Rgba } from "../image.ts";
+import { createImage, type Rect, type Rgba } from "../image.ts";
 import {
 	algoEllipse,
 	algoEllipsefill,
@@ -10,6 +10,7 @@ import {
 	algoSpline,
 } from "./algo.ts";
 import type { Brush } from "./brush.ts";
+import { floodfill } from "./floodfill.ts";
 import { applyInk, type InkName, type Surroundings } from "./ink.ts";
 import { fillPolygon, type Point } from "./polygon.ts";
 import { createRandom } from "./random.ts";
@@ -21,7 +22,14 @@ export type Shape =
 	| { kind: "rect"; rect: Rect; filled: boolean }
 	| { kind: "ellipse"; rect: Rect; filled: boolean }
 	| { kind: "bezier"; points: readonly Point[] }
-	| { kind: "polygon"; points: readonly Point[] };
+	| { kind: "polygon"; points: readonly Point[] }
+	| {
+			kind: "fill";
+			point: Point;
+			contiguous: boolean;
+			/** 0 to 255. */
+			tolerance: number;
+	  };
 
 export type StrokeOptions = {
 	color: Rgba;
@@ -245,6 +253,38 @@ export function drawShape(
 			case "polygon":
 				fillPolygon(shape.points, stampSpan);
 				break;
+			case "fill": {
+				const flooded = createImage(canvas.width, canvas.height, "rgba");
+				for (let row = 0; row < canvas.height; row++) {
+					const from = ((row - target.y) * image.width - target.x) * 4;
+					flooded.data.set(
+						before.subarray(from, from + canvas.width * 4),
+						row * canvas.width * 4,
+					);
+				}
+				const { point } = shape;
+				const at = (point.y * canvas.width + point.x) * 4;
+				const seed = {
+					r: flooded.data[at],
+					g: flooded.data[at + 1],
+					b: flooded.data[at + 2],
+					a: flooded.data[at + 3],
+				};
+				floodfill(
+					flooded,
+					mask,
+					point.x,
+					point.y,
+					{ x: 0, y: 0, width: canvas.width, height: canvas.height },
+					seed,
+					shape.tolerance,
+					shape.contiguous,
+					false,
+					(x1, y, x2) =>
+						clipSpan(x1, y, x2, clip, (a, row, b) => paint(a, row, b, color)),
+				);
+				break;
+			}
 		}
 	};
 

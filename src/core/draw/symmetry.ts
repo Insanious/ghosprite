@@ -71,7 +71,7 @@ type Mirroring = { horizontal: boolean; vertical: boolean };
 
 function mirroredPoint(
 	point: Point,
-	brush: Brush,
+	brush: Pick<Brush, "width" | "height" | "center">,
 	symmetry: Symmetry,
 	{ horizontal, vertical }: Mirroring,
 ): Point {
@@ -106,11 +106,16 @@ function mirroredBox(
 	};
 }
 
+const singlePixel = { width: 1, height: 1, center: { x: 0, y: 0 } };
+
 function mirroredShape(
 	shape: Shape,
 	mirrorPoint: (point: Point) => Point,
+	mirrorSeed: (point: Point) => Point,
 ): Shape {
 	switch (shape.kind) {
+		case "fill":
+			return { ...shape, point: mirrorSeed(shape.point) };
 		case "line":
 		case "bezier":
 		case "polygon":
@@ -138,8 +143,10 @@ export function symmetryCopies(
 		combinations.push({ horizontal: true, vertical: true });
 	for (const mirroring of combinations) {
 		copies.push({
-			shape: mirroredShape(shape, (point) =>
-				mirroredPoint(point, brush, symmetry, mirroring),
+			shape: mirroredShape(
+				shape,
+				(point) => mirroredPoint(point, brush, symmetry, mirroring),
+				(point) => mirroredPoint(point, singlePixel, symmetry, mirroring),
 			),
 			brush: flipBrush(brush, mirroring.horizontal, mirroring.vertical),
 		});

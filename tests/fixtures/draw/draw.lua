@@ -7,6 +7,7 @@
 --   cel.set   -> sprite:newCel with an image built from the legend
 --   draw.line -> pencil, with freehandAlgorithm=1 when pixelPerfect
 --   draw.polygon -> contour, a filled polygon through the points
+--   draw.fill -> paint_bucket, with contiguous and tolerance
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
@@ -112,6 +113,22 @@ local function draw_box(layer, tool, input)
   use_tool((input.filled and "filled_" or "") .. tool, layer, { color = input.color, brush = input.brush, opacity = input.opacity, ink = input.ink, symmetry = input.symmetry, points = corners })
 end
 
+local function draw_fill(layer, input)
+  local params = {
+    tool = "paint_bucket",
+    layer = layer,
+    frame = 1,
+    color = color(input.color or "#000000"),
+    opacity = input.opacity or 255,
+    points = { Point(input.point.x, input.point.y) },
+    contiguous = input.contiguous ~= false,
+    tolerance = input.tolerance or 0,
+  }
+  if input.ink == "eraser" then error("draw.fill cannot be recorded with the eraser ink; Ink has no eraser") end
+  params.ink = INKS[input.ink or "simple"]
+  app.useTool(params)
+end
+
 local TILED = { x = 1, y = 2, both = 3 }
 
 local function select_mask(sprite, mask)
@@ -151,6 +168,8 @@ local function apply_op(sprite, layer, call)
     draw_box(layer, "rectangle", input)
   elseif call.op == "draw.ellipse" then
     draw_box(layer, "ellipse", input)
+  elseif call.op == "draw.fill" then
+    draw_fill(layer, input)
   else
     error("unsupported op " .. call.op)
   end
