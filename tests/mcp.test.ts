@@ -31,6 +31,16 @@ describe("mcp server", () => {
 		}
 	});
 
+	test("every tool the instructions name exists", async () => {
+		const client = await connect();
+		const { tools } = await client.listTools();
+		const names = new Set(tools.map((t) => t.name));
+		const mentioned = client.getInstructions()?.match(/\b[a-z]+_[a-zA-Z]+\b/g);
+		expect(mentioned).toContain("cel_set");
+		expect(mentioned).toContain("draw_image");
+		for (const name of mentioned ?? []) expect(names).toContain(name);
+	});
+
 	test("a render call returns text JSON plus a PNG image block", async () => {
 		const client = await connect();
 		await client.callTool({

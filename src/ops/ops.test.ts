@@ -174,6 +174,17 @@ describe("legend rows schemas", () => {
 	});
 });
 
+describe("image brush schema", () => {
+	test("the image branch of draw.rect's brush states its anchor", () => {
+		const rect = registry.describeOps().find((op) => op.name === "draw.rect");
+		const brush = JSON.stringify(
+			(rect?.inputSchema.properties as Record<string, unknown> | undefined)
+				?.brush,
+		);
+		expect(brush).toMatch(/"description":"[^"]*floor/);
+	});
+});
+
 describe("sprite.load and sprite.save", () => {
 	const fixture = "tests/fixtures/sprites/groups3abc.aseprite";
 	const scratch = mkdtempSync(join(tmpdir(), "ghosprite-ops-test-"));

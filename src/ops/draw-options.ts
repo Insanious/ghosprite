@@ -26,10 +26,14 @@ export const inkSchema = z
 	])
 	.default("simple");
 
-const imageBrushSchema = z.strictObject({
-	legend: legendSchema,
-	rows: rowsSchema,
-});
+const imageBrushSchema = z
+	.strictObject({
+		legend: legendSchema,
+		rows: rowsSchema,
+	})
+	.describe(
+		"An image brush that paints its own colours, with pixel (floor(width / 2), floor(height / 2)) of the rows on each point the shape draws; draw.image places rows by their top-left corner instead",
+	);
 
 const shapeBrushSchema = z.strictObject({
 	type: z.enum(["circle", "square", "line"]).default("circle"),

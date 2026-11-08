@@ -10,6 +10,7 @@ import { callTool, describeTools, replaceImages } from "./tools.ts";
 
 const INSTRUCTIONS =
 	"Ids are explicit: creating ops return them, and later calls pass them back. Frames are 0-based. " +
+	"Pixel art is authored as rows of legend characters: cel_set replaces a cel with them, and draw_image paints them at x, y over what is there. " +
 	"Most ops take `render` to return a picture of their result. sprite_describe shows the structure. " +
 	"session_* tools handle batches, undo and checkpoints. Tool names use _ where ops use . (session_apply takes dotted op names).";
 

@@ -10,7 +10,7 @@ import { imageFromRows, legendSchema, rowsSchema } from "./rows.ts";
 export const celSet = defineOp({
 	name: "cel.set",
 	description:
-		"Replace a cel's image, position and opacity from rows of legend characters, creating the cel if needed.",
+		"Replace a cel's image, position and opacity from rows of legend characters, creating the cel if needed. To paint rows over existing pixels instead of replacing the cel, use draw.image.",
 	input: z.object({
 		spriteId: z.string(),
 		layerId: z.string(),
