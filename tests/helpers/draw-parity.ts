@@ -44,7 +44,7 @@ function describe(cel: CelData | undefined): string {
 		: "no cel";
 }
 
-function firstDifference(
+export function firstDifference(
 	ours: Image,
 	golden: Image,
 	origin: { x: number; y: number },

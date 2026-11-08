@@ -17,7 +17,7 @@ A headless pixel-art sprite engine for AI agents, modelled on Aseprite's documen
 - `bun run check`: what CI runs. Biome, typecheck, all tests, then the build. Stops at the first failure.
 - `bun run check <bun test args>`: Biome, typecheck, then `bun test <args>`, with no build. Pass a path fragment to run matching test files (`bun run check blend`), or `-t "<name>"` to run a single test.
 
-- `bun run goldens [group...]`: regenerate the drawing goldens in `tests/fixtures/draw/` with the local Aseprite. It runs each group twice and fails unless the second run is byte-identical. With no groups, it runs them all.
+- `bun run goldens [group...]`: regenerate the goldens of a group from `tests/fixtures/draw/` or `tests/fixtures/doc/` with the local Aseprite. It runs each group twice and fails unless the second run is byte-identical. With no groups, it runs them all.
 
 Iterate with the narrow form, and run the full `bun run check` before committing.
 
