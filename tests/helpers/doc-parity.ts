@@ -54,7 +54,7 @@ function resolveNames(
 	ids: Map<string, string>,
 ): Record<string, unknown> {
 	const resolved = { ...input };
-	for (const key of ["layerId", "parentId"]) {
+	for (const key of ["layerId", "parentId", "above", "below"]) {
 		const name = input[key];
 		if (typeof name !== "string") continue;
 		const id = ids.get(name);

@@ -14,6 +14,25 @@
 		],
 		"delete-linked-cel": [
 			{ "op": "cel.delete", "input": { "layerId": "body", "frame": 1 } }
+		],
+		"move-out-of-group": [
+			{ "op": "layer.move", "input": { "layerId": "glow", "below": "body" } }
+		],
+		"move-into-group": [
+			{ "op": "layer.move", "input": { "layerId": "body", "parentId": "fx" } }
+		],
+		"move-within-group": [
+			{ "op": "layer.move", "input": { "layerId": "glow", "above": "ghost" } }
+		],
+		"move-group": [
+			{ "op": "layer.move", "input": { "layerId": "fx", "below": "body" } }
+		],
+		"move-to-top": [{ "op": "layer.move", "input": { "layerId": "glow" } }],
+		"create-below": [
+			{ "op": "layer.create", "input": { "name": "shadow", "below": "body" } }
+		],
+		"create-in-group": [
+			{ "op": "layer.create", "input": { "name": "spark", "above": "glow" } }
 		]
 	}
 }

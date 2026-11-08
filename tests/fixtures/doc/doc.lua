@@ -4,8 +4,8 @@
 -- Runs base.lua, then reads tests/fixtures/doc/<group>.json:
 --   { "base": "base" | "base-clear", "cases": { "<case>": [{ "op", "input" }] } }
 -- For each case it opens the named base, replays the calls and saves
--- tests/fixtures/doc/<group>/<case>.aseprite. In a case, layerId and parentId
--- hold layer names and frames are 0-based. A colour is "#rrggbb[aa]" or {r, g, b, a}.
+-- tests/fixtures/doc/<group>/<case>.aseprite. In a case, layerId, parentId,
+-- above and below hold layer names and frames are 0-based. A colour is "#rrggbb[aa]" or {r, g, b, a}.
 
 local dir = debug.getinfo(1, "S").source:sub(2):match("^(.*)[/\\]") or "."
 local group = app.params.cases
@@ -36,6 +36,32 @@ local OPS = {}
 OPS["layer.delete"] = function(sprite, input)
   layer_named(sprite, input.layerId)
   sprite:deleteLayer(input.layerId)
+end
+
+-- Setting layer.parent puts the layer on top of the new parent, so above and
+-- below restack it afterwards. stackIndex is 1-based.
+local function place(sprite, layer, input)
+  if input.above or input.below then
+    local ref = layer_named(sprite, input.above or input.below)
+    layer.parent = ref.parent
+    layer.stackIndex = input.above and ref.stackIndex + 1 or ref.stackIndex
+  elseif input.parentId then
+    layer.parent = layer_named(sprite, input.parentId)
+  else
+    layer.parent = sprite
+  end
+end
+
+OPS["layer.move"] = function(sprite, input)
+  place(sprite, layer_named(sprite, input.layerId), input)
+end
+
+OPS["layer.create"] = function(sprite, input)
+  local layer = input.group and sprite:newGroup() or sprite:newLayer()
+  if input.name then layer.name = input.name end
+  if input.opacity then layer.opacity = input.opacity end
+  if input.visible ~= nil then layer.isVisible = input.visible end
+  place(sprite, layer, input)
 end
 
 OPS["cel.delete"] = function(sprite, input)
