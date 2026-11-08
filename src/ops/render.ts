@@ -1,7 +1,9 @@
 import { deflateSync } from "node:zlib";
 import { z } from "zod";
+import type { Mask } from "../core/draw/spans.ts";
 import { encodePng } from "../core/png.ts";
 import { renderFrame } from "../core/render.ts";
+import { highlightMask } from "../core/selection.ts";
 import type { Sprite } from "../core/sprite.ts";
 import { upscale } from "../core/upscale.ts";
 import { OpError } from "../errors.ts";
@@ -24,7 +26,14 @@ export function withGridRule<
 	});
 }
 
-export const renderOptionSchema = withGridRule(z.object(renderOptionFields));
+export const selectionIdField = z
+	.string()
+	.optional()
+	.describe("Highlight this selection on the render");
+
+export const renderOptionSchema = withGridRule(
+	z.object({ ...renderOptionFields, selectionId: selectionIdField }),
+);
 
 export type RenderOption = z.infer<typeof renderOptionSchema>;
 
@@ -72,11 +81,13 @@ export function renderPngs(
 	option: { scale: number; grid: boolean },
 	frames: number[],
 	pathPrefix: string,
+	highlight?: Mask,
 ): RenderedFrame[] {
 	checkRenderable(sprite, option, frames, pathPrefix);
 	return frames.map((frame) => {
+		const composited = renderFrame(sprite, frame);
 		const image = upscale(
-			renderFrame(sprite, frame),
+			highlight ? highlightMask(composited, highlight) : composited,
 			option.scale,
 			option.grid,
 		);

@@ -78,6 +78,13 @@ export function defineOp<S extends z.ZodObject>(
 					input.render.frames ?? [],
 					"render.",
 				);
+				if (input.render.selectionId) {
+					workspace.getSelection(
+						String(inputSpriteId),
+						input.render.selectionId,
+						"render.selectionId",
+					);
+				}
 			}
 			const output = definition.run(workspace, input);
 			const result = {
@@ -96,11 +103,23 @@ export function defineOp<S extends z.ZodObject>(
 				}
 				const frames = input.render.frames ??
 					changedFrames(result.changed) ?? [0];
+				const highlightId =
+					input.render.selectionId ??
+					(typeof output.selectionId === "string"
+						? output.selectionId
+						: undefined);
 				result.render = renderPngs(
 					workspace.getSprite(String(spriteId)),
 					input.render,
 					frames,
 					"render.",
+					highlightId
+						? workspace.getSelection(
+								String(spriteId),
+								highlightId,
+								"render.selectionId",
+							)
+						: undefined,
 				);
 			}
 			return result;

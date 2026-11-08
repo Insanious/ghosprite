@@ -1,7 +1,15 @@
+import { blendNormal } from "./blend.ts";
 import { algoEllipsefill } from "./draw/algo.ts";
 import { maskFromBits } from "./draw/mask.ts";
 import type { Mask } from "./draw/spans.ts";
-import { type Image, isEmptyRect, type Rect, unionRects } from "./image.ts";
+import {
+	copyImage,
+	type Image,
+	isEmptyRect,
+	type Rect,
+	type Rgba,
+	unionRects,
+} from "./image.ts";
 
 export type CombineMode = "add" | "subtract" | "intersect";
 
@@ -113,4 +121,33 @@ export function maskAsImage(mask: Mask): Image {
 		mode: "indexed",
 		data: mask.bits,
 	};
+}
+
+const HIGHLIGHT: Rgba = { r: 255, g: 0, b: 255, a: 128 };
+
+/** A copy of an RGBA image with the highlight colour composited over each selected pixel. */
+export function highlightMask(image: Image, mask: Mask): Image {
+	const result = copyImage(image);
+	const { bounds, bits } = mask;
+	for (let row = 0; row < bounds.height; row++) {
+		for (let col = 0; col < bounds.width; col++) {
+			if (bits[row * bounds.width + col] === 0) continue;
+			const x = bounds.x + col;
+			const y = bounds.y + row;
+			if (x < 0 || y < 0 || x >= image.width || y >= image.height) continue;
+			const at = (y * image.width + x) * 4;
+			const out = blendNormal(
+				{
+					r: result.data[at] ?? 0,
+					g: result.data[at + 1] ?? 0,
+					b: result.data[at + 2] ?? 0,
+					a: result.data[at + 3] ?? 0,
+				},
+				HIGHLIGHT,
+				255,
+			);
+			result.data.set([out.r, out.g, out.b, out.a], at);
+		}
+	}
+	return result;
 }
