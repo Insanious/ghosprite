@@ -143,6 +143,7 @@ describe("cli ops", () => {
 			"sprite.rotate",
 			"sprite.flip",
 			"sprite.render",
+			"sprite.contactSheet",
 			"sprite.load",
 			"sprite.resize",
 			"sprite.save",

@@ -18,6 +18,7 @@ import { layerMergeDown } from "./layer-merge-down.ts";
 import type { Operation } from "./registry.ts";
 import { sliceCreate } from "./slice-create.ts";
 import { sliceDelete } from "./slice-delete.ts";
+import { spriteContactSheet } from "./sprite-contact-sheet.ts";
 import { spriteCreate } from "./sprite-create.ts";
 import { spriteCrop } from "./sprite-crop.ts";
 import { spriteExportSheet } from "./sprite-export-sheet.ts";
@@ -55,6 +56,7 @@ export const operations: Operation[] = [
 	spriteRotate,
 	spriteFlip,
 	spriteRender,
+	spriteContactSheet,
 	spriteLoad,
 	spriteResize,
 	spriteSave,

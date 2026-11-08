@@ -47,14 +47,20 @@ export function checkRenderable(
 		}
 	}
 	const gridPixels = option.grid ? 1 : 0;
-	const width = sprite.width * option.scale + gridPixels;
-	const height = sprite.height * option.scale + gridPixels;
+	checkPixelLimit(
+		sprite.width * option.scale + gridPixels,
+		sprite.height * option.scale + gridPixels,
+		`${pathPrefix}scale`,
+	);
+}
+
+export function checkPixelLimit(width: number, height: number, path: string) {
 	if (width * height > MAX_RENDER_PIXELS) {
 		throw new OpError(
 			"out_of_range",
 			`A ${width}x${height} render is over the ${MAX_RENDER_PIXELS} pixel limit`,
 			{
-				path: `${pathPrefix}scale`,
+				path,
 				hint: "Lower the scale or render a smaller sprite",
 			},
 		);
