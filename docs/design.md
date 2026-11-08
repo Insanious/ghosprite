@@ -26,6 +26,8 @@ Images are RGBA. The model can hold indexed and grayscale images, and reads, wri
 
 ghosprite reads and writes `.aseprite` files, so its documents open in Aseprite and in existing importers.
 
+Selections are masks stored on the sprite under ids, as layers are. None is ever active: an operation that uses a selection names it. Undo and the journal cover selections, but `.aseprite` files don't store them.
+
 ## Operations
 
 Drawing:
