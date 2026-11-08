@@ -1,4 +1,4 @@
-import { blendMerge, blendNormal } from "../blend.ts";
+import { blendMerge, blendNormal, mul8 } from "../blend.ts";
 import type { Rgba } from "../image.ts";
 
 export type InkName =
@@ -19,6 +19,11 @@ export type Surroundings = {
 };
 
 const TRANSPARENT: Rgba = { r: 0, g: 0, b: 0, a: 0 };
+
+// Observed in Aseprite (image.json eraser cases): opacity is ignored, the brush pixel's alpha scales the backdrop alpha down, and the colour stays.
+export function eraseUnderImageBrush(backdrop: Rgba, brushPixel: Rgba): Rgba {
+	return { ...backdrop, a: mul8(backdrop.a, 255 - brushPixel.a) };
+}
 
 // Colour averages over the pixels that have any alpha; alpha averages over all nine.
 // Aseprite then merges that result into the backdrop by the opacity (observed at 128).

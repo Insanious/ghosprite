@@ -11,7 +11,12 @@ import {
 } from "./algo.ts";
 import type { Brush } from "./brush.ts";
 import { floodfill } from "./floodfill.ts";
-import { applyInk, type InkName, type Surroundings } from "./ink.ts";
+import {
+	applyInk,
+	eraseUnderImageBrush,
+	type InkName,
+	type Surroundings,
+} from "./ink.ts";
 import { fillPolygon, type Point } from "./polygon.ts";
 import { createRandom } from "./random.ts";
 import { clipSpan, type Mask, type Tiled, wrap } from "./spans.ts";
@@ -159,7 +164,13 @@ export function drawShape(
 		};
 	};
 
-	const paint = (x1: number, y: number, x2: number, source: Rgba) => {
+	const paint = (
+		x1: number,
+		y: number,
+		x2: number,
+		source: Rgba,
+		fromImageBrush = false,
+	) => {
 		for (let x = x1; x <= x2; x++) {
 			const offset = ((y - target.y) * image.width + x - target.x) * 4;
 			const backdrop = {
@@ -172,7 +183,10 @@ export function drawShape(
 				pixelAt: (dx, dy) => snapshotAt(x + dx, y + dy),
 				random,
 			};
-			const out = applyInk(ink, backdrop, source, opacity, around);
+			const out =
+				fromImageBrush && ink === "eraser"
+					? eraseUnderImageBrush(backdrop, source)
+					: applyInk(ink, backdrop, source, opacity, around);
 			image.data[offset] = out.r;
 			image.data[offset + 1] = out.g;
 			image.data[offset + 2] = out.b;
@@ -200,7 +214,7 @@ export function drawShape(
 							a: brush.image.data[i + 3],
 						};
 						clipSpan(left + col, top + row, left + col, clip, (x1, y, x2) =>
-							paint(x1, y, x2, source),
+							paint(x1, y, x2, source, true),
 						);
 						col++;
 						continue;

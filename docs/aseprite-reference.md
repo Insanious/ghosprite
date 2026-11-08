@@ -206,7 +206,7 @@ Each Aseprite tool combines **ink × controller × stroke type × point shape**.
   - **alpha compositing:** the normal blend.
   - **copy:** overwrites including alpha.
   - **lock alpha:** replaces colour, keeps the destination's alpha.
-  - **eraser:** sets transparent, or the transparent index.
+  - **eraser:** sets transparent, or the transparent index. With an image brush, opacity is ignored: each brush pixel scales the backdrop's alpha by `(255 - brush alpha) / 255` and the backdrop's RGB is kept, even at alpha 0.
   - **replace fg↔bg.**
   - **shading:** steps along a colour ramp.
   - **gradient:** linear or radial, with ordered or error-diffusion dithering.
