@@ -52,6 +52,18 @@ describe("selection ops", () => {
 		});
 	});
 
+	test("a . in rows shape rows is outside, like a space", () => {
+		const { session, spriteId } = setup();
+		const result = run(session, "selection.create", {
+			spriteId,
+			shape: { x: 3, y: 2, rows: [".#", " #"] },
+		});
+		expect(result).toMatchObject({
+			bounds: { x: 4, y: 2, width: 1, height: 2 },
+			pixels: 2,
+		});
+	});
+
 	test("all selects the canvas and ellipse an inscribed ellipse", () => {
 		const { session, spriteId } = setup();
 		expect(

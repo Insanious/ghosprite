@@ -63,7 +63,9 @@ export function toMask(
 		spec.y,
 		rows[0].length,
 		rows.length,
-		rows.flatMap((row) => row.map((char) => (char === " " ? 0 : 1))),
+		rows.flatMap((row) =>
+			row.map((char) => (char === " " || char === "." ? 0 : 1)),
+		),
 	);
 }
 

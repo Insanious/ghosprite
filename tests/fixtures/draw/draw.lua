@@ -163,7 +163,8 @@ local function select_mask(sprite, mask, selections)
     local selection = Selection()
     for y, row in ipairs(mask.rows) do
       for x = 1, #row do
-        if row:sub(x, x) ~= " " then selection:add(Rectangle(mask.x + x - 1, mask.y + y - 1, 1, 1)) end
+        local char = row:sub(x, x)
+        if char ~= " " and char ~= "." then selection:add(Rectangle(mask.x + x - 1, mask.y + y - 1, 1, 1)) end
       end
     end
     sprite.selection = selection

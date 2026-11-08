@@ -51,7 +51,12 @@ export const maskSchema = z.union([
 		.strictObject({
 			x: z.number().int(),
 			y: z.number().int(),
-			rows: z.array(z.string().min(1)).min(1),
+			rows: z
+				.array(z.string().min(1))
+				.min(1)
+				.describe(
+					'One string per row, equal length: "." and " " are outside, every other character is inside',
+				),
 		})
 		.superRefine((mask, ctx) => {
 			const width = Array.from(mask.rows[0]).length;
@@ -101,7 +106,7 @@ export const drawFields = {
 	mask: maskSchema
 		.optional()
 		.describe(
-			"Limit drawing to a rect, a polygon, rows where every non-space character is inside, or a stored selection by id",
+			'Limit drawing to a rect, a polygon, rows where every character except "." and " " is inside, or a stored selection by id',
 		),
 	symmetry: symmetrySchema,
 	seed: z

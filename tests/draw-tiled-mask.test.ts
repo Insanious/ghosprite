@@ -70,4 +70,13 @@ describe("draw masks", () => {
 		const draw = setup();
 		expect(draw({ x: 0, y: 0, rows: ["   ", "   "] }).changed).toEqual([]);
 	});
+
+	test("a . in rows mask rows is outside, like a space", () => {
+		const draw = setup();
+		expect(draw({ x: 0, y: 0, rows: [".. ", " .."] }).changed).toEqual([]);
+		const [change] = draw({ x: 2, y: 3, rows: ["#.", " ."] }).changed as {
+			rect: unknown;
+		}[];
+		expect(change.rect).toEqual({ x: 2, y: 3, width: 1, height: 1 });
+	});
 });
