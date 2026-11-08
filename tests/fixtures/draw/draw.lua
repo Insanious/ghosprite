@@ -20,6 +20,7 @@
 --   shapes are built as for mask, plus the elliptical_marquee tool, MaskAll, the magic_wand tool (on the
 --   case layer) and the MaskByColor command (on the case layer), and copied into the table.
 --   A group's "record" id replaces the case layer's cel with that selection as white pixels.
+-- region.flip -> the Flip command with target "mask", on the case layer with the stored selection set
 -- A call's symmetry is set as document preferences around the tool call.
 -- The eraser ink is the eraser tool. A colour is "#rrggbb[aa]" or {r, g, b, a}.
 
@@ -320,12 +321,24 @@ local function apply_op(sprite, layer, call)
   end
 end
 
+local function region_op(sprite, layer, call, selections)
+  local input = call.input
+  if call.op ~= "region.flip" then error("unsupported op " .. call.op) end
+  sprite.selection = copy_selection(selections[input.selectionId])
+  app.layer = layer
+  app.frame = sprite.frames[1]
+  app.command.Flip { target = "mask", orientation = input.direction }
+  selections[input.selectionId] = copy_selection(sprite.selection)
+end
+
 local function apply(sprite, layer, call, selections)
   local input = call.input
   if input.tiled then app.preferences.document(sprite).tiled.mode = TILED[input.tiled] end
   if input.mask then select_mask(sprite, input.mask, selections) end
   if call.op:find("^selection%.") then
     select_op(sprite, layer, call, selections)
+  elseif call.op:find("^region%.") then
+    region_op(sprite, layer, call, selections)
   else
     apply_op(sprite, layer, call)
   end

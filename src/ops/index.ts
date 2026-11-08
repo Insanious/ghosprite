@@ -25,6 +25,7 @@ import { layerDelete } from "./layer-delete.ts";
 import { layerMergeDown } from "./layer-merge-down.ts";
 import { paletteLoad, paletteSave, paletteSet } from "./palette.ts";
 import { paletteQuantize } from "./palette-quantize.ts";
+import { regionFlip } from "./region-flip.ts";
 import { regionMove } from "./region-move.ts";
 import { regionRotate } from "./region-rotate.ts";
 import { regionScale } from "./region-scale.ts";
@@ -95,6 +96,7 @@ export const operations: Operation[] = [
 	selectionDelete,
 	selectionInvert,
 	selectionModify,
+	regionFlip,
 	regionMove,
 	regionRotate,
 	regionScale,
