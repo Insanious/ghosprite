@@ -137,6 +137,16 @@ OPS["sprite.trim"] = function(sprite)
   app.command.AutocropSprite()
 end
 
+OPS["layer.mergeDown"] = function(sprite, input)
+  app.sprite = sprite
+  app.layer = layer_named(sprite, input.layerId)
+  app.command.MergeDownLayer()
+end
+
+OPS["sprite.flatten"] = function(sprite)
+  sprite:flatten()
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end

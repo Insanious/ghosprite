@@ -3,6 +3,7 @@ import { bytesPerPixel, createImage, type Image, type Rgba } from "./image.ts";
 import { type Palette, paletteAt } from "./palette.ts";
 import {
 	type Cel,
+	type ImageLayer,
 	isLayerVisible,
 	type Layer,
 	type Sprite,
@@ -95,7 +96,7 @@ class RenderPlan {
 		});
 	}
 
-	visibleItems(sprite: Sprite): PlanItem[] {
+	visibleItems(isVisible: LayerFilter): PlanItem[] {
 		if (!this.sorted) {
 			this.sorted = true;
 			if (this.items.some((item) => item.zIndex !== 0)) {
@@ -103,16 +104,19 @@ class RenderPlan {
 				this.items.sort((a, b) => a.order - b.order || a.zIndex - b.zIndex);
 			}
 		}
-		return this.items.filter((item) => isLayerVisible(sprite, item.layer));
+		return this.items.filter((item) => isVisible(item.layer));
 	}
 }
 
 type Pass = { background: boolean; transparent: boolean };
 
+type LayerFilter = (layer: Layer) => boolean;
+
 type RenderContext = {
 	sprite: Sprite;
 	frame: number;
 	palette: Palette;
+	isVisible: LayerFilter;
 };
 
 /** Ported from `Render::renderImage`: blends `src` onto `canvas` at (x, y). */
@@ -167,7 +171,7 @@ function renderPlan(
 	pass: Pass,
 ): void {
 	const { sprite, frame } = ctx;
-	for (const { layer, cel } of plan.visibleItems(sprite)) {
+	for (const { layer, cel } of plan.visibleItems(ctx.isVisible)) {
 		if (layer.kind === "group") {
 			const subPlan = new RenderPlan(sprite.composeGroups, frame);
 			for (const child of layer.children) subPlan.addLayer(child);
@@ -187,22 +191,69 @@ function renderPlan(
 		const background = layer.flags.background;
 		if (background ? !pass.background : !pass.transparent) continue;
 		if (layer.flags.reference || !cel) continue;
-		compositeImage(
-			ctx,
-			canvas,
-			cel.data.image,
-			cel.data.x,
-			cel.data.y,
-			mul8(cel.data.opacity, layer.opacity),
-			blenderFor(layer.blendMode),
-		);
+		compositeCelWith(ctx, canvas, { x: 0, y: 0 }, layer, cel);
 	}
 }
 
-/** Composites one frame at 1:1 into an RGBA image. */
-export function renderFrame(sprite: Sprite, frame: number): Image {
+function compositeCelWith(
+	ctx: RenderContext,
+	canvas: Image,
+	origin: { x: number; y: number },
+	layer: ImageLayer,
+	cel: Cel,
+): void {
+	compositeImage(
+		ctx,
+		canvas,
+		cel.data.image,
+		cel.data.x - origin.x,
+		cel.data.y - origin.y,
+		mul8(cel.data.opacity, layer.opacity),
+		blenderFor(layer.blendMode),
+	);
+}
+
+/**
+ * Blends one cel onto `canvas` with its layer's blend mode and opacity, ignoring
+ * visibility. `origin` is where the canvas's top-left pixel sits in sprite space.
+ */
+export function compositeCel(
+	sprite: Sprite,
+	canvas: Image,
+	origin: { x: number; y: number },
+	layer: ImageLayer,
+	cel: Cel,
+): void {
+	compositeCelWith(
+		{
+			sprite,
+			frame: cel.frame,
+			palette: paletteAt(sprite.palettes, cel.frame),
+			isVisible: () => true,
+		},
+		canvas,
+		origin,
+		layer,
+		cel,
+	);
+}
+
+/**
+ * Composites one frame at 1:1 into an RGBA image. `isVisible` picks which layers
+ * are drawn; by default those that are visible in the sprite.
+ */
+export function renderFrame(
+	sprite: Sprite,
+	frame: number,
+	isVisible: LayerFilter = (layer) => isLayerVisible(sprite, layer),
+): Image {
 	const canvas = startingCanvas(sprite, frame);
-	const ctx = { sprite, frame, palette: paletteAt(sprite.palettes, frame) };
+	const ctx = {
+		sprite,
+		frame,
+		palette: paletteAt(sprite.palettes, frame),
+		isVisible,
+	};
 	const plan = new RenderPlan(sprite.composeGroups, frame);
 	plan.addLayer(sprite.root);
 	renderPlan(ctx, plan, canvas, { background: true, transparent: false });

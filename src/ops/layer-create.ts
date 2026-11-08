@@ -8,6 +8,7 @@ import {
 	walkRenderOrder,
 } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { newLayerUuid } from "./layer-uuid.ts";
 import { defineOp } from "./registry.ts";
 
 function countLayers(sprite: Sprite, kind: "image" | "group"): number {
@@ -54,12 +55,9 @@ export const layerCreate = defineOp({
 		const name =
 			input.name ??
 			`${input.group ? "Group" : "Layer"} ${countLayers(sprite, kind) + 1}`;
-		const hasUuids = [...walkRenderOrder(sprite.root)].some(
-			(layer) => layer.uuid !== undefined,
-		);
 		const init = {
 			id: workspace.nextId("layer"),
-			...(hasUuids && { uuid: crypto.randomUUID() }),
+			...newLayerUuid(sprite),
 			name,
 			opacity: input.opacity,
 			flags: { visible: input.visible },

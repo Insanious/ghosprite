@@ -12,7 +12,7 @@ import { renderFrame } from "./render.ts";
 import { type CelData, imageLayers, type Sprite } from "./sprite.ts";
 
 /** `source` cut to `rect` (in source pixels); area outside `source` is `fill`. */
-function cropImage(source: Image, rect: Rect, fill: Rgba): Image {
+export function cropImage(source: Image, rect: Rect, fill: Rgba): Image {
 	const result = createImage(rect.width, rect.height, source.mode);
 	for (let i = 0; i < result.data.length; i += 4) {
 		result.data.set([fill.r, fill.g, fill.b, fill.a], i);
@@ -152,7 +152,10 @@ function trimReferenceColor(image: Image): number | undefined {
 }
 
 /** The smallest rect holding every pixel that differs from `reference`; alpha 0 pixels all count as equal. */
-function contentBounds(image: Image, reference: number): Rect | undefined {
+export function contentBounds(
+	image: Image,
+	reference: number,
+): Rect | undefined {
 	const referenceEmpty = reference >>> 24 === 0;
 	let left = image.width;
 	let top = image.height;

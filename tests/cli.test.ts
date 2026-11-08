@@ -124,6 +124,8 @@ describe("cli ops", () => {
 			"sprite.create",
 			"layer.create",
 			"layer.delete",
+			"layer.mergeDown",
+			"sprite.flatten",
 			"cel.set",
 			"cel.delete",
 			"cel.link",

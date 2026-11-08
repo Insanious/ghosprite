@@ -191,7 +191,10 @@ export function findLayer(sprite: Sprite, id: string): Layer | undefined {
 	return undefined;
 }
 
-function findParent(sprite: Sprite, target: Layer): GroupLayer | undefined {
+export function findParent(
+	sprite: Sprite,
+	target: Layer,
+): GroupLayer | undefined {
 	if (sprite.root.children.includes(target)) return sprite.root;
 	for (const layer of walkRenderOrder(sprite.root)) {
 		if (layer.kind === "group" && layer.children.includes(target)) return layer;

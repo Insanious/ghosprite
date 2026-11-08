@@ -1,0 +1,9 @@
+{
+	"base": "base-clear",
+	"cases": {
+		"merge-ghost": [
+			{ "op": "layer.mergeDown", "input": { "layerId": "ghost" } }
+		],
+		"flatten": [{ "op": "sprite.flatten", "input": {} }]
+	}
+}

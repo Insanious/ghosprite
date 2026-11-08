@@ -14,11 +14,13 @@ import { frameDelete } from "./frame-delete.ts";
 import { frameDuplicate } from "./frame-duplicate.ts";
 import { layerCreate } from "./layer-create.ts";
 import { layerDelete } from "./layer-delete.ts";
+import { layerMergeDown } from "./layer-merge-down.ts";
 import type { Operation } from "./registry.ts";
 import { sliceCreate } from "./slice-create.ts";
 import { sliceDelete } from "./slice-delete.ts";
 import { spriteCreate } from "./sprite-create.ts";
 import { spriteCrop } from "./sprite-crop.ts";
+import { spriteFlatten } from "./sprite-flatten.ts";
 import { spriteFlip } from "./sprite-flip.ts";
 import { spriteLoad } from "./sprite-load.ts";
 import { spriteRender } from "./sprite-render.ts";
@@ -33,6 +35,8 @@ export const operations: Operation[] = [
 	spriteCreate,
 	layerCreate,
 	layerDelete,
+	layerMergeDown,
+	spriteFlatten,
 	celSet,
 	celDelete,
 	celLink,
