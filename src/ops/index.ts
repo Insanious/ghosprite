@@ -1,5 +1,7 @@
 import { celDelete } from "./cel-delete.ts";
+import { celLink } from "./cel-link.ts";
 import { celSet } from "./cel-set.ts";
+import { celUnlink } from "./cel-unlink.ts";
 import { drawBezier } from "./draw-bezier.ts";
 import { drawEllipse } from "./draw-ellipse.ts";
 import { drawFill } from "./draw-fill.ts";
@@ -21,6 +23,8 @@ export const operations: Operation[] = [
 	layerDelete,
 	celSet,
 	celDelete,
+	celLink,
+	celUnlink,
 	drawLine,
 	drawBezier,
 	drawPolygon,

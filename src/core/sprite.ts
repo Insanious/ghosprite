@@ -314,3 +314,37 @@ export function framesSharingData(layer: ImageLayer, data: CelData): number[] {
 	}
 	return frames.sort((a, b) => a - b);
 }
+
+/** A frame whose cel changed, with the cel data it had before (absent if it had no cel). */
+export type CelChange = { frame: number; previous?: CelData };
+
+/**
+ * Links the cels at `frames`: the lowest frame with a cel is the source, and every higher
+ * frame gets a cel sharing its data, replacing any cel there. Returns the frames that changed.
+ */
+export function linkCels(
+	sprite: Sprite,
+	layer: ImageLayer,
+	frames: number[],
+): CelChange[] {
+	const sorted = [...new Set(frames)].sort((a, b) => a - b);
+	const source = sorted.map((f) => layer.cels.get(f)).find((cel) => cel);
+	if (!source) return [];
+	const changes: CelChange[] = [];
+	for (const frame of sorted) {
+		if (frame <= source.frame) continue;
+		const previous = layer.cels.get(frame);
+		if (previous?.data === source.data) continue;
+		setCel(sprite, layer, frame, source.data, source.zIndex);
+		changes.push({ frame, previous: previous?.data });
+	}
+	return changes;
+}
+
+/** Gives the cel at `frame` its own copy of its data. Returns false if it had no cel or wasn't linked. */
+export function unlinkCel(layer: ImageLayer, frame: number): boolean {
+	const cel = layer.cels.get(frame);
+	if (!cel || framesSharingData(layer, cel.data).length < 2) return false;
+	cel.data = structuredClone(cel.data);
+	return true;
+}

@@ -42,6 +42,24 @@ OPS["cel.delete"] = function(sprite, input)
   sprite:deleteCel(layer_named(sprite, input.layerId), input.frame + 1)
 end
 
+local function select_cels(sprite, layer, frames)
+  app.sprite = sprite
+  app.range.layers = { layer }
+  local numbers = {}
+  for i, frame in ipairs(frames) do numbers[i] = frame + 1 end
+  app.range.frames = numbers
+end
+
+OPS["cel.link"] = function(sprite, input)
+  select_cels(sprite, layer_named(sprite, input.layerId), input.frames)
+  app.command.LinkCels()
+end
+
+OPS["cel.unlink"] = function(sprite, input)
+  select_cels(sprite, layer_named(sprite, input.layerId), { input.frame })
+  app.command.UnlinkCel()
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end

@@ -1,0 +1,17 @@
+{
+	"base": "base",
+	"cases": {
+		"link-body-0-3": [
+			{ "op": "cel.link", "input": { "layerId": "body", "frames": [0, 3] } }
+		],
+		"link-glow-all": [
+			{
+				"op": "cel.link",
+				"input": { "layerId": "glow", "frames": [0, 1, 2, 3] }
+			}
+		],
+		"unlink-body-2": [
+			{ "op": "cel.unlink", "input": { "layerId": "body", "frame": 2 } }
+		]
+	}
+}

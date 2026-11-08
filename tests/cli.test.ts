@@ -126,6 +126,8 @@ describe("cli ops", () => {
 			"layer.delete",
 			"cel.set",
 			"cel.delete",
+			"cel.link",
+			"cel.unlink",
 			"draw.line",
 			"draw.bezier",
 			"draw.polygon",
