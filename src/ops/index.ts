@@ -28,6 +28,7 @@ import { spriteExportSheet } from "./sprite-export-sheet.ts";
 import { spriteFlatten } from "./sprite-flatten.ts";
 import { spriteFlip } from "./sprite-flip.ts";
 import { spriteLoad } from "./sprite-load.ts";
+import { spriteMapToPalette } from "./sprite-map-to-palette.ts";
 import { spriteRender } from "./sprite-render.ts";
 import { spriteResize } from "./sprite-resize.ts";
 import { spriteRotate } from "./sprite-rotate.ts";
@@ -71,6 +72,7 @@ export const operations: Operation[] = [
 	spriteCrop,
 	spriteTrim,
 	spriteDescribe,
+	spriteMapToPalette,
 	paletteSet,
 	paletteLoad,
 	paletteSave,

@@ -204,6 +204,18 @@ OPS["palette.quantize"] = function(sprite, input)
   }
 end
 
+-- Aseprite's RGB -> indexed -> RGB round trip. Its cel opacity is always reset to 255.
+OPS["sprite.mapToPalette"] = function(sprite, input)
+  app.sprite = sprite
+  app.command.ChangePixelFormat {
+    ui = false,
+    format = "indexed",
+    dithering = input.dithering or "none",
+    ditheringMatrix = input.matrix or "bayer8x8",
+  }
+  app.command.ChangePixelFormat { ui = false, format = "rgb" }
+end
+
 -- Writes <out><extension of input.path> instead of an .aseprite file.
 OPS["palette.save"] = function(sprite, input, out)
   sprite.palettes[1]:saveAs(out .. input.path:match("%.[^.]+$"))

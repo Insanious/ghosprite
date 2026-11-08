@@ -20,3 +20,10 @@ export function paletteAt(palettes: Palette[], frame: number): Palette {
 	}
 	return found;
 }
+
+/** The first entry exactly equal to `#00000000`, or -1. */
+export function findMaskColor(colors: readonly Rgba[]): number {
+	return colors.findIndex(
+		(c) => c.r === 0 && c.g === 0 && c.b === 0 && c.a === 0,
+	);
+}
