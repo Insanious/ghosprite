@@ -11,6 +11,8 @@ export type Brush = {
 	center: { x: number; y: number };
 	// Row-major, 1 where the brush paints.
 	mask: Uint8Array;
+	// Only for line brushes.
+	lineAngle?: number;
 	// Only for image brushes, which paint their own colours.
 	image?: Image;
 };
@@ -53,7 +55,9 @@ export function createBrush({ type, size: baseSize, angle }: BrushSpec): Brush {
 		line(center.x - dx, center.y - dy);
 	}
 
-	return { width: size, height: size, center, mask };
+	return type === "line"
+		? { width: size, height: size, center, mask, lineAngle: angle }
+		: { width: size, height: size, center, mask };
 }
 
 function squareCorners(size: number, baseSize: number, angle: number) {
