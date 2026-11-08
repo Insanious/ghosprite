@@ -34,7 +34,7 @@ export const DEFAULT_SHEET_LAYOUT: SheetLayoutOptions = {
 
 export type SheetEntry = {
 	frame: number;
-	/** The frame's content in the texture, without inner padding or extrusion. */
+	/** The frame in the texture with its inner padding, without the extruded edge. */
 	rect: Rect;
 	/** Where that content sits in the source frame. */
 	sourceRect: Rect;
@@ -89,12 +89,11 @@ function extrude(image: Image): Image {
 
 /** Splits the cells into rows, or into columns for the column layouts. */
 function groupIntoLines(cells: Cell[], options: SheetLayoutOptions): Cell[][] {
-	const square = Math.ceil(Math.sqrt(cells.length));
 	const perLine = {
 		horizontal: cells.length,
 		vertical: cells.length,
-		rows: options.columns ?? square,
-		columns: options.rows ?? square,
+		rows: options.columns ?? cells.length,
+		columns: options.rows ?? cells.length,
 	}[options.type];
 	const lines: Cell[][] = [];
 	for (let i = 0; i < cells.length; i += perLine) {
@@ -143,17 +142,17 @@ export function layoutSheet(
 		if (options.trim)
 			sourceRect = bounds ?? { x: 0, y: 0, width: 1, height: 1 };
 		const content = cropImage(image, sourceRect, TRANSPARENT);
-		let cellImage = cropImage(
-			content,
+		const extruded = options.extrude ? extrude(content) : content;
+		const cellImage = cropImage(
+			extruded,
 			{
 				x: -inner,
 				y: -inner,
-				width: content.width + 2 * inner,
-				height: content.height + 2 * inner,
+				width: extruded.width + 2 * inner,
+				height: extruded.height + 2 * inner,
 			},
 			TRANSPARENT,
 		);
-		if (options.extrude) cellImage = extrude(cellImage);
 		cells.push({ frame, sourceRect, image: cellImage });
 	}
 
@@ -197,10 +196,10 @@ export function layoutSheet(
 		return {
 			frame: cell.frame,
 			rect: {
-				x: x + extrusion + inner,
-				y: y + extrusion + inner,
-				width: cell.sourceRect.width,
-				height: cell.sourceRect.height,
+				x: x + extrusion,
+				y: y + extrusion,
+				width: cell.sourceRect.width + 2 * inner,
+				height: cell.sourceRect.height + 2 * inner,
 			},
 			sourceRect: cell.sourceRect,
 			sourceSize,

@@ -7,7 +7,12 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!**/*.md"]
+		"includes": [
+			"**",
+			"!**/*.md",
+			"!tests/fixtures/doc/sheet",
+			"!tests/fixtures/doc/sheet-clear"
+		]
 	},
 	"formatter": {
 		"enabled": true,

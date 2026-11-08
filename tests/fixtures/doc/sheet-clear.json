@@ -1,0 +1,46 @@
+{
+	"base": "base-clear",
+	"cases": {
+		"rows-default": [{ "op": "sprite.exportSheet", "input": {} }],
+		"trim": [{ "op": "sprite.exportSheet", "input": { "trim": true } }],
+		"trim-sprite": [
+			{ "op": "sprite.exportSheet", "input": { "trimSprite": true } }
+		],
+		"ignore-empty": [
+			{ "op": "sprite.exportSheet", "input": { "ignoreEmpty": true } }
+		],
+		"trim-ignore-empty": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "trim": true, "ignoreEmpty": true }
+			}
+		],
+		"trim-inner-padding": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "trim": true, "innerPadding": 2 }
+			}
+		],
+		"trim-extrude-inner-padding": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "trim": true, "extrude": true, "innerPadding": 2 }
+			}
+		],
+		"trim-empty-frame": [
+			{ "op": "frame.create", "input": {} },
+			{ "op": "sprite.exportSheet", "input": { "trim": true } }
+		],
+		"trim-ignore-empty-frame": [
+			{ "op": "frame.create", "input": {} },
+			{
+				"op": "sprite.exportSheet",
+				"input": { "trim": true, "ignoreEmpty": true }
+			}
+		],
+		"ignore-empty-empty-frame": [
+			{ "op": "frame.create", "input": {} },
+			{ "op": "sprite.exportSheet", "input": { "ignoreEmpty": true } }
+		]
+	}
+}

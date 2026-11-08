@@ -20,6 +20,7 @@ import { sliceCreate } from "./slice-create.ts";
 import { sliceDelete } from "./slice-delete.ts";
 import { spriteCreate } from "./sprite-create.ts";
 import { spriteCrop } from "./sprite-crop.ts";
+import { spriteExportSheet } from "./sprite-export-sheet.ts";
 import { spriteFlatten } from "./sprite-flatten.ts";
 import { spriteFlip } from "./sprite-flip.ts";
 import { spriteLoad } from "./sprite-load.ts";
@@ -57,6 +58,7 @@ export const operations: Operation[] = [
 	spriteLoad,
 	spriteResize,
 	spriteSave,
+	spriteExportSheet,
 	tagCreate,
 	tagDelete,
 	sliceCreate,

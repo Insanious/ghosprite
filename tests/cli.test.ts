@@ -146,6 +146,7 @@ describe("cli ops", () => {
 			"sprite.load",
 			"sprite.resize",
 			"sprite.save",
+			"sprite.exportSheet",
 			"tag.create",
 			"tag.delete",
 			"slice.create",

@@ -1,7 +1,11 @@
 import { expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { inflateSync } from "node:zlib";
 import { copyImage, type Image } from "../../src/core/image.ts";
+import { decodePng } from "../../src/core/png.ts";
 import {
 	framesSharingData,
 	type Layer,
@@ -197,25 +201,35 @@ function describeValue(value: string | Image): string {
 	return typeof value === "string" ? `"${value}"` : "an image";
 }
 
+function readGroup(group: string): GroupFile {
+	return JSON.parse(readFileSync(fixturePath(`${group}.json`), "utf8"));
+}
+
+/** Loads the group's base and replays a case's calls on it; `extra` adds to a call's input. */
+function runCase(
+	file: GroupFile,
+	calls: Call[],
+	extra: (call: Call) => Record<string, unknown> = () => ({}),
+) {
+	const workspace = new Workspace();
+	const spriteId = loadSprite(workspace, fixturePath(`${file.base}.aseprite`));
+	const ids = layerIdsByName(workspace.getSprite(spriteId));
+	for (const call of calls) {
+		registry.callOp(workspace, call.op, {
+			...resolveNames(call.input, ids),
+			...extra(call),
+			spriteId,
+		});
+	}
+	return { workspace, spriteId };
+}
+
 /** Registers one test per case in `fixtures/doc/<group>.json`, compared with `<group>/<case>.aseprite`. */
 export function docParity(group: string) {
-	const file: GroupFile = JSON.parse(
-		readFileSync(fixturePath(`${group}.json`), "utf8"),
-	);
+	const file = readGroup(group);
 	for (const [name, calls] of Object.entries(file.cases)) {
 		test(`${group}: ${name} matches Aseprite`, () => {
-			const workspace = new Workspace();
-			const spriteId = loadSprite(
-				workspace,
-				fixturePath(`${file.base}.aseprite`),
-			);
-			const ids = layerIdsByName(workspace.getSprite(spriteId));
-			for (const call of calls) {
-				registry.callOp(workspace, call.op, {
-					...resolveNames(call.input, ids),
-					spriteId,
-				});
-			}
+			const { workspace, spriteId } = runCase(file, calls);
 			const goldenId = loadSprite(
 				workspace,
 				fixturePath(`${group}/${name}.aseprite`),
@@ -225,6 +239,60 @@ export function docParity(group: string) {
 				workspace.getSprite(goldenId),
 			);
 			expect(difference).toBeUndefined();
+		});
+	}
+}
+
+function readPng(path: string): Image {
+	return decodePng(new Uint8Array(readFileSync(path)), inflateSync);
+}
+
+function withoutApp(json: { meta: Record<string, unknown> }): string {
+	const { app: _app, version: _version, ...meta } = json.meta;
+	return JSON.stringify({ ...json, meta });
+}
+
+/**
+ * Registers one test per case in `fixtures/doc/<group>.json`: the case's
+ * `sprite.exportSheet` runs in ghosprite and its PNG and JSON are compared
+ * with `<group>/<case>.png` and `.json`.
+ */
+export function sheetParity(group: string) {
+	const file = readGroup(group);
+	for (const [name, calls] of Object.entries(file.cases)) {
+		test(`${group}: ${name} matches Aseprite`, () => {
+			const directory = mkdtempSync(join(tmpdir(), "ghosprite-sheet-"));
+			try {
+				runCase(file, calls, (call) =>
+					call.op === "sprite.exportSheet"
+						? {
+								path: join(directory, `${name}.png`),
+								dataPath: join(directory, `${name}.json`),
+								name: `${file.base}.aseprite`,
+							}
+						: {},
+				);
+				const ours = withoutAlpha0Colour(
+					readPng(join(directory, `${name}.png`)),
+				);
+				const golden = withoutAlpha0Colour(
+					readPng(fixturePath(`${group}/${name}.png`)),
+				);
+				expect([ours.width, ours.height]).toEqual([
+					golden.width,
+					golden.height,
+				]);
+				expect(firstDifference(ours, golden, { x: 0, y: 0 })).toBeUndefined();
+				const oursJson = JSON.parse(
+					readFileSync(join(directory, `${name}.json`), "utf8"),
+				);
+				const goldenJson = JSON.parse(
+					readFileSync(fixturePath(`${group}/${name}.json`), "utf8"),
+				);
+				expect(withoutApp(oursJson)).toBe(withoutApp(goldenJson));
+			} finally {
+				rmSync(directory, { recursive: true, force: true });
+			}
 		});
 	}
 }

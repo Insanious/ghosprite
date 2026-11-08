@@ -1,0 +1,114 @@
+{
+	"base": "base",
+	"cases": {
+		"rows-default": [{ "op": "sprite.exportSheet", "input": {} }],
+		"horizontal": [
+			{ "op": "sprite.exportSheet", "input": { "type": "horizontal" } }
+		],
+		"vertical": [
+			{ "op": "sprite.exportSheet", "input": { "type": "vertical" } }
+		],
+		"rows-columns-3": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "type": "rows", "columns": 3 }
+			}
+		],
+		"columns-rows-3": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "type": "columns", "rows": 3 }
+			}
+		],
+		"columns-square": [
+			{ "op": "sprite.exportSheet", "input": { "type": "columns" } }
+		],
+		"tag-walk": [{ "op": "sprite.exportSheet", "input": { "tag": "walk" } }],
+		"tag-idle-single-frame": [
+			{ "op": "sprite.exportSheet", "input": { "tag": "idle" } }
+		],
+		"trim": [{ "op": "sprite.exportSheet", "input": { "trim": true } }],
+		"trim-sprite": [
+			{ "op": "sprite.exportSheet", "input": { "trimSprite": true } }
+		],
+		"trim-and-trim-sprite": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "trim": true, "trimSprite": true }
+			}
+		],
+		"extrude": [{ "op": "sprite.exportSheet", "input": { "extrude": true } }],
+		"extrude-inner-2": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "extrude": true, "innerPadding": 2, "type": "horizontal" }
+			}
+		],
+		"extrude-inner-1-trim": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "extrude": true, "innerPadding": 1, "trim": true }
+			}
+		],
+		"paddings": [
+			{
+				"op": "sprite.exportSheet",
+				"input": {
+					"borderPadding": 2,
+					"shapePadding": 3,
+					"innerPadding": 1
+				}
+			}
+		],
+		"paddings-extrude-trim": [
+			{
+				"op": "sprite.exportSheet",
+				"input": {
+					"borderPadding": 2,
+					"shapePadding": 3,
+					"innerPadding": 1,
+					"extrude": true,
+					"trim": true,
+					"type": "columns",
+					"rows": 2
+				}
+			}
+		],
+		"array": [
+			{ "op": "sprite.exportSheet", "input": { "dataFormat": "array" } }
+		],
+		"all-tokens": [
+			{
+				"op": "sprite.exportSheet",
+				"input": {
+					"filenameFormat": "{name}|{title}|{extension}|{frame}|{tagframe}|{tag}|{duration}|{frame001}|{tagframe5}",
+					"dataFormat": "array"
+				}
+			}
+		],
+		"frame-padding-offset": [
+			{
+				"op": "sprite.exportSheet",
+				"input": { "filenameFormat": "{title}-{frame01}-{tagframe3}" }
+			}
+		],
+		"tag-all-tokens": [
+			{
+				"op": "sprite.exportSheet",
+				"input": {
+					"tag": "walk",
+					"filenameFormat": "{title} {tag} {frame} {tagframe} {duration}"
+				}
+			}
+		],
+		"linked-frames": [
+			{
+				"op": "cel.link",
+				"input": { "layerId": "glow", "frames": [0, 1, 2, 3] }
+			},
+			{ "op": "layer.delete", "input": { "layerId": "body" } },
+			{ "op": "layer.delete", "input": { "layerId": "bg" } },
+			{ "op": "sprite.exportSheet", "input": {} }
+		]
+	}
+}

@@ -147,10 +147,50 @@ OPS["sprite.flatten"] = function(sprite)
   sprite:flatten()
 end
 
-local function apply(sprite, call)
+local SHEET_TYPES = {
+  horizontal = SpriteSheetType.HORIZONTAL,
+  vertical = SpriteSheetType.VERTICAL,
+  rows = SpriteSheetType.ROWS,
+  columns = SpriteSheetType.COLUMNS,
+}
+
+-- Writes <out>.png and <out>.json instead of an .aseprite file. Every option is
+-- passed, since Aseprite takes a missing one from its saved preferences. A
+-- missing filenameFormat is passed as "", which makes Aseprite build its own
+-- default format; it never consults the preferences once type is given.
+OPS["sprite.exportSheet"] = function(sprite, input, out)
+  app.sprite = sprite
+  app.command.ExportSpriteSheet {
+    ui = false,
+    recent = false,
+    askOverwrite = false,
+    type = SHEET_TYPES[input.type or "rows"],
+    columns = input.columns or 0,
+    rows = input.rows or 0,
+    textureFilename = out .. ".png",
+    dataFilename = out .. ".json",
+    dataFormat = input.dataFormat == "array" and SpriteSheetDataFormat.JSON_ARRAY
+      or SpriteSheetDataFormat.JSON_HASH,
+    filenameFormat = input.filenameFormat or "",
+    borderPadding = input.borderPadding or 0,
+    shapePadding = input.shapePadding or 0,
+    innerPadding = input.innerPadding or 0,
+    trimSprite = input.trimSprite or false,
+    trim = input.trim or false,
+    extrude = input.extrude or false,
+    ignoreEmpty = input.ignoreEmpty or false,
+    mergeDuplicates = false,
+    tag = input.tag or "",
+    listLayers = true,
+    listTags = true,
+    listSlices = true,
+  }
+end
+
+local function apply(sprite, call, out)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end
-  run(sprite, call.input)
+  run(sprite, call.input, out)
 end
 
 local names = {}
@@ -162,7 +202,11 @@ os.execute('mkdir -p "' .. out .. '"')
 
 for _, name in ipairs(names) do
   local sprite = Sprite { fromFile = dir .. "/" .. spec.base .. ".aseprite" }
-  for _, call in ipairs(spec.cases[name]) do apply(sprite, call) end
-  sprite:saveAs(out .. "/" .. name .. ".aseprite")
+  local exported = false
+  for _, call in ipairs(spec.cases[name]) do
+    apply(sprite, call, out .. "/" .. name)
+    exported = exported or call.op == "sprite.exportSheet"
+  end
+  if not exported then sprite:saveAs(out .. "/" .. name .. ".aseprite") end
   sprite:close()
 end

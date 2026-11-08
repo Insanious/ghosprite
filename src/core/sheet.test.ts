@@ -72,15 +72,9 @@ describe("layoutSheet layouts", () => {
 		]);
 	});
 
-	test("rows without columns wraps at the square root, columns likewise", () => {
-		expect(size({ type: "rows", shapePadding: 1 })).toEqual([
-			3 * 6 + 2,
-			2 * 4 + 1,
-		]);
-		expect(size({ type: "columns", shapePadding: 1 })).toEqual([
-			2 * 6 + 1,
-			3 * 4 + 2,
-		]);
+	test("rows without columns is one row, columns without rows one column", () => {
+		expect(size({ type: "rows", shapePadding: 1 })).toEqual([5 * 6 + 4, 4]);
+		expect(size({ type: "columns", shapePadding: 1 })).toEqual([6, 5 * 4 + 4]);
 	});
 
 	test("columns for rows wraps after that many frames", () => {
@@ -177,7 +171,7 @@ describe("layoutSheet padding", () => {
 		expect(entries[0]?.rect).toEqual({ x: 1, y: 1, width: 1, height: 1 });
 	});
 
-	test("innerPadding surrounds each frame with transparency", () => {
+	test("innerPadding surrounds each frame with transparency, inside its rect", () => {
 		const sprite = dotSprite([{ x: 0, y: 0, colour: RED }]);
 		const { texture, entries } = layoutSheet(
 			sprite,
@@ -186,7 +180,7 @@ describe("layoutSheet padding", () => {
 		expect([texture.width, texture.height]).toEqual([5, 5]);
 		expect(getPixel(texture, 2, 2)).toEqual(RED);
 		expect(getPixel(texture, 0, 0)).toEqual([0, 0, 0, 0]);
-		expect(entries[0]?.rect).toEqual({ x: 2, y: 2, width: 1, height: 1 });
+		expect(entries[0]?.rect).toEqual({ x: 0, y: 0, width: 5, height: 5 });
 	});
 });
 
