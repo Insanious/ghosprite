@@ -1,9 +1,11 @@
 import { blendNormal } from "./blend.ts";
 import { algoEllipsefill } from "./draw/algo.ts";
+import { floodfill } from "./draw/floodfill.ts";
 import { maskFromBits } from "./draw/mask.ts";
 import type { Mask } from "./draw/spans.ts";
 import {
 	copyImage,
+	createImage,
 	type Image,
 	isEmptyRect,
 	type Rect,
@@ -15,7 +17,7 @@ export type CombineMode = "add" | "subtract" | "intersect";
 
 const EMPTY_BOUNDS: Rect = { x: 0, y: 0, width: 0, height: 0 };
 
-function emptyMask(): Mask {
+export function emptyMask(): Mask {
 	return { bounds: { ...EMPTY_BOUNDS }, bits: new Uint8Array(0) };
 }
 
@@ -167,4 +169,100 @@ export function highlightMask(image: Image, mask: Mask): Image {
 		}
 	}
 	return result;
+}
+
+type Offset = { x: number; y: number };
+
+/** The cel's image laid on a transparent canvas-sized image. */
+function placeOnCanvas(
+	image: Image,
+	offset: Offset,
+	canvas: { width: number; height: number },
+): Image {
+	const placed = createImage(canvas.width, canvas.height, "rgba");
+	for (let row = 0; row < image.height; row++) {
+		const y = offset.y + row;
+		if (y < 0 || y >= canvas.height) continue;
+		for (let col = 0; col < image.width; col++) {
+			const x = offset.x + col;
+			if (x < 0 || x >= canvas.width) continue;
+			const from = (row * image.width + col) * 4;
+			placed.data.set(
+				image.data.subarray(from, from + 4),
+				(y * canvas.width + x) * 4,
+			);
+		}
+	}
+	return placed;
+}
+
+/** The pixels a paint bucket would fill from `point`, on the cel laid over the canvas. */
+export function maskFromWand(
+	image: Image,
+	offset: Offset,
+	canvas: { width: number; height: number },
+	point: Offset,
+	tolerance: number,
+	contiguous: boolean,
+): Mask {
+	const placed = placeOnCanvas(image, offset, canvas);
+	const at = (point.y * canvas.width + point.x) * 4;
+	const seed = {
+		r: placed.data[at] ?? 0,
+		g: placed.data[at + 1] ?? 0,
+		b: placed.data[at + 2] ?? 0,
+		a: placed.data[at + 3] ?? 0,
+	};
+	const bits = new Uint8Array(canvas.width * canvas.height);
+	floodfill(
+		placed,
+		undefined,
+		point.x,
+		point.y,
+		{ x: 0, y: 0, width: canvas.width, height: canvas.height },
+		seed,
+		tolerance,
+		contiguous,
+		false,
+		(x1, y, x2) =>
+			bits.fill(1, y * canvas.width + x1, y * canvas.width + x2 + 1),
+	);
+	return trimMask(maskFromBits(0, 0, canvas.width, canvas.height, bits));
+}
+
+/** The cel's pixels whose r, g, b and a are each within `tolerance` of `color`. */
+export function maskFromColor(
+	image: Image,
+	offset: Offset,
+	color: Rgba,
+	tolerance: number,
+): Mask {
+	const bits = new Uint8Array(image.width * image.height);
+	const target = [color.r, color.g, color.b, color.a];
+	for (let i = 0; i < bits.length; i++) {
+		let matches = true;
+		for (let c = 0; c < 4; c++) {
+			if (
+				Math.abs((image.data[i * 4 + c] ?? 0) - (target[c] ?? 0)) > tolerance
+			) {
+				matches = false;
+				break;
+			}
+		}
+		if (matches) bits[i] = 1;
+	}
+	return trimMask(
+		maskFromBits(offset.x, offset.y, image.width, image.height, bits),
+	);
+}
+
+/** The cel's pixels with alpha above 0. */
+export function maskFromContent(image: Image, offset: Offset): Mask {
+	const bits = new Uint8Array(image.width * image.height);
+	for (let i = 0; i < bits.length; i++) {
+		if ((image.data[i * 4 + 3] ?? 0) > 0) bits[i] = 1;
+	}
+	return trimMask(
+		maskFromBits(offset.x, offset.y, image.width, image.height, bits),
+	);
 }

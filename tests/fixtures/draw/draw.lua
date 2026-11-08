@@ -17,7 +17,8 @@
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
 -- selection.create/combine/delete keep a per-case table of Selections keyed "selection-1", ...; the
---   shapes are built as for mask, plus the elliptical_marquee tool and MaskAll, and copied into the table.
+--   shapes are built as for mask, plus the elliptical_marquee tool, MaskAll, the magic_wand tool (on the
+--   case layer) and the MaskByColor command (on the case layer), and copied into the table.
 --   A group's "record" id replaces the case layer's cel with that selection as white pixels.
 -- A call's symmetry is set as document preferences around the tool call.
 -- The eraser ink is the eraser tool. A colour is "#rrggbb[aa]" or {r, g, b, a}.
@@ -169,7 +170,7 @@ local function select_mask(sprite, mask, selections)
 end
 
 -- selection.create and selection.combine shapes: a mask, plus the ellipse and all shapes.
-local function shape_selection(sprite, shape, selections)
+local function shape_selection(sprite, layer, shape, selections)
   if shape.ellipse then
     local e = shape.ellipse
     app.useTool {
@@ -179,19 +180,34 @@ local function shape_selection(sprite, shape, selections)
     }
   elseif shape.all then
     app.command.MaskAll()
+  elseif shape.wand then
+    local w = shape.wand
+    app.useTool {
+      tool = "magic_wand",
+      selection = SelectionMode.REPLACE,
+      layer = layer,
+      frame = 1,
+      points = { Point(w.point.x, w.point.y) },
+      contiguous = w.contiguous ~= false,
+      tolerance = w.tolerance or 0,
+    }
+  elseif shape.color then
+    app.layer = layer
+    app.frame = sprite.frames[1]
+    app.command.MaskByColor { color = color(shape.color.color), tolerance = shape.color.tolerance or 0, ui = false }
   else
     select_mask(sprite, shape, selections)
   end
   return copy_selection(sprite.selection)
 end
 
-local function select_op(sprite, call, selections)
+local function select_op(sprite, layer, call, selections)
   local input = call.input
   if call.op == "selection.create" then
     selections.count = selections.count + 1
-    selections["selection-" .. selections.count] = shape_selection(sprite, input.shape, selections)
+    selections["selection-" .. selections.count] = shape_selection(sprite, layer, input.shape, selections)
   elseif call.op == "selection.combine" then
-    local shape = shape_selection(sprite, input.shape, selections)
+    local shape = shape_selection(sprite, layer, input.shape, selections)
     local target = selections[input.selectionId]
     if input.mode == "add" then
       target:add(shape)
@@ -309,7 +325,7 @@ local function apply(sprite, layer, call, selections)
   if input.tiled then app.preferences.document(sprite).tiled.mode = TILED[input.tiled] end
   if input.mask then select_mask(sprite, input.mask, selections) end
   if call.op:find("^selection%.") then
-    select_op(sprite, call, selections)
+    select_op(sprite, layer, call, selections)
   else
     apply_op(sprite, layer, call)
   end

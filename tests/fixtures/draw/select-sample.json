@@ -1,0 +1,557 @@
+{
+	"width": 24,
+	"height": 24,
+	"record": "selection-1",
+	"cases": {
+		"wand-contiguous": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 0,
+					"y": 0,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"a": "#e03020",
+						"b": "#e83828",
+						"c": "#2040c0"
+					},
+					"rows": [
+						"........................",
+						"........................",
+						"..aaaaaaaab.............",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaa.aaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..............cccccccc..",
+						"........................",
+						"........................",
+						"........................",
+						"........................",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"........................",
+						"........................",
+						"........................"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"wand": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"point": {
+								"x": 4,
+								"y": 4
+							}
+						}
+					}
+				}
+			}
+		],
+		"wand-tolerance": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 0,
+					"y": 0,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"a": "#e03020",
+						"b": "#e83828",
+						"c": "#2040c0"
+					},
+					"rows": [
+						"........................",
+						"........................",
+						"..aaaaaaaab.............",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaa.aaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..............cccccccc..",
+						"........................",
+						"........................",
+						"........................",
+						"........................",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"........................",
+						"........................",
+						"........................"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"wand": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"point": {
+								"x": 4,
+								"y": 4
+							},
+							"tolerance": 10
+						}
+					}
+				}
+			}
+		],
+		"wand-noncontiguous": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 0,
+					"y": 0,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"a": "#e03020",
+						"b": "#e83828",
+						"c": "#2040c0"
+					},
+					"rows": [
+						"........................",
+						"........................",
+						"..aaaaaaaab.............",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaa.aaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..............cccccccc..",
+						"........................",
+						"........................",
+						"........................",
+						"........................",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"........................",
+						"........................",
+						"........................"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"wand": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"point": {
+								"x": 4,
+								"y": 4
+							},
+							"contiguous": false
+						}
+					}
+				}
+			}
+		],
+		"wand-transparent-small-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 6,
+					"y": 6,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"x": "#ff000000",
+						"y": "#00ff0000",
+						"z": "#00000000"
+					},
+					"rows": [
+						"########",
+						"#......#",
+						"#......#",
+						"#..xy..#",
+						"#..z...#",
+						"#......#",
+						"#......#",
+						"########"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"wand": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"point": {
+								"x": 1,
+								"y": 1
+							}
+						}
+					}
+				}
+			}
+		],
+		"wand-inside-small-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 6,
+					"y": 6,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"x": "#ff000000",
+						"y": "#00ff0000",
+						"z": "#00000000"
+					},
+					"rows": [
+						"########",
+						"#......#",
+						"#......#",
+						"#..xy..#",
+						"#..z...#",
+						"#......#",
+						"#......#",
+						"########"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"wand": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"point": {
+								"x": 11,
+								"y": 11
+							}
+						}
+					}
+				}
+			}
+		],
+		"color-exact": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 0,
+					"y": 0,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"a": "#e03020",
+						"b": "#e83828",
+						"c": "#2040c0"
+					},
+					"rows": [
+						"........................",
+						"........................",
+						"..aaaaaaaab.............",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaa.aaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..............cccccccc..",
+						"........................",
+						"........................",
+						"........................",
+						"........................",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"........................",
+						"........................",
+						"........................"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"color": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"color": "#e03020"
+						}
+					}
+				}
+			}
+		],
+		"color-tolerance": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 0,
+					"y": 0,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"a": "#e03020",
+						"b": "#e83828",
+						"c": "#2040c0"
+					},
+					"rows": [
+						"........................",
+						"........................",
+						"..aaaaaaaab.............",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaa.aaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..............cccccccc..",
+						"........................",
+						"........................",
+						"........................",
+						"........................",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"........................",
+						"........................",
+						"........................"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"color": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"color": "#e03020",
+							"tolerance": 10
+						}
+					}
+				}
+			}
+		],
+		"color-transparent-small-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 6,
+					"y": 6,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"x": "#ff000000",
+						"y": "#00ff0000",
+						"z": "#00000000"
+					},
+					"rows": [
+						"########",
+						"########",
+						"########",
+						"###xy###",
+						"###z.###",
+						"########",
+						"########",
+						"########"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"color": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"color": "#00000000"
+						}
+					}
+				}
+			}
+		],
+		"color-transparent-tolerance-small-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 6,
+					"y": 6,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"x": "#ff000000",
+						"y": "#00ff0000",
+						"z": "#00000000"
+					},
+					"rows": [
+						"########",
+						"########",
+						"########",
+						"###xy###",
+						"###z.###",
+						"########",
+						"########",
+						"########"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"color": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"color": "#00000000",
+							"tolerance": 255
+						}
+					}
+				}
+			}
+		],
+		"color-off-canvas": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": -4,
+					"y": 16,
+					"legend": {
+						".": "#00000000",
+						"d": "#30a050",
+						"e": "#c0c040"
+					},
+					"rows": [
+						"eeeddddddd",
+						"eeeddddddd",
+						"eeeddddddd",
+						"eeeddddddd",
+						"eeeddddddd",
+						"eeeddddddd",
+						"eeeddddddd",
+						"eeeeeeeeee",
+						"eeeeeeeeee",
+						"eeeeeeeeee"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"color": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"color": "#30a050"
+						}
+					}
+				}
+			}
+		],
+		"wand-add-color": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 0,
+					"y": 0,
+					"legend": {
+						".": "#00000000",
+						"#": "#202020",
+						"a": "#e03020",
+						"b": "#e83828",
+						"c": "#2040c0"
+					},
+					"rows": [
+						"........................",
+						"........................",
+						"..aaaaaaaab.............",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaa.aaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..aaaaaaaab...cccccccc..",
+						"..............cccccccc..",
+						"........................",
+						"........................",
+						"........................",
+						"........................",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"...aaaaaa...............",
+						"........................",
+						"........................",
+						"........................"
+					]
+				}
+			},
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"wand": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"point": {
+								"x": 4,
+								"y": 4
+							}
+						}
+					}
+				}
+			},
+			{
+				"op": "selection.combine",
+				"input": {
+					"selectionId": "selection-1",
+					"mode": "add",
+					"shape": {
+						"color": {
+							"layerId": "layer-1",
+							"frame": 0,
+							"color": "#2040c0"
+						}
+					}
+				}
+			}
+		]
+	}
+}
