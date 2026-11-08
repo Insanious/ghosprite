@@ -7,6 +7,10 @@ import { layoutSheet } from "../core/sheet.ts";
 import { buildSheetJson } from "../core/sheet-json.ts";
 import { OpError } from "../errors.ts";
 import { defineOp } from "./registry.ts";
+import { requireRgba } from "./require-rgba.ts";
+
+const supportedToken =
+	/^\{(?:name|title|extension|tag|duration|(?:frame|tagframe)\d*)\}$/;
 
 const count = z.number().int().positive();
 const padding = z.number().int().min(0).default(0);
@@ -36,9 +40,20 @@ export const spriteExportSheet = defineOp({
 			dataFormat: z.enum(["hash", "array"]).default("hash"),
 			filenameFormat: z
 				.string()
+				.superRefine((format, ctx) => {
+					const bad = format
+						.match(/\{[^{}]*\}/g)
+						?.find((token) => !supportedToken.test(token));
+					if (bad !== undefined) {
+						ctx.addIssue({
+							code: "custom",
+							message: `Unsupported filename token ${bad}`,
+						});
+					}
+				})
 				.optional()
 				.describe(
-					"Frame names in the JSON, with the tokens {name} {title} {extension} {frame} {tagframe} {tag} {duration} and padded or offset forms such as {frame001}.",
+					"Frame names in the JSON, with the tokens {name} {title} {extension} {frame} {tagframe} {tag} {duration} and padded or offset forms such as {frame001}. Any other {token} is rejected.",
 				),
 			name: z
 				.string()
@@ -58,6 +73,7 @@ export const spriteExportSheet = defineOp({
 	renderOption: false,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
+		requireRgba(sprite);
 		if (
 			input.tag !== undefined &&
 			!sprite.tags.some((t) => t.name === input.tag)

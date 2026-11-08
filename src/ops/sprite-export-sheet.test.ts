@@ -64,6 +64,51 @@ describe("sprite.exportSheet", () => {
 		}
 	});
 
+	test("an indexed sprite is unsupported", () => {
+		const { workspace, input, directory } = setup();
+		try {
+			workspace.getSprite(input.spriteId).mode = "indexed";
+			const error = failure(() =>
+				registry.callOp(workspace, "sprite.exportSheet", input),
+			);
+			expect(error.code).toBe("unsupported");
+			expect(error.message).toBe("Cannot edit a indexed sprite");
+		} finally {
+			rmSync(directory, { recursive: true, force: true });
+		}
+	});
+
+	test("an unsupported filename token is invalid_input at filenameFormat", () => {
+		const { workspace, input, directory } = setup();
+		try {
+			const error = failure(() =>
+				registry.callOp(workspace, "sprite.exportSheet", {
+					...input,
+					filenameFormat: "{name}-{layer}-{slice}",
+				}),
+			);
+			expect(error.code).toBe("invalid_input");
+			expect(error.path).toBe("filenameFormat");
+			expect(error.message).toContain("{layer}");
+			expect(error.message).not.toContain("{slice}");
+		} finally {
+			rmSync(directory, { recursive: true, force: true });
+		}
+	});
+
+	test("every supported filename token is accepted", () => {
+		const { workspace, input, directory } = setup();
+		try {
+			registry.callOp(workspace, "sprite.exportSheet", {
+				...input,
+				filenameFormat:
+					"{name}{title}{extension}{tag}{duration}{frame}{frame001}{tagframe}{tagframe5}",
+			});
+		} finally {
+			rmSync(directory, { recursive: true, force: true });
+		}
+	});
+
 	test("an unknown tag is not_found at tag", () => {
 		const { workspace, input, directory } = setup();
 		try {
