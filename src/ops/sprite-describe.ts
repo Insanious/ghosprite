@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { rgbaHex } from "../core/image.ts";
+import { maskPixelCount } from "../core/selection.ts";
 import { hasUserData } from "../core/sheet-json.ts";
 import {
 	type Cel,
@@ -131,6 +132,11 @@ export const spriteDescribe = defineOp({
 				name: slice.name,
 				keys: slice.keys,
 				...userDataFields(slice.userData),
+			})),
+			selections: [...sprite.selections].map(([id, mask]) => ({
+				id,
+				bounds: mask.bounds,
+				pixels: maskPixelCount(mask),
 			})),
 			palettes: sprite.palettes.map((palette) => ({
 				startFrame: palette.startFrame,

@@ -1,3 +1,4 @@
+import type { Mask } from "./draw/spans.ts";
 import {
 	type ColorMode,
 	type Image,
@@ -106,6 +107,8 @@ export type Sprite = {
 	pixelRatio: { width: number; height: number };
 	gridBounds: Rect;
 	colorProfile: ColorProfile;
+	/** Trimmed masks keyed by selection id, in creation order. */
+	selections: Map<string, Mask>;
 };
 
 export type LayerInit = {
@@ -173,6 +176,7 @@ export function createSprite(init: {
 		pixelRatio: { width: 1, height: 1 },
 		gridBounds: { x: 0, y: 0, width: 16, height: 16 },
 		colorProfile: { type: "srgb" },
+		selections: new Map(),
 	};
 }
 

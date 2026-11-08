@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { maskFromRect } from "../core/draw/mask.ts";
+import type { Rect } from "../core/image.ts";
+import { trimMask } from "../core/selection.ts";
 import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
@@ -15,8 +18,11 @@ type Described = {
 	}[];
 	tags: { userData?: { color?: string } }[];
 	palettes: { colors: string[] }[];
+	selections: { id: string; bounds: Rect; pixels: number }[];
 	userData?: unknown;
 };
+
+const EMPTY = { x: 0, y: 0, width: 0, height: 0 };
 
 const describeSprite = (workspace: Workspace, spriteId: string) =>
 	registry.callOp(workspace, "sprite.describe", {
@@ -62,6 +68,25 @@ describe("sprite.describe", () => {
 				["b", "layer-11"],
 				["c", "layer-12"],
 			],
+		]);
+	});
+
+	test("lists selections in creation order", () => {
+		const { workspace, spriteId } = load("link.aseprite");
+		const sprite = workspace.getSprite(spriteId);
+		sprite.selections.set(
+			"selection-1",
+			maskFromRect({ x: 1, y: 2, width: 3, height: 2 }),
+		);
+		sprite.selections.set("selection-2", trimMask(maskFromRect(EMPTY)));
+		const { selections } = describeSprite(workspace, spriteId);
+		expect(selections).toEqual([
+			{
+				id: "selection-1",
+				bounds: { x: 1, y: 2, width: 3, height: 2 },
+				pixels: 6,
+			},
+			{ id: "selection-2", bounds: EMPTY, pixels: 0 },
 		]);
 	});
 

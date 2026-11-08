@@ -1,8 +1,9 @@
+import type { Mask } from "./core/draw/spans.ts";
 import type { Layer, Sprite } from "./core/sprite.ts";
 import { findLayer } from "./core/sprite.ts";
 import { OpError } from "./errors.ts";
 
-export type IdKind = "sprite" | "layer";
+export type IdKind = "sprite" | "layer" | "selection";
 
 export class Workspace {
 	private readonly sprites = new Map<string, Sprite>();
@@ -65,5 +66,21 @@ export class Workspace {
 			);
 		}
 		return layer;
+	}
+
+	getSelection(
+		spriteId: string,
+		selectionId: string,
+		path = "selectionId",
+	): Mask {
+		const mask = this.getSprite(spriteId).selections.get(selectionId);
+		if (!mask) {
+			throw new OpError(
+				"not_found",
+				`No selection with id "${selectionId}" in ${spriteId}`,
+				{ path },
+			);
+		}
+		return mask;
 	}
 }
