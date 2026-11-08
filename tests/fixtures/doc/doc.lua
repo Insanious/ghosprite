@@ -33,6 +33,15 @@ end
 
 local OPS = {}
 
+OPS["layer.delete"] = function(sprite, input)
+  layer_named(sprite, input.layerId)
+  sprite:deleteLayer(input.layerId)
+end
+
+OPS["cel.delete"] = function(sprite, input)
+  sprite:deleteCel(layer_named(sprite, input.layerId), input.frame + 1)
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end

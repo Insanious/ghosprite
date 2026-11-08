@@ -1,3 +1,4 @@
+import { celDelete } from "./cel-delete.ts";
 import { celSet } from "./cel-set.ts";
 import { drawBezier } from "./draw-bezier.ts";
 import { drawEllipse } from "./draw-ellipse.ts";
@@ -7,6 +8,7 @@ import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
 import { drawSpray } from "./draw-spray.ts";
 import { layerCreate } from "./layer-create.ts";
+import { layerDelete } from "./layer-delete.ts";
 import type { Operation } from "./registry.ts";
 import { spriteCreate } from "./sprite-create.ts";
 import { spriteLoad } from "./sprite-load.ts";
@@ -16,7 +18,9 @@ import { spriteSave } from "./sprite-save.ts";
 export const operations: Operation[] = [
 	spriteCreate,
 	layerCreate,
+	layerDelete,
 	celSet,
+	celDelete,
 	drawLine,
 	drawBezier,
 	drawPolygon,

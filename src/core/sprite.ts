@@ -1,4 +1,9 @@
-import type { ColorMode, Image, Rect } from "./image.ts";
+import {
+	type ColorMode,
+	type Image,
+	intersectRects,
+	type Rect,
+} from "./image.ts";
 import type { Palette } from "./palette.ts";
 import type { Slice } from "./slice.ts";
 import type { Tag } from "./tag.ts";
@@ -250,6 +255,28 @@ export function addLayer(
 		throw new RangeError("Nothing can go below the background layer");
 	}
 	parent.children.splice(index, 0, layer);
+}
+
+/** The part of a cel's rect that lies on the canvas; empty if it lies off it. */
+export function celCanvasRect(sprite: Sprite, data: CelData): Rect {
+	return intersectRects(
+		{ x: 0, y: 0, width: sprite.width, height: sprite.height },
+		{
+			x: data.x,
+			y: data.y,
+			width: data.image.width,
+			height: data.image.height,
+		},
+	);
+}
+
+/** Removes a layer, and a group with all its children. */
+export function removeLayer(sprite: Sprite, layer: Layer): void {
+	const parent = findParent(sprite, layer);
+	if (!parent) {
+		throw new RangeError(`Layer "${layer.id}" is not in the sprite`);
+	}
+	parent.children.splice(parent.children.indexOf(layer), 1);
 }
 
 /** Replaces any cel at `frame`. Pass the same `data` for several frames to link them. */

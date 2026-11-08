@@ -123,7 +123,9 @@ describe("cli ops", () => {
 		expect(ops.map((o: { name: string }) => o.name)).toEqual([
 			"sprite.create",
 			"layer.create",
+			"layer.delete",
 			"cel.set",
+			"cel.delete",
 			"draw.line",
 			"draw.bezier",
 			"draw.polygon",

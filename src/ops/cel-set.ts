@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { commitCel } from "../core/cel-edit.ts";
-import { intersectRects, isEmptyRect, unionRects } from "../core/image.ts";
+import { isEmptyRect, unionRects } from "../core/image.ts";
+import { celCanvasRect } from "../core/sprite.ts";
 import { resolveTarget } from "./draw.ts";
 import { defineOp } from "./registry.ts";
 import { imageFromRows, legendSchema, rowsSchema } from "./rows.ts";
@@ -37,18 +38,7 @@ export const celSet = defineOp({
 		const cel = layer.cels.get(input.frame);
 		if (cel && cel.data.opacity !== input.opacity) {
 			cel.data.opacity = input.opacity;
-			rect = unionRects(
-				rect,
-				intersectRects(
-					{
-						x: cel.data.x,
-						y: cel.data.y,
-						width: cel.data.image.width,
-						height: cel.data.image.height,
-					},
-					{ x: 0, y: 0, width: sprite.width, height: sprite.height },
-				),
-			);
+			rect = unionRects(rect, celCanvasRect(sprite, cel.data));
 		}
 		return {
 			changed: isEmptyRect(rect)

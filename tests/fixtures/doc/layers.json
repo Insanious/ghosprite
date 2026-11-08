@@ -1,0 +1,19 @@
+{
+	"base": "base",
+	"cases": {
+		"delete-body": [{ "op": "layer.delete", "input": { "layerId": "body" } }],
+		"delete-group": [{ "op": "layer.delete", "input": { "layerId": "fx" } }],
+		"delete-nested": [
+			{ "op": "layer.delete", "input": { "layerId": "ghost" } }
+		],
+		"delete-background": [
+			{ "op": "layer.delete", "input": { "layerId": "bg" } }
+		],
+		"delete-cel": [
+			{ "op": "cel.delete", "input": { "layerId": "body", "frame": 0 } }
+		],
+		"delete-linked-cel": [
+			{ "op": "cel.delete", "input": { "layerId": "body", "frame": 1 } }
+		]
+	}
+}
