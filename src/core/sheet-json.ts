@@ -2,7 +2,7 @@ import type { Rect, Rgba } from "./image.ts";
 import type { Sheet, SheetEntry } from "./sheet.ts";
 import type { Cel, GroupLayer, Layer, Sprite } from "./sprite.ts";
 import type { Tag } from "./tag.ts";
-import type { UserData } from "./user-data.ts";
+import type { PropertiesMap, PropertyValue, UserData } from "./user-data.ts";
 
 export const SHEET_APP = "https://github.com/Insanious/ghosprite";
 export const SHEET_VERSION = "0.0.0";
@@ -39,11 +39,79 @@ const rectJson = ({ x, y, width, height }: Rect) => ({
 
 const hex = (n: number) => n.toString(16).padStart(2, "0");
 
+const UNSUPPORTED = "[unsupported type]";
+
+/** C's `%g` with 6 significant digits, which is how Aseprite writes floats. */
+function formatG(value: number): string {
+	if (!Number.isFinite(value)) return "null";
+	if (value === 0) return Object.is(value, -0) ? "-0" : "0";
+	const [mantissa = "", exponentText = "0"] = value.toExponential(5).split("e");
+	const exponent = Number(exponentText);
+	if (exponent < -4 || exponent >= 6) {
+		const sign = exponent < 0 ? "-" : "+";
+		const digits = String(Math.abs(exponent)).padStart(2, "0");
+		return `${stripZeros(mantissa)}e${sign}${digits}`;
+	}
+	return stripZeros(value.toFixed(5 - exponent));
+}
+
+const stripZeros = (text: string) =>
+	text.includes(".") ? text.replace(/\.?0+$/, "") : text;
+
+function propertyJson(property: PropertyValue): unknown {
+	switch (property.type) {
+		case "bool":
+		case "int8":
+		case "uint8":
+		case "int16":
+		case "uint16":
+		case "int32":
+		case "uint32":
+			return property.value;
+		case "int64":
+		case "uint64":
+			return JSON.rawJSON(String(BigInt.asIntN(64, property.value)));
+		case "float":
+			return JSON.rawJSON(formatG(Math.fround(property.value)));
+		case "double":
+			return JSON.rawJSON(formatG(property.value));
+		case "string":
+			return property.value;
+		case "properties":
+			return mapJson(property.value);
+		default:
+			return UNSUPPORTED;
+	}
+}
+
+const byKey = <T>([a]: [string, T], [b]: [string, T]) =>
+	a < b ? -1 : a > b ? 1 : 0;
+
+function mapJson(map: PropertiesMap): JsonObject {
+	return Object.fromEntries(
+		[...map.entries()]
+			.sort(byKey)
+			.map(([key, value]) => [key, propertyJson(value)]),
+	);
+}
+
+/** The user's own map (key `""`) comes first, then each extension's map. */
+function propertiesJson(properties: UserData["properties"]): JsonObject {
+	const extensions = [...properties.entries()]
+		.filter(([key, map]) => key !== "" && map.size > 0)
+		.sort(byKey)
+		.map(([key, map]) => [key, mapJson(map)]);
+	const own = properties.get("");
+	return { ...(own && mapJson(own)), ...Object.fromEntries(extensions) };
+}
+
 function userDataJson(data: UserData): JsonObject {
 	const { r, g, b, a }: Rgba = data.color;
+	const properties = propertiesJson(data.properties);
 	return {
 		...(a > 0 && { color: `#${hex(r)}${hex(g)}${hex(b)}${hex(a)}` }),
 		...(data.text !== "" && { data: data.text }),
+		...(Object.keys(properties).length > 0 && { properties }),
 	};
 }
 

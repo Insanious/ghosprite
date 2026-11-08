@@ -247,30 +247,22 @@ function readPng(path: string): Image {
 	return decodePng(new Uint8Array(readFileSync(path)), inflateSync);
 }
 
-// TypeScript's ESNext lib doesn't declare these two JSON features yet.
-const rawJSON = (JSON as unknown as { rawJSON(text: string): object }).rawJSON;
-type Reviver = (
-	key: string,
-	value: unknown,
-	context: { source: string },
-) => unknown;
-
 function withoutApp(json: { meta: Record<string, unknown> }): string {
 	const { app: _app, version: _version, ...meta } = json.meta;
 	return JSON.stringify({ ...json, meta }, (_key, value) =>
-		typeof value === "bigint" ? rawJSON(String(value)) : value,
+		typeof value === "bigint" ? JSON.rawJSON(String(value)) : value,
 	);
 }
 
 /** Parses JSON keeping integer literals beyond 2^53 exact, as bigints. */
 function parseExact(text: string): { meta: Record<string, unknown> } {
-	const reviver: Reviver = (_key, value, context) =>
+	return JSON.parse(text, (_key, value, context) =>
 		typeof value === "number" &&
 		!Number.isSafeInteger(value) &&
 		/^-?\d+$/.test(context.source)
 			? BigInt(context.source)
-			: value;
-	return JSON.parse(text, reviver as (key: string, value: unknown) => unknown);
+			: value,
+	) as { meta: Record<string, unknown> };
 }
 
 /**

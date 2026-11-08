@@ -11,7 +11,7 @@ import {
 	setCel,
 } from "./sprite.ts";
 import { insertTag, type Tag } from "./tag.ts";
-import { createUserData } from "./user-data.ts";
+import { createUserData, type PropertyValue } from "./user-data.ts";
 
 function spriteWith(frames: number): Sprite {
 	const sprite = createSprite({
@@ -302,5 +302,125 @@ describe("buildSheetJson meta", () => {
 				],
 			},
 		]);
+	});
+});
+
+describe("buildSheetJson properties", () => {
+	const propertiesOf = (
+		entries: [string, PropertyValue][],
+		extensions: [string, [string, PropertyValue][]][] = [],
+		ownFirst = true,
+	): string => {
+		const userData = createUserData();
+		const maps: [string, [string, PropertyValue][]][] = [
+			["", entries],
+			...extensions,
+		];
+		for (const [id, map] of ownFirst ? maps : [...maps].reverse()) {
+			userData.properties.set(id, new Map(map));
+		}
+		const sprite = spriteWith(1);
+		insertTag(sprite.tags, tag("t", 0, 0, { userData }));
+		const [json] = build(sprite).meta.frameTags as { properties?: unknown }[];
+		return JSON.stringify(json?.properties);
+	};
+
+	test("int64 and uint64 keep their exact digits", () => {
+		const big = (1n << 62n) + 1n;
+		expect(
+			propertiesOf([
+				["a", { type: "int64", value: big }],
+				["b", { type: "uint64", value: big }],
+			]),
+		).toBe('{"a":4611686018427387905,"b":4611686018427387905}');
+	});
+
+	test("a uint64 above the int64 maximum is written negative (a guess)", () => {
+		expect(
+			propertiesOf([["a", { type: "uint64", value: 2n ** 64n - 1n }]]),
+		).toBe('{"a":-1}');
+	});
+
+	test("fixed and null are unsupported (a guess)", () => {
+		expect(
+			propertiesOf([
+				["a", { type: "fixed", value: 1 }],
+				["b", { type: "null" }],
+			]),
+		).toBe('{"a":"[unsupported type]","b":"[unsupported type]"}');
+	});
+
+	test("a float is formatted from its 32-bit value (a guess)", () => {
+		expect(
+			propertiesOf([
+				["a", { type: "float", value: 0.1 }],
+				["b", { type: "float", value: 1 / 3 }],
+			]),
+		).toBe('{"a":0.1,"b":0.333333}');
+	});
+
+	test("doubles use C's %g text", () => {
+		expect(
+			propertiesOf([
+				["a", { type: "double", value: 1e20 }],
+				["b", { type: "double", value: 1e-7 }],
+				["c", { type: "double", value: 123456789.5 }],
+				["d", { type: "double", value: 3 }],
+				["e", { type: "double", value: 100000 }],
+			]),
+		).toBe('{"a":1e+20,"b":1e-07,"c":1.23457e+08,"d":3,"e":100000}');
+	});
+
+	test("NaN and infinity are null", () => {
+		expect(
+			propertiesOf([
+				["a", { type: "double", value: Number.NaN }],
+				["b", { type: "float", value: Number.POSITIVE_INFINITY }],
+			]),
+		).toBe('{"a":null,"b":null}');
+	});
+
+	test("keys are sorted, and the user's map precedes extension maps", () => {
+		const one = (n: number): PropertyValue => ({ type: "uint8", value: n });
+		expect(
+			propertiesOf(
+				[
+					["b", one(1)],
+					["a", one(2)],
+				],
+				[["com.a", [["z", one(3)]]]],
+				false,
+			),
+		).toBe('{"a":2,"b":1,"com.a":{"z":3}}');
+	});
+
+	test("an empty extension map adds nothing, a non-empty one stays", () => {
+		const one: PropertyValue = { type: "bool", value: true };
+		expect(
+			propertiesOf(
+				[],
+				[
+					["com.empty", []],
+					["com.full", [["k", one]]],
+				],
+			),
+		).toBe('{"com.full":{"k":true}}');
+	});
+
+	test("a cel whose only user data is an empty map is listed bare", () => {
+		const sprite = spriteWith(1);
+		const layer = sprite.root.children[0];
+		if (layer?.kind !== "image") throw new Error("expected an image layer");
+		const userData = createUserData();
+		userData.properties.set("com.empty", new Map());
+		setCel(sprite, layer, 0, {
+			image: createImage(1, 1, "rgba"),
+			x: 0,
+			y: 0,
+			opacity: 255,
+			userData,
+		});
+		const [json] = build(sprite).meta.layers as { cels: unknown[] }[];
+		expect(JSON.stringify(json?.cels)).toBe('[{"frame":0}]');
 	});
 });
