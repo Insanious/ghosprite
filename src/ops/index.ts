@@ -5,6 +5,7 @@ import { celUnlink } from "./cel-unlink.ts";
 import { drawBezier } from "./draw-bezier.ts";
 import { drawEllipse } from "./draw-ellipse.ts";
 import { drawFill } from "./draw-fill.ts";
+import { drawImage } from "./draw-image.ts";
 import { drawLine } from "./draw-line.ts";
 import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
@@ -69,6 +70,7 @@ export const operations: Operation[] = [
 	frameDuplicate,
 	frameDelete,
 	drawLine,
+	drawImage,
 	drawBezier,
 	drawPolygon,
 	drawRect,

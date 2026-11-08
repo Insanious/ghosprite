@@ -6,6 +6,7 @@
 -- Each case is a list of ghosprite calls, replayed with Aseprite's tools:
 --   cel.set   -> sprite:newCel with an image built from the legend
 --   draw.line -> pencil, with freehandAlgorithm=1 when pixelPerfect
+--   draw.image -> pencil, stamping the rows as an image brush once, centred at floor(size / 2) from x, y
 --   draw.polygon -> contour, a filled polygon through the points
 --   draw.fill -> paint_bucket, with contiguous and tolerance
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
@@ -288,6 +289,14 @@ local function apply_op(sprite, layer, call)
     cel.opacity = input.opacity or 255
   elseif call.op == "draw.line" then
     draw_line(layer, input)
+  elseif call.op == "draw.image" then
+    draw_line(layer, {
+      ink = input.ink,
+      opacity = input.opacity,
+      symmetry = input.symmetry,
+      brush = { legend = input.legend, rows = input.rows },
+      points = { { x = input.x + #input.rows[1] // 2, y = input.y + #input.rows // 2 } },
+    })
   elseif call.op == "draw.polygon" then
     draw_polygon(layer, input)
   elseif call.op == "draw.rect" then

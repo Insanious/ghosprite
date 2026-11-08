@@ -75,6 +75,7 @@ export function runDraw(
 	workspace: Workspace,
 	input: DrawInput,
 	shape: Shape | SprayShape,
+	brushPath = "brush",
 ) {
 	const { sprite, layer } = resolveTarget(
 		workspace,
@@ -97,7 +98,7 @@ export function runDraw(
 	const isImageBrush = "rows" in spec;
 	const palette = paletteAt(sprite.palettes, input.frame);
 	const brush = isImageBrush
-		? imageBrush(imageFromRows(spec.legend, spec.rows, palette, "brush"))
+		? imageBrush(imageFromRows(spec.legend, spec.rows, palette, brushPath))
 		: createBrush(spec);
 
 	let color = { r: 0, g: 0, b: 0, a: 0 };
