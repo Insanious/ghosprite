@@ -39,6 +39,20 @@ export type Operation = {
 	call: (workspace: Workspace, rawInput: unknown) => MutationResult;
 };
 
+export function parseInput<S extends z.ZodType>(
+	schema: S,
+	rawInput: unknown,
+): z.output<S> {
+	const parsed = schema.safeParse(rawInput);
+	if (!parsed.success) {
+		const issue = parsed.error.issues[0];
+		throw new OpError("invalid_input", issue?.message ?? "Invalid input", {
+			path: (issue?.path ?? []).join("."),
+		});
+	}
+	return parsed.data;
+}
+
 export function defineOp<S extends z.ZodObject>(
 	definition: OpDefinition<S>,
 ): Operation {
@@ -53,14 +67,7 @@ export function defineOp<S extends z.ZodObject>(
 		schema,
 		readOnly: definition.readOnly,
 		call(workspace, rawInput) {
-			const parsed = schema.safeParse(rawInput);
-			if (!parsed.success) {
-				const issue = parsed.error.issues[0];
-				throw new OpError("invalid_input", issue?.message ?? "Invalid input", {
-					path: (issue?.path ?? []).join("."),
-				});
-			}
-			const input = parsed.data as z.infer<S> & {
+			const input = parseInput(schema, rawInput) as z.infer<S> & {
 				render?: z.infer<typeof renderOptionSchema>;
 			};
 			const inputSpriteId = (input as { spriteId?: unknown }).spriteId;

@@ -29,7 +29,7 @@ export type HistoryMove = { checkpointId: string; sprites: string[] };
 
 export class Session {
 	readonly workspace = new Workspace();
-	private readonly registry = createRegistry(operations);
+	readonly registry = createRegistry(operations);
 	private readonly steps: Step[] = [];
 	private position = 0;
 	private lastCheckpoint = 0;
