@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { decodeRGBA } from "wasm-webp";
+import { decodeAnimation, decodeRGBA } from "wasm-webp";
 import { createImage, type Image } from "./image.ts";
-import { encodeWebp } from "./webp.ts";
+import { encodeAnimatedWebp, encodeWebp } from "./webp.ts";
 
 async function roundTrip(image: Image): Promise<void> {
 	const decoded = await decodeRGBA(encodeWebp(image));
@@ -72,5 +72,79 @@ describe("encodeWebp", () => {
 
 	test("rejects non-rgba images", () => {
 		expect(() => encodeWebp(createImage(2, 2, "indexed"))).toThrow();
+	});
+});
+
+function frameOf(width: number, height: number, pixels: number[][]): Image {
+	const image = createImage(width, height, "rgba");
+	pixels.forEach((rgba, i) => {
+		image.data.set(rgba, i * 4);
+	});
+	return image;
+}
+
+describe("encodeAnimatedWebp", () => {
+	test("round-trips three frames with transparency and durations", async () => {
+		const frames = [
+			{
+				image: frameOf(2, 2, [
+					[255, 0, 0, 255],
+					[0, 0, 0, 0],
+					[0, 255, 0, 128],
+					[1, 2, 3, 255],
+				]),
+				duration: 100,
+			},
+			{
+				image: frameOf(2, 2, [
+					[0, 0, 0, 0],
+					[9, 8, 7, 255],
+					[0, 0, 0, 0],
+					[0, 0, 255, 255],
+				]),
+				duration: 65535,
+			},
+			{
+				image: frameOf(2, 2, [
+					[5, 5, 5, 255],
+					[5, 5, 5, 255],
+					[5, 5, 5, 255],
+					[0, 0, 0, 0],
+				]),
+				duration: 1,
+			},
+		];
+		const decoded = await decodeAnimation(encodeAnimatedWebp(frames), true);
+		expect(decoded?.length).toBe(3);
+		decoded?.forEach((frame, i) => {
+			expect(frame.duration).toBe(frames[i]?.duration ?? -1);
+			expect(frame.width).toBe(2);
+			expect(Array.from(frame.data)).toEqual(
+				Array.from(frames[i]?.image.data ?? []),
+			);
+		});
+	});
+
+	test("a transparent pixel over an opaque previous pixel stays transparent", async () => {
+		const opaque = frameOf(1, 1, [[200, 100, 50, 255]]);
+		const clear = frameOf(1, 1, [[0, 0, 0, 0]]);
+		const decoded = await decodeAnimation(
+			encodeAnimatedWebp([
+				{ image: opaque, duration: 10 },
+				{ image: clear, duration: 10 },
+			]),
+			true,
+		);
+		expect(Array.from(decoded?.[1]?.data ?? [])).toEqual([0, 0, 0, 0]);
+	});
+
+	test("rejects no frames and mismatched sizes", () => {
+		expect(() => encodeAnimatedWebp([])).toThrow();
+		expect(() =>
+			encodeAnimatedWebp([
+				{ image: createImage(1, 1, "rgba"), duration: 1 },
+				{ image: createImage(2, 1, "rgba"), duration: 1 },
+			]),
+		).toThrow();
 	});
 });

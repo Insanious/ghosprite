@@ -297,16 +297,72 @@ function ascii(text: string): number[] {
 	return [...text].map((c) => c.charCodeAt(0));
 }
 
-export function encodeWebp(image: Image): Uint8Array {
-	const bitstream = encodeVp8l(image);
-	const padded = bitstream.length + (bitstream.length & 1);
-	const out = new Uint8Array(20 + padded);
-	const view = new DataView(out.buffer);
-	out.set(ascii("RIFF"), 0);
-	view.setUint32(4, 12 + padded, true);
-	out.set(ascii("WEBP"), 8);
-	out.set(ascii("VP8L"), 12);
-	view.setUint32(16, bitstream.length, true);
-	out.set(bitstream, 20);
+/** A RIFF chunk: fourcc, little-endian size, payload, padded to an even length. */
+function chunk(fourcc: string, payload: Uint8Array): Uint8Array {
+	const out = new Uint8Array(8 + payload.length + (payload.length & 1));
+	out.set(ascii(fourcc), 0);
+	new DataView(out.buffer).setUint32(4, payload.length, true);
+	out.set(payload, 8);
 	return out;
+}
+
+function concat(parts: Uint8Array[]): Uint8Array {
+	const out = new Uint8Array(parts.reduce((sum, p) => sum + p.length, 0));
+	let offset = 0;
+	for (const part of parts) {
+		out.set(part, offset);
+		offset += part.length;
+	}
+	return out;
+}
+
+function riffWebp(chunks: Uint8Array[]): Uint8Array {
+	return chunk("RIFF", concat([Uint8Array.from(ascii("WEBP")), ...chunks]));
+}
+
+export function encodeWebp(image: Image): Uint8Array {
+	return riffWebp([chunk("VP8L", encodeVp8l(image))]);
+}
+
+export type AnimationFrame = { image: Image; duration: number };
+
+const FLAG_ANIMATION = 0x02;
+const FLAG_ALPHA = 0x10;
+// ANMF flags: bit 1 = do not blend, bit 0 = dispose to background.
+const ANMF_NO_BLEND_DISPOSE_BACKGROUND = 0x03;
+
+function setUint24(view: DataView, offset: number, value: number): void {
+	view.setUint16(offset, value & 0xffff, true);
+	view.setUint8(offset + 2, value >>> 16);
+}
+
+/** Encodes frames of equal size as a looping animated lossless WebP; durations are in ms. */
+export function encodeAnimatedWebp(frames: AnimationFrame[]): Uint8Array {
+	const first = frames[0];
+	if (!first) throw new Error("an animation needs at least one frame");
+	const { width, height } = first.image;
+
+	const vp8x = new Uint8Array(10);
+	const vp8xView = new DataView(vp8x.buffer);
+	vp8x[0] = FLAG_ANIMATION | FLAG_ALPHA;
+	setUint24(vp8xView, 4, width - 1);
+	setUint24(vp8xView, 7, height - 1);
+
+	const anim = new Uint8Array(6);
+
+	const anmfChunks = frames.map(({ image, duration }) => {
+		if (image.width !== width || image.height !== height) {
+			throw new Error("all animation frames must have the same size");
+		}
+		const bitstream = chunk("VP8L", encodeVp8l(image));
+		const header = new Uint8Array(16);
+		const view = new DataView(header.buffer);
+		setUint24(view, 6, width - 1);
+		setUint24(view, 9, height - 1);
+		setUint24(view, 12, duration);
+		header[15] = ANMF_NO_BLEND_DISPOSE_BACKGROUND;
+		return chunk("ANMF", concat([header, bitstream]));
+	});
+
+	return riffWebp([chunk("VP8X", vp8x), chunk("ANIM", anim), ...anmfChunks]);
 }
