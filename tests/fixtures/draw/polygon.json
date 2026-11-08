@@ -1,0 +1,90 @@
+{
+	"width": 24,
+	"height": 24,
+	"cases": {
+		"triangle": [
+			{
+				"op": "draw.polygon",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{ "x": 3, "y": 2 },
+						{ "x": 20, "y": 9 },
+						{ "x": 8, "y": 21 }
+					]
+				}
+			}
+		],
+		"concave": [
+			{
+				"op": "draw.polygon",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{ "x": 2, "y": 2 },
+						{ "x": 21, "y": 4 },
+						{ "x": 12, "y": 11 },
+						{ "x": 21, "y": 19 },
+						{ "x": 3, "y": 21 }
+					]
+				}
+			}
+		],
+		"star": [
+			{
+				"op": "draw.polygon",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{ "x": 12, "y": 1 },
+						{ "x": 19, "y": 22 },
+						{ "x": 2, "y": 9 },
+						{ "x": 22, "y": 9 },
+						{ "x": 5, "y": 22 }
+					]
+				}
+			}
+		],
+		"off-canvas": [
+			{
+				"op": "draw.polygon",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{ "x": -6, "y": 5 },
+						{ "x": 14, "y": -4 },
+						{ "x": 30, "y": 18 },
+						{ "x": 6, "y": 28 }
+					]
+				}
+			}
+		],
+		"brush-size3": [
+			{
+				"op": "draw.polygon",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "circle", "size": 3 },
+					"points": [
+						{ "x": 5, "y": 4 },
+						{ "x": 18, "y": 8 },
+						{ "x": 9, "y": 18 }
+					]
+				}
+			}
+		],
+		"collinear": [
+			{
+				"op": "draw.polygon",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{ "x": 2, "y": 3 },
+						{ "x": 10, "y": 11 },
+						{ "x": 20, "y": 21 }
+					]
+				}
+			}
+		]
+	}
+}

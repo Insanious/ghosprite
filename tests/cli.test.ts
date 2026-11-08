@@ -125,6 +125,8 @@ describe("cli ops", () => {
 			"layer.create",
 			"cel.set",
 			"draw.line",
+			"draw.bezier",
+			"draw.polygon",
 			"sprite.render",
 			"sprite.load",
 			"sprite.save",

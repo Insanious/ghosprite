@@ -6,6 +6,7 @@
 -- Each case is a list of ghosprite calls, replayed with Aseprite's tools:
 --   cel.set   -> sprite:newCel with an image built from the legend
 --   draw.line -> pencil, with freehandAlgorithm=1 when pixelPerfect
+--   draw.polygon -> contour, a filled polygon through the points
 -- The eraser ink is the eraser tool. A colour is "#rrggbb[aa]" or {r, g, b, a}.
 
 local dir = debug.getinfo(1, "S").source:sub(2):match("^(.*)[/\\]") or "."
@@ -57,11 +58,11 @@ local INKS = {
   lockAlpha = Ink.LOCK_ALPHA,
 }
 
-local function draw_line(sprite, layer, input)
+local function use_tool(tool, layer, input)
   local points = {}
   for i, p in ipairs(input.points) do points[i] = Point(p.x, p.y) end
   local params = {
-    tool = "pencil",
+    tool = tool,
     layer = layer,
     frame = 1,
     color = color(input.color or "#000000"),
@@ -69,13 +70,18 @@ local function draw_line(sprite, layer, input)
     opacity = input.opacity or 255,
     points = points,
   }
-  if input.ink == "eraser" then
-    params.tool = "eraser"
-  else
-    params.ink = INKS[input.ink or "simple"]
-  end
+  if tool ~= "eraser" then params.ink = INKS[input.ink or "simple"] end
   if input.pixelPerfect then params.freehandAlgorithm = 1 end
   app.useTool(params)
+end
+
+local function draw_line(layer, input)
+  use_tool(input.ink == "eraser" and "eraser" or "pencil", layer, input)
+end
+
+local function draw_polygon(layer, input)
+  if input.ink == "eraser" then error("draw.polygon cannot be recorded with the eraser ink") end
+  use_tool("contour", layer, input)
 end
 
 local function apply(sprite, layer, call)
@@ -84,7 +90,9 @@ local function apply(sprite, layer, call)
     local cel = sprite:newCel(layer, 1, image_from_rows(input.legend, input.rows), Point(input.x or 0, input.y or 0))
     cel.opacity = input.opacity or 255
   elseif call.op == "draw.line" then
-    draw_line(sprite, layer, input)
+    draw_line(layer, input)
+  elseif call.op == "draw.polygon" then
+    draw_polygon(layer, input)
   else
     error("unsupported op " .. call.op)
   end
