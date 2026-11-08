@@ -3,3 +3,5 @@ dist/
 plans/
 *.log
 .DS_Store
+.claude/worktrees/
+.claude/briefs/
