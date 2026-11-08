@@ -24,7 +24,7 @@ The hardest-to-get-right parts are all MIT-licensed: the blend maths, the compos
 | Compositor | `src/render/render.cpp` | 1,476 | About 20% is needed; the rest is zoom, onion skin and previews |
 | Line/ellipse/spline algorithms | `src/doc/algo.cpp` | 942 | Callback-based and editor-free |
 | Algorithms | `src/doc/algorithm/{floodfill,polygon,flip_image,shrink_bounds,resize_image,rotate,rotsprite}.cpp` | ~3.2k | `rotate.cpp` is hard fixed-point code; don't port it |
-| Quantize/dither | `src/render/{quantization.cpp,median_cut.h,ordered_dither.cpp,error_diffusion.cpp}` | ~1.4k | Needed for RGB→indexed and GIF |
+| Quantize/dither | `src/render/{quantization.cpp,ordered_dither.cpp,error_diffusion.cpp}`, `src/doc/octree_map.cpp` | ~1.4k | Needed for RGB→indexed and GIF. `median_cut.h` is only for the non-default RGB5A3 algorithm |
 | `.aseprite` codec | `src/dio/aseprite_{decoder,encoder}.cpp` | 1,518 + 1,327 | The reference implementation |
 | Inks (EULA) | `src/app/tools/ink_processing.h`, `inks.h` | 2,046 + 527 | Behaviour reference only |
 | Shape strokes (EULA) | `src/app/tools/intertwiners.h`, `point_shapes.h` | 912 + 461 | Behaviour reference, including pixel-perfect |
@@ -247,7 +247,7 @@ Outline (3×3/5×5 neighbourhood mask, inside or outside, fill and background co
 
 ## 10. Colour
 
-- **Quantization:** median cut on a histogram with 5/6/5/5 bits per channel (R/G/B/A). The octree variant is optional.
+- **Quantization:** the default `RgbMapAlgorithm` is the octree (`src/doc/octree_map.cpp`). `create_palette_from_sprite` maps `DEFAULT` to `OCTREE`, and the octree also maps colours to palette indices. Median cut on a 5/6/5/5-bit histogram (R/G/B/A) is the RGB5A3 algorithm, which only runs when asked for explicitly.
 - **Dithering:** Bayer 2×2/4×4/8×8 ordered dither (two variants with different tie-breaking), and error diffusion (Floyd–Steinberg family).
 - **Palette sorting:** by R, G, B, A, hue, saturation, value, lightness or luma. Return a remap table and apply it to indexed pixels.
 - **Palette files:**
