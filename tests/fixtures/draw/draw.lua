@@ -200,8 +200,18 @@ local function select_op(sprite, call, selections)
     else
       target:intersect(shape)
     end
-  else
+  elseif call.op == "selection.invert" then
+    sprite.selection = copy_selection(selections[input.selectionId])
+    app.command.InvertMask()
+    selections[input.selectionId] = copy_selection(sprite.selection)
+  elseif call.op == "selection.modify" then
+    sprite.selection = copy_selection(selections[input.selectionId])
+    app.command.ModifySelection { modifier = input.modifier, quantity = input.quantity, brush = input.brush or "circle", ui = false }
+    selections[input.selectionId] = copy_selection(sprite.selection)
+  elseif call.op == "selection.delete" then
     selections[input.selectionId] = nil
+  else
+    error("unsupported op " .. call.op)
   end
 end
 

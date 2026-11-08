@@ -29,6 +29,8 @@ import type { Operation } from "./registry.ts";
 import { selectionCombine } from "./selection-combine.ts";
 import { selectionCreate } from "./selection-create.ts";
 import { selectionDelete } from "./selection-delete.ts";
+import { selectionInvert } from "./selection-invert.ts";
+import { selectionModify } from "./selection-modify.ts";
 import { sliceCreate } from "./slice-create.ts";
 import { sliceDelete } from "./slice-delete.ts";
 import { spriteContactSheet } from "./sprite-contact-sheet.ts";
@@ -88,6 +90,8 @@ export const operations: Operation[] = [
 	selectionCreate,
 	selectionCombine,
 	selectionDelete,
+	selectionInvert,
+	selectionModify,
 	spriteMapToPalette,
 	paletteSet,
 	paletteLoad,

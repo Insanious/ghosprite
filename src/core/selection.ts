@@ -85,6 +85,23 @@ export function maskPixelCount(mask: Mask): number {
 	return count;
 }
 
+/** The canvas pixels the mask leaves out. An empty mask inverts to the whole canvas. */
+export function invertMask(
+	mask: Mask,
+	canvas: { width: number; height: number },
+): Mask {
+	const bits = new Uint8Array(canvas.width * canvas.height);
+	for (let y = 0; y < canvas.height; y++) {
+		for (let x = 0; x < canvas.width; x++) {
+			if (!isSet(mask, x, y)) bits[y * canvas.width + x] = 1;
+		}
+	}
+	return trimMask({
+		bounds: { x: 0, y: 0, width: canvas.width, height: canvas.height },
+		bits,
+	});
+}
+
 export function maskFromEllipse(rect: Rect): Mask {
 	const { x, y, width, height } = rect;
 	const mask = maskFromBits(

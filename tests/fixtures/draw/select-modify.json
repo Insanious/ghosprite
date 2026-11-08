@@ -1,0 +1,301 @@
+{
+	"width": 24,
+	"height": 24,
+	"record": "selection-1",
+	"cases": {
+		"invert-rect": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 5, "y": 6, "width": 8, "height": 6 } }
+				}
+			},
+			{ "op": "selection.invert", "input": { "selectionId": "selection-1" } }
+		],
+		"invert-rows-holes": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"x": 2,
+						"y": 3,
+						"rows": [
+							"#######",
+							"##   ##",
+							"## # ##",
+							"##   ##",
+							"#######",
+							"   #   "
+						]
+					}
+				}
+			},
+			{ "op": "selection.invert", "input": { "selectionId": "selection-1" } }
+		],
+		"invert-empty": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 5, "y": 6, "width": 8, "height": 6 } }
+				}
+			},
+			{
+				"op": "selection.combine",
+				"input": {
+					"selectionId": "selection-1",
+					"shape": { "rect": { "x": 0, "y": 0, "width": 24, "height": 24 } },
+					"mode": "subtract"
+				}
+			},
+			{ "op": "selection.invert", "input": { "selectionId": "selection-1" } }
+		],
+		"invert-off-canvas": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": -4, "y": 18, "width": 9, "height": 10 } }
+				}
+			},
+			{ "op": "selection.invert", "input": { "selectionId": "selection-1" } }
+		],
+		"expand-circle-1": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 8, "y": 8, "width": 5, "height": 4 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "expand",
+					"quantity": 1
+				}
+			}
+		],
+		"expand-circle-3": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 8, "y": 8, "width": 5, "height": 4 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "expand",
+					"quantity": 3
+				}
+			}
+		],
+		"expand-circle-3-polygon": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"polygon": [
+							{ "x": 3, "y": 2 },
+							{ "x": 18, "y": 7 },
+							{ "x": 8, "y": 17 }
+						]
+					}
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "expand",
+					"quantity": 3
+				}
+			}
+		],
+		"expand-square-2": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 8, "y": 8, "width": 5, "height": 4 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "expand",
+					"quantity": 2,
+					"brush": "square"
+				}
+			}
+		],
+		"expand-at-edge": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 0, "y": 18, "width": 6, "height": 6 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "expand",
+					"quantity": 3
+				}
+			}
+		],
+		"expand-holes": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"x": 4,
+						"y": 4,
+						"rows": ["#####", "#   #", "# # #", "#   #", "#####"]
+					}
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "expand",
+					"quantity": 1
+				}
+			}
+		],
+		"contract-circle-2": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 4, "y": 4, "width": 12, "height": 10 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "contract",
+					"quantity": 2
+				}
+			}
+		],
+		"contract-circle-ellipse": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "ellipse": { "x": 2, "y": 3, "width": 17, "height": 13 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "contract",
+					"quantity": 3
+				}
+			}
+		],
+		"contract-square-2": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 4, "y": 4, "width": 12, "height": 10 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "contract",
+					"quantity": 2,
+					"brush": "square"
+				}
+			}
+		],
+		"contract-partly-off-canvas": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": -4, "y": 14, "width": 12, "height": 14 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "contract",
+					"quantity": 2
+				}
+			}
+		],
+		"contract-to-nothing": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 6, "y": 6, "width": 6, "height": 4 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "contract",
+					"quantity": 3
+				}
+			}
+		],
+		"border-circle": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 4, "y": 4, "width": 12, "height": 10 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "border",
+					"quantity": 2
+				}
+			}
+		],
+		"border-square": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": { "rect": { "x": 4, "y": 4, "width": 12, "height": 10 } }
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "border",
+					"quantity": 2,
+					"brush": "square"
+				}
+			}
+		],
+		"border-ellipse-edge": [
+			{
+				"op": "selection.create",
+				"input": {
+					"shape": {
+						"ellipse": { "x": -3, "y": 10, "width": 15, "height": 11 }
+					}
+				}
+			},
+			{
+				"op": "selection.modify",
+				"input": {
+					"selectionId": "selection-1",
+					"modifier": "border",
+					"quantity": 1
+				}
+			}
+		]
+	}
+}
