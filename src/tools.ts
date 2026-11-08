@@ -1,6 +1,20 @@
 import { writeFileSync } from "node:fs";
+import { deflateSync } from "node:zlib";
 import { z } from "zod";
+import { tileImages } from "./core/contact-sheet.ts";
+import { diffFrames } from "./core/diff.ts";
+import { createImage } from "./core/image.ts";
+import { encodePng } from "./core/png.ts";
+import { renderFrame } from "./core/render.ts";
+import type { Sprite } from "./core/sprite.ts";
+import { upscale } from "./core/upscale.ts";
+import { OpError } from "./errors.ts";
 import { parseInput } from "./ops/registry.ts";
+import {
+	checkPixelLimit,
+	renderOptionFields,
+	withGridRule,
+} from "./ops/render.ts";
 import type { Session } from "./session.ts";
 
 export type Tool = {
@@ -23,6 +37,12 @@ function defineTool<S extends z.ZodObject>(tool: {
 	run: (session: Session, input: z.output<S>) => unknown;
 }): Tool {
 	return tool;
+}
+
+function renderSide(sprite: Sprite, frame: number) {
+	return frame < sprite.frameDurations.length
+		? renderFrame(sprite, frame)
+		: createImage(sprite.width, sprite.height, "rgba");
 }
 
 const steps = z.number().int().min(1).optional();
@@ -77,6 +97,67 @@ export const sessionTools: Tool[] = [
 			return input.path === undefined
 				? { journal }
 				: { journal, path: input.path };
+		},
+	}),
+	defineTool({
+		name: "sprite.diff",
+		description:
+			"Compare a sprite at a checkpoint with another checkpoint or the live sprite. Returns one PNG per frame with before, after and changed pixels side by side, plus the changed pixel count and bounds. Uses every frame that exists on either side unless frames is given. Changes nothing.",
+		schema: withGridRule(
+			z.object({
+				spriteId: z.string(),
+				from: z.string().describe("Checkpoint id or name."),
+				to: z
+					.string()
+					.optional()
+					.describe("Checkpoint id or name. Defaults to the live sprite."),
+				...renderOptionFields,
+			}),
+		),
+		run: (session, input) => {
+			const before = session.spriteAt(input.from, input.spriteId);
+			const after =
+				input.to === undefined
+					? session.workspace.getSprite(input.spriteId)
+					: session.spriteAt(input.to, input.spriteId);
+			const frameCount = Math.max(
+				before.frameDurations.length,
+				after.frameDurations.length,
+			);
+			const frames =
+				input.frames ?? Array.from({ length: frameCount }, (_, i) => i);
+			if (frames.some((frame) => frame >= frameCount)) {
+				throw new OpError(
+					"out_of_range",
+					`A frame is out of range, the sprites have ${frameCount} frames at most`,
+					{ path: "frames" },
+				);
+			}
+			const gridPixels = input.grid ? 1 : 0;
+			const gap = 1;
+			checkPixelLimit(
+				3 * (Math.max(before.width, after.width) * input.scale + gridPixels) +
+					2 * gap,
+				Math.max(before.height, after.height) * input.scale + gridPixels,
+				"scale",
+			);
+			return {
+				frames: frames.map((frame) => {
+					const diff = diffFrames(
+						renderSide(before, frame),
+						renderSide(after, frame),
+					);
+					const panels = [diff.before, diff.after, diff.changes].map((image) =>
+						upscale(image, input.scale, input.grid),
+					);
+					return {
+						frame,
+						png: encodePng(tileImages(panels, 3, gap).image, deflateSync),
+						changedPixels: diff.changedPixels,
+						bounds: diff.bounds,
+					};
+				}),
+			};
 		},
 	}),
 ];
