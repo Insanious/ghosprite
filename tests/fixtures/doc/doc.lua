@@ -187,6 +187,19 @@ OPS["sprite.exportSheet"] = function(sprite, input, out)
   }
 end
 
+OPS["palette.set"] = function(sprite, input)
+  local palette = Palette(#input.colors)
+  for i, value in ipairs(input.colors) do palette:setColor(i - 1, color(value)) end
+  sprite:setPalette(palette)
+end
+
+-- Writes <out><extension of input.path> instead of an .aseprite file.
+OPS["palette.save"] = function(sprite, input, out)
+  sprite.palettes[1]:saveAs(out .. input.path:match("%.[^.]+$"))
+end
+
+local FILE_OPS = { ["sprite.exportSheet"] = true, ["palette.save"] = true }
+
 local function apply(sprite, call, out)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end
@@ -205,7 +218,7 @@ for _, name in ipairs(names) do
   local exported = false
   for _, call in ipairs(spec.cases[name]) do
     apply(sprite, call, out .. "/" .. name)
-    exported = exported or call.op == "sprite.exportSheet"
+    exported = exported or FILE_OPS[call.op]
   end
   if not exported then sprite:saveAs(out .. "/" .. name .. ".aseprite") end
   sprite:close()

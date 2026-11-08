@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
 import { copyImage, type Image } from "../../src/core/image.ts";
@@ -31,7 +31,7 @@ type Entry = {
 
 const registry = createRegistry(operations);
 
-function fixturePath(name: string): string {
+export function fixturePath(name: string): string {
 	return fileURLToPath(new URL(`../fixtures/doc/${name}`, import.meta.url));
 }
 
@@ -201,12 +201,12 @@ function describeValue(value: string | Image): string {
 	return typeof value === "string" ? `"${value}"` : "an image";
 }
 
-function readGroup(group: string): GroupFile {
+export function readGroup(group: string): GroupFile {
 	return JSON.parse(readFileSync(fixturePath(`${group}.json`), "utf8"));
 }
 
 /** Loads the group's base and replays a case's calls on it; `extra` adds to a call's input. */
-function runCase(
+export function runCase(
 	file: GroupFile,
 	calls: Call[],
 	extra: (call: Call) => Record<string, unknown> = () => ({}),
@@ -263,6 +263,40 @@ function parseExact(text: string): { meta: Record<string, unknown> } {
 			? BigInt(context.source)
 			: value,
 	) as { meta: Record<string, unknown> };
+}
+
+/** The extension of the case's `palette.save` path, such as ".gpl". */
+export function paletteFileExtension(calls: Call[]): string {
+	const save = calls.find((call) => call.op === "palette.save");
+	return extname(String(save?.input.path));
+}
+
+/**
+ * Registers one test per case in `fixtures/doc/<group>.json`: the case's
+ * `palette.save` writes a temp file with the path's extension, and its bytes
+ * are compared with `<group>/<case><extension>`.
+ */
+export function paletteFileParity(group: string) {
+	const file = readGroup(group);
+	for (const [name, calls] of Object.entries(file.cases)) {
+		const extension = paletteFileExtension(calls);
+		test(`${group}: ${name} matches Aseprite`, () => {
+			const directory = mkdtempSync(join(tmpdir(), "ghosprite-palette-"));
+			try {
+				const path = join(directory, `${name}${extension}`);
+				runCase(file, calls, (call) =>
+					call.op === "palette.save" ? { path } : {},
+				);
+				const ours = readFileSync(path);
+				const golden = readFileSync(
+					fixturePath(`${group}/${name}${extension}`),
+				);
+				expect(ours.equals(golden)).toBe(true);
+			} finally {
+				rmSync(directory, { recursive: true, force: true });
+			}
+		});
+	}
 }
 
 /**
