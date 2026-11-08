@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
-import { copyImage, type Image } from "../../src/core/image.ts";
+import { copyImage, type Image, rgbaHex } from "../../src/core/image.ts";
 import { decodePng } from "../../src/core/png.ts";
 import {
 	framesSharingData,
@@ -124,12 +124,26 @@ function colour(c: { r: number; g: number; b: number; a: number }): string {
 	return `${c.r},${c.g},${c.b},${c.a}`;
 }
 
-function entriesOf(sprite: Sprite): Entry[] {
+function paletteEntries(sprite: Sprite, out: Entry[]) {
+	out.push({
+		path: "palettes",
+		value: sprite.palettes.map((p) => p.startFrame).join(","),
+	});
+	for (const palette of sprite.palettes) {
+		out.push({
+			path: `palettes[${palette.startFrame}]`,
+			value: palette.colors.map(rgbaHex).join(","),
+		});
+	}
+}
+
+function entriesOf(sprite: Sprite, withPalettes: boolean): Entry[] {
 	const out: Entry[] = [
 		{ path: "width", value: String(sprite.width) },
 		{ path: "height", value: String(sprite.height) },
 		{ path: "frameDurations", value: sprite.frameDurations.join(",") },
 	];
+	if (withPalettes) paletteEntries(sprite, out);
 	layerEntries(sprite.root.children, "layers", out);
 	out.push({ path: "tags", value: sprite.tags.map((t) => t.name).join(",") });
 	for (const tag of sprite.tags) {
@@ -173,9 +187,13 @@ function entriesOf(sprite: Sprite): Entry[] {
 }
 
 /** The first difference between two sprites as a readable message, or undefined if they match. */
-function compareSprites(ours: Sprite, golden: Sprite): string | undefined {
-	const mine = entriesOf(ours);
-	const theirs = entriesOf(golden);
+function compareSprites(
+	ours: Sprite,
+	golden: Sprite,
+	withPalettes: boolean,
+): string | undefined {
+	const mine = entriesOf(ours, withPalettes);
+	const theirs = entriesOf(golden, withPalettes);
 	const theirsByPath = new Map(theirs.map((e) => [e.path, e.value]));
 	const minePaths = new Set(mine.map((e) => e.path));
 	for (const { path, value, origin } of mine) {
@@ -237,6 +255,7 @@ export function docParity(group: string) {
 			const difference = compareSprites(
 				workspace.getSprite(spriteId),
 				workspace.getSprite(goldenId),
+				calls.some((call) => call.op.startsWith("palette.")),
 			);
 			expect(difference).toBeUndefined();
 		});

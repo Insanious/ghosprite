@@ -193,6 +193,17 @@ OPS["palette.set"] = function(sprite, input)
   sprite:setPalette(palette)
 end
 
+OPS["palette.quantize"] = function(sprite, input)
+  app.sprite = sprite
+  app.frame = sprite.frames[1]
+  app.command.ColorQuantization {
+    ui = false,
+    maxColors = input.maxColors,
+    withAlpha = input.withAlpha,
+    useRange = false,
+  }
+end
+
 -- Writes <out><extension of input.path> instead of an .aseprite file.
 OPS["palette.save"] = function(sprite, input, out)
   sprite.palettes[1]:saveAs(out .. input.path:match("%.[^.]+$"))

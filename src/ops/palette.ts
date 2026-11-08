@@ -18,7 +18,7 @@ import { checkExistingFrame } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 import { requireRgba } from "./require-rgba.ts";
 
-const MAX_COLORS = 256;
+export const MAX_COLORS = 256;
 
 const FORMATS = {
 	".gpl": { read: readGpl, write: writeGpl },

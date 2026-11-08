@@ -1,0 +1,55 @@
+{
+	"base": "base",
+	"cases": {
+		"colors-2": [
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 2, "withAlpha": true }
+			}
+		],
+		"colors-8": [
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 8, "withAlpha": true }
+			}
+		],
+		"colors-32": [
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 32, "withAlpha": true }
+			}
+		],
+		"colors-256": [
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 256, "withAlpha": true }
+			}
+		],
+		"no-alpha-8": [
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 8, "withAlpha": false }
+			}
+		],
+		"no-alpha-256": [
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 256, "withAlpha": false }
+			}
+		],
+		"flatten-8": [
+			{ "op": "sprite.flatten", "input": {} },
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 8, "withAlpha": true }
+			}
+		],
+		"flatten-256": [
+			{ "op": "sprite.flatten", "input": {} },
+			{
+				"op": "palette.quantize",
+				"input": { "maxColors": 256, "withAlpha": true }
+			}
+		]
+	}
+}
