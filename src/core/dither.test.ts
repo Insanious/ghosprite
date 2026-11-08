@@ -29,7 +29,12 @@ describe("mapImageToPalette", () => {
 		);
 	}
 
-	for (const dithering of ["none", "ordered", "old"] as const) {
+	for (const dithering of [
+		"none",
+		"ordered",
+		"old",
+		"errorDiffusion",
+	] as const) {
 		test(`${dithering}: every pixel is a palette colour or transparent`, () => {
 			const map = new OctreeMap();
 			map.regenerateMap(PALETTE, -1);
@@ -41,6 +46,7 @@ describe("mapImageToPalette", () => {
 				background: false,
 				dithering,
 				matrix: bayerMatrix(4),
+				factor: 1,
 			});
 			const allowed = new Set([...PALETTE.map(rgbaHex), "#00000000"]);
 			for (let i = 0; i < result.data.length; i += 4) {

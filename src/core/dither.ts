@@ -1,7 +1,7 @@
 import { createImage, type Image, type Rgba } from "./image.ts";
 import type { OctreeMap } from "./octree-map.ts";
 
-export type DitheringAlgorithm = "none" | "ordered" | "old";
+export type DitheringAlgorithm = "none" | "ordered" | "old" | "errorDiffusion";
 
 export type DitheringMatrix = {
 	size: number;
@@ -142,6 +142,76 @@ function orderedNew(
 	return altIndex >= 0 && threshold(matrix, x, y) < bestMix ? altIndex : index;
 }
 
+const CHANNELS = 4;
+
+/**
+ * Aseprite's `ErrorDiffusionDither` with its Floyd-Steinberg weights. Call
+ * the result rows top to bottom, each row in zig-zag order.
+ */
+function errorDiffusion(
+	image: Image,
+	factor: number,
+	map: OctreeMap,
+	palette: Palette,
+	transparentIndex: number,
+) {
+	const width = image.width + 2;
+	const rows = Array.from(
+		{ length: CHANNELS },
+		() => new Int32Array(width * 2),
+	);
+	const percent = Math.trunc(factor * 100);
+	let lastY = -1;
+
+	return (x: number, y: number): number => {
+		if (y !== lastY) {
+			for (const row of rows) {
+				row.copyWithin(0, width, width * 2);
+				row.fill(0, width);
+			}
+			lastY = y;
+		}
+
+		const offset = (y * image.width + x) * 4;
+		const color = image.data.subarray(offset, offset + 4);
+		const v = [0, 1, 2, 3].map((i) =>
+			clampByte(
+				(color[i] as number) + ((rows[i] as Int32Array)[x + 1] as number),
+			),
+		) as [number, number, number, number];
+		const index = map.mapColor(v[0], v[1], v[2], v[3]);
+
+		const entry = palette[index] as Rgba;
+		const pal =
+			index === transparentIndex || entry.a === 0
+				? [color[0], color[1], color[2], 0]
+				: [entry.r, entry.g, entry.b, entry.a];
+
+		for (let i = 0; i < CHANNELS; i++) {
+			const err = rows[i] as Int32Array;
+			const q = Math.trunc(
+				(((v[i] as number) - (pal[i] as number)) * percent) / 100,
+			);
+			const a = Math.trunc((q * 7) / 16);
+			const b = Math.trunc((q * 3) / 16);
+			const c = Math.trunc((q * 5) / 16);
+			const d = Math.trunc(q / 16);
+			if (y & 1) {
+				err[x] = (err[x] as number) + a;
+				err[x + width + 2] = (err[x + width + 2] as number) + b;
+				err[x + width + 1] = (err[x + width + 1] as number) + c;
+				err[x + width] = (err[x + width] as number) + d;
+			} else {
+				err[x + 2] = (err[x + 2] as number) + a;
+				err[x + width] = (err[x + width] as number) + b;
+				err[x + width + 1] = (err[x + width + 1] as number) + c;
+				err[x + width + 2] = (err[x + width + 2] as number) + d;
+			}
+		}
+		return index;
+	};
+}
+
 export type MapToPaletteOptions = {
 	palette: Palette;
 	/** Built with `regenerateMap(palette, maskIndex)`. */
@@ -154,6 +224,8 @@ export type MapToPaletteOptions = {
 	background: boolean;
 	dithering: DitheringAlgorithm;
 	matrix: DitheringMatrix;
+	/** 0 to 1; only error diffusion reads it. */
+	factor: number;
 };
 
 /**
@@ -171,8 +243,14 @@ export function mapImageToPalette(
 	const result = createImage(image.width, image.height, "rgba");
 	const { data } = image;
 
+	const diffuse =
+		options.dithering === "errorDiffusion"
+			? errorDiffusion(image, options.factor, map, palette, ditherMask)
+			: undefined;
+
 	for (let y = 0; y < image.height; y++) {
-		for (let x = 0; x < image.width; x++) {
+		for (let step = 0; step < image.width; step++) {
+			const x = diffuse && y & 1 ? image.width - 1 - step : step;
 			const offset = (y * image.width + x) * 4;
 			const color = {
 				r: data[offset] as number,
@@ -186,6 +264,8 @@ export function mapImageToPalette(
 					color.a === 0
 						? fallbackIndex
 						: map.mapColor(color.r, color.g, color.b, color.a);
+			} else if (diffuse) {
+				index = diffuse(x, y);
 			} else if (ditherMask >= 0 && color.a === 0) {
 				index = ditherMask;
 			} else if (options.dithering === "ordered") {

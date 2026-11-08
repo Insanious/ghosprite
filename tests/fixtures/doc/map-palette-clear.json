@@ -15,7 +15,10 @@
 					]
 				}
 			},
-			{ "op": "sprite.mapToPalette", "input": {} }
+			{
+				"op": "sprite.mapToPalette",
+				"input": {}
+			}
 		],
 		"none-opaque0": [
 			{
@@ -31,7 +34,10 @@
 					]
 				}
 			},
-			{ "op": "sprite.mapToPalette", "input": {} }
+			{
+				"op": "sprite.mapToPalette",
+				"input": {}
+			}
 		],
 		"ordered-transparent3": [
 			{
@@ -47,7 +53,12 @@
 					]
 				}
 			},
-			{ "op": "sprite.mapToPalette", "input": { "dithering": "ordered" } }
+			{
+				"op": "sprite.mapToPalette",
+				"input": {
+					"dithering": "ordered"
+				}
+			}
 		],
 		"ordered-opaque0": [
 			{
@@ -63,7 +74,100 @@
 					]
 				}
 			},
-			{ "op": "sprite.mapToPalette", "input": { "dithering": "ordered" } }
+			{
+				"op": "sprite.mapToPalette",
+				"input": {
+					"dithering": "ordered"
+				}
+			}
+		],
+		"diffusion-transparent3-full": [
+			{
+				"op": "palette.set",
+				"input": {
+					"colors": [
+						"#202040",
+						"#c04040",
+						"#40c080",
+						"#00000000",
+						"#f0e060",
+						"#ffffff"
+					]
+				}
+			},
+			{
+				"op": "sprite.mapToPalette",
+				"input": {
+					"dithering": "errorDiffusion",
+					"factor": 1
+				}
+			}
+		],
+		"diffusion-transparent3-half": [
+			{
+				"op": "palette.set",
+				"input": {
+					"colors": [
+						"#202040",
+						"#c04040",
+						"#40c080",
+						"#00000000",
+						"#f0e060",
+						"#ffffff"
+					]
+				}
+			},
+			{
+				"op": "sprite.mapToPalette",
+				"input": {
+					"dithering": "errorDiffusion",
+					"factor": 0.5
+				}
+			}
+		],
+		"diffusion-opaque0-full": [
+			{
+				"op": "palette.set",
+				"input": {
+					"colors": [
+						"#000000",
+						"#ffffff",
+						"#ff0000",
+						"#00ff00",
+						"#0000ff",
+						"#ffff00"
+					]
+				}
+			},
+			{
+				"op": "sprite.mapToPalette",
+				"input": {
+					"dithering": "errorDiffusion",
+					"factor": 1
+				}
+			}
+		],
+		"diffusion-opaque0-half": [
+			{
+				"op": "palette.set",
+				"input": {
+					"colors": [
+						"#000000",
+						"#ffffff",
+						"#ff0000",
+						"#00ff00",
+						"#0000ff",
+						"#ffff00"
+					]
+				}
+			},
+			{
+				"op": "sprite.mapToPalette",
+				"input": {
+					"dithering": "errorDiffusion",
+					"factor": 0.5
+				}
+			}
 		]
 	}
 }
