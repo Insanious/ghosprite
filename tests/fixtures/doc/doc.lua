@@ -122,6 +122,10 @@ OPS["sprite.flip"] = function(sprite, input)
   app.command.Flip { target = "canvas", orientation = input.direction }
 end
 
+OPS["sprite.resize"] = function(sprite, input)
+  sprite:resize(input.width, input.height)
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end

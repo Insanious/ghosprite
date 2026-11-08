@@ -21,6 +21,7 @@ import { spriteCreate } from "./sprite-create.ts";
 import { spriteFlip } from "./sprite-flip.ts";
 import { spriteLoad } from "./sprite-load.ts";
 import { spriteRender } from "./sprite-render.ts";
+import { spriteResize } from "./sprite-resize.ts";
 import { spriteRotate } from "./sprite-rotate.ts";
 import { spriteSave } from "./sprite-save.ts";
 import { tagCreate } from "./tag-create.ts";
@@ -48,6 +49,7 @@ export const operations: Operation[] = [
 	spriteFlip,
 	spriteRender,
 	spriteLoad,
+	spriteResize,
 	spriteSave,
 	tagCreate,
 	tagDelete,

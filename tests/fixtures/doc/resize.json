@@ -1,0 +1,18 @@
+{
+	"base": "base",
+	"cases": {
+		"double": [
+			{ "op": "sprite.resize", "input": { "width": 32, "height": 24 } }
+		],
+		"halve": [{ "op": "sprite.resize", "input": { "width": 8, "height": 6 } }],
+		"up-fractional": [
+			{ "op": "sprite.resize", "input": { "width": 23, "height": 17 } }
+		],
+		"down-fractional": [
+			{ "op": "sprite.resize", "input": { "width": 11, "height": 7 } }
+		],
+		"per-axis": [
+			{ "op": "sprite.resize", "input": { "width": 40, "height": 5 } }
+		]
+	}
+}
