@@ -10,6 +10,7 @@
 --   draw.fill -> paint_bucket, with contiguous and tolerance
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
 --   filter.invert, filter.replaceColor -> the InvertColor and ReplaceColor commands on the case's layer
+--   filter.colorCurve -> the ColorCurve command, with the points as a Point table
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
 -- A call's symmetry is set as document preferences around the tool call.
@@ -200,6 +201,10 @@ local function apply_op(sprite, layer, call)
     run_filter(sprite, layer, "InvertColor", input, {})
   elseif call.op == "filter.replaceColor" then
     run_filter(sprite, layer, "ReplaceColor", input, { from = color(input.from), to = color(input.to), tolerance = input.tolerance or 0 })
+  elseif call.op == "filter.colorCurve" then
+    local curve = {}
+    for _, point in ipairs(input.points) do curve[#curve + 1] = Point(point.x, point.y) end
+    run_filter(sprite, layer, "ColorCurve", input, { curve = curve })
   else
     error("unsupported op " .. call.op)
   end

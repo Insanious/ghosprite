@@ -1,0 +1,283 @@
+{
+	"width": 8,
+	"height": 8,
+	"cases": {
+		"identity": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"X": "#e8382880",
+						"K": "#e83828",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG..HH",
+						"GGBBKK..",
+						"WWRR..XX",
+						"RRGGBBHH",
+						"....KKKK",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.colorCurve",
+				"input": {
+					"frames": [0],
+					"points": [
+						{
+							"x": 0,
+							"y": 0
+						},
+						{
+							"x": 255,
+							"y": 255
+						}
+					]
+				}
+			}
+		],
+		"inverting": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"X": "#e8382880",
+						"K": "#e83828",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG..HH",
+						"GGBBKK..",
+						"WWRR..XX",
+						"RRGGBBHH",
+						"....KKKK",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.colorCurve",
+				"input": {
+					"frames": [0],
+					"points": [
+						{
+							"x": 0,
+							"y": 255
+						},
+						{
+							"x": 255,
+							"y": 0
+						}
+					]
+				}
+			}
+		],
+		"s-curve": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"X": "#e8382880",
+						"K": "#e83828",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG..HH",
+						"GGBBKK..",
+						"WWRR..XX",
+						"RRGGBBHH",
+						"....KKKK",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.colorCurve",
+				"input": {
+					"frames": [0],
+					"points": [
+						{
+							"x": 0,
+							"y": 0
+						},
+						{
+							"x": 64,
+							"y": 32
+						},
+						{
+							"x": 192,
+							"y": 224
+						},
+						{
+							"x": 255,
+							"y": 255
+						}
+					]
+				}
+			}
+		],
+		"alpha-only": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"X": "#e8382880",
+						"K": "#e83828",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG..HH",
+						"GGBBKK..",
+						"WWRR..XX",
+						"RRGGBBHH",
+						"....KKKK",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.colorCurve",
+				"input": {
+					"frames": [0],
+					"points": [
+						{
+							"x": 0,
+							"y": 0
+						},
+						{
+							"x": 128,
+							"y": 255
+						},
+						{
+							"x": 255,
+							"y": 255
+						}
+					],
+					"channels": ["a"]
+				}
+			}
+		],
+		"partial-range": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"X": "#e8382880",
+						"K": "#e83828",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG..HH",
+						"GGBBKK..",
+						"WWRR..XX",
+						"RRGGBBHH",
+						"....KKKK",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.colorCurve",
+				"input": {
+					"frames": [0],
+					"points": [
+						{
+							"x": 40,
+							"y": 200
+						},
+						{
+							"x": 100,
+							"y": 20
+						},
+						{
+							"x": 220,
+							"y": 250
+						}
+					],
+					"channels": ["r", "g", "b", "a"]
+				}
+			}
+		],
+		"green-only": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"X": "#e8382880",
+						"K": "#e83828",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG..HH",
+						"GGBBKK..",
+						"WWRR..XX",
+						"RRGGBBHH",
+						"....KKKK",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.colorCurve",
+				"input": {
+					"frames": [0],
+					"points": [
+						{
+							"x": 0,
+							"y": 255
+						},
+						{
+							"x": 255,
+							"y": 0
+						}
+					],
+					"channels": ["g"]
+				}
+			}
+		]
+	}
+}
