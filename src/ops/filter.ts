@@ -88,7 +88,8 @@ export function runFilter(
 		const canvas = celCanvas(sprite, layer, frame);
 		const source = copyImage(canvas.image);
 		const imageArea = { ...area, x: area.x - canvas.x, y: area.y - canvas.y };
-		filter(source, canvas.image, imageArea, channels);
+		const imageCanvas = { ...canvasRect, x: -canvas.x, y: -canvas.y };
+		filter(source, canvas.image, imageArea, channels, imageCanvas);
 		if (mask) keepOutsideMask(source, canvas, mask, area);
 
 		const commit = commitCel(sprite, layer, frame, canvas);

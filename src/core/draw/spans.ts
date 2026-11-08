@@ -2,9 +2,11 @@ import type { Rect } from "../image.ts";
 
 export type Mask = { bounds: Rect; bits: Uint8Array };
 
+export type Tiled = "x" | "y" | "both";
+
 export type SpanClip = {
 	canvas: { width: number; height: number };
-	tiled?: "x" | "y" | "both";
+	tiled?: Tiled;
 	mask?: Mask;
 };
 

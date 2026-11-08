@@ -13,6 +13,7 @@ import { filterBrightnessContrast } from "./filter-brightness-contrast.ts";
 import { filterColorCurve } from "./filter-color-curve.ts";
 import { filterHueSaturation } from "./filter-hue-saturation.ts";
 import { filterInvert } from "./filter-invert.ts";
+import { filterOutline } from "./filter-outline.ts";
 import { filterReplaceColor } from "./filter-replace-color.ts";
 import { frameCreate } from "./frame-create.ts";
 import { frameDelete } from "./frame-delete.ts";
@@ -87,4 +88,5 @@ export const operations: Operation[] = [
 	filterColorCurve,
 	filterBrightnessContrast,
 	filterHueSaturation,
+	filterOutline,
 ];

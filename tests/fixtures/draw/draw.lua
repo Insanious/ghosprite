@@ -12,6 +12,7 @@
 --   filter.invert, filter.replaceColor, filter.brightnessContrast, filter.hueSaturation -> the InvertColor,
 --     ReplaceColor, BrightnessContrast and HueSaturation commands on the case's layer
 --   filter.colorCurve -> the ColorCurve command, with the points as a Point table
+--   filter.outline -> the Outline command on the case's layer, with tiled passed as its tiledMode
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
 -- A call's symmetry is set as document preferences around the tool call.
@@ -202,6 +203,8 @@ local function apply_op(sprite, layer, call)
     draw_fill(layer, input)
   elseif call.op == "filter.invert" then
     run_filter(sprite, layer, "InvertColor", input, {})
+  elseif call.op == "filter.outline" then
+    run_filter(sprite, layer, "Outline", input, { color = color(input.color), bgColor = color(input.bgColor or "#00000000"), place = input.place, matrix = input.matrix, tiledMode = input.tiled and TILED[input.tiled] })
   elseif call.op == "filter.replaceColor" then
     run_filter(sprite, layer, "ReplaceColor", input, { from = color(input.from), to = color(input.to), tolerance = input.tolerance or 0 })
   elseif call.op == "filter.colorCurve" then

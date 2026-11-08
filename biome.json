@@ -70,7 +70,13 @@
 							"options": {
 								"patterns": [
 									{
-										"group": ["*", "../../**", "!./**", "!../*.ts"],
+										"group": [
+											"*",
+											"../../**",
+											"!./**",
+											"!../*.ts",
+											"!../draw/*.ts"
+										],
 										"message": "The pixel core imports nothing outside src/core."
 									}
 								]

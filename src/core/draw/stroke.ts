@@ -14,7 +14,7 @@ import { floodfill } from "./floodfill.ts";
 import { applyInk, type InkName, type Surroundings } from "./ink.ts";
 import { fillPolygon, type Point } from "./polygon.ts";
 import { createRandom } from "./random.ts";
-import { clipSpan, type Mask, wrap } from "./spans.ts";
+import { clipSpan, type Mask, type Tiled, wrap } from "./spans.ts";
 import { type Symmetry, symmetryCopies } from "./symmetry.ts";
 
 export type Shape =
@@ -46,7 +46,7 @@ export type StrokeOptions = {
 	/** 0 to 255. */
 	opacity: number;
 	brush: Brush;
-	tiled?: "x" | "y" | "both";
+	tiled?: Tiled;
 	mask?: Mask;
 	symmetry?: Symmetry;
 	/** Seeds the jumble ink. */

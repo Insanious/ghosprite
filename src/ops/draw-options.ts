@@ -41,6 +41,8 @@ export const brushSchema = z
 	.union([imageBrushSchema, shapeBrushSchema])
 	.default({ type: "circle", size: 1, angle: 0 });
 
+export const tiledSchema = z.enum(["x", "y", "both"]).optional();
+
 export const maskSchema = z.union([
 	z.strictObject({ rect: rectSchema }),
 	z.strictObject({ polygon: z.array(pointSchema).min(3) }),
@@ -94,10 +96,7 @@ export const drawFields = {
 	ink: inkSchema,
 	opacity: z.number().int().min(0).max(255).default(255),
 	brush: brushSchema,
-	tiled: z
-		.enum(["x", "y", "both"])
-		.optional()
-		.describe("Wrap drawing around these canvas edges"),
+	tiled: tiledSchema.describe("Wrap drawing around these canvas edges"),
 	mask: maskSchema
 		.optional()
 		.describe(
