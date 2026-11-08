@@ -9,13 +9,21 @@ export type Call = { op: string; input: unknown };
 type SpriteMap = Map<string, Sprite | undefined>;
 
 type Step = {
-	label?: string;
 	checkpointId: string;
+	journalEntry: Call;
 	before: SpriteMap;
 	after: SpriteMap;
 	countersBefore: Map<IdKind, number>;
 	countersAfter: Map<IdKind, number>;
 };
+
+function journalInput(input: unknown): unknown {
+	const copy = structuredClone(input);
+	if (typeof copy === "object" && copy !== null && "render" in copy) {
+		delete (copy as { render?: unknown }).render;
+	}
+	return copy;
+}
 
 export type HistoryMove = { checkpointId: string; sprites: string[] };
 
@@ -25,6 +33,7 @@ export class Session {
 	private readonly steps: Step[] = [];
 	private position = 0;
 	private lastCheckpoint = 0;
+	private readonly names = new Map<string, string>();
 
 	run(op: string, input: unknown): MutationResult {
 		if (this.registry.isReadOnly(op)) {
@@ -32,6 +41,78 @@ export class Session {
 		}
 		const { results, checkpointId } = this.transact([{ op, input }], undefined);
 		return { ...results[0], checkpointId } as MutationResult;
+	}
+
+	checkpoint(name: string): { checkpointId: string } {
+		if (/^checkpoint-\d+$/.test(name)) {
+			throw new OpError(
+				"invalid_input",
+				`Checkpoint name "${name}" looks like a checkpoint id`,
+				{ path: "name" },
+			);
+		}
+		const checkpointId = this.currentCheckpointId();
+		this.names.set(name, checkpointId);
+		return { checkpointId };
+	}
+
+	restore(checkpoint: string): HistoryMove {
+		const target = this.positionOf(checkpoint);
+		if (target < this.position) return this.undo(this.position - target);
+		if (target > this.position) return this.redo(target - this.position);
+		return { checkpointId: this.currentCheckpointId(), sprites: [] };
+	}
+
+	journal(): Call[] {
+		return this.steps
+			.slice(0, this.position)
+			.map((step) => structuredClone(step.journalEntry));
+	}
+
+	spriteAt(checkpoint: string, spriteId: string): Sprite {
+		const target = this.positionOf(checkpoint);
+		let found: Sprite | undefined;
+		let recorded = false;
+		if (target <= this.position) {
+			for (const step of this.steps.slice(target, this.position)) {
+				if (step.before.has(spriteId)) {
+					found = step.before.get(spriteId);
+					recorded = true;
+					break;
+				}
+			}
+		} else {
+			for (const step of this.steps.slice(this.position, target).reverse()) {
+				if (step.after.has(spriteId)) {
+					found = step.after.get(spriteId);
+					recorded = true;
+					break;
+				}
+			}
+		}
+		if (!recorded && this.workspace.hasSprite(spriteId)) {
+			found = this.workspace.getSprite(spriteId);
+		}
+		if (!found) {
+			throw new OpError(
+				"not_found",
+				`Sprite "${spriteId}" did not exist at ${checkpoint}`,
+				{ path: "spriteId" },
+			);
+		}
+		return found;
+	}
+
+	private positionOf(checkpoint: string): number {
+		const id = this.names.get(checkpoint) ?? checkpoint;
+		if (id === "checkpoint-0") return 0;
+		const index = this.steps.findIndex((step) => step.checkpointId === id);
+		if (index === -1) {
+			throw new OpError("not_found", `Unknown checkpoint "${checkpoint}"`, {
+				path: "checkpoint",
+			});
+		}
+		return index + 1;
 	}
 
 	apply(
@@ -97,8 +178,9 @@ export class Session {
 	private transact(
 		calls: Call[],
 		label: string | undefined,
-		prefixErrors = false,
+		isBatch = false,
 	): { results: MutationResult[]; checkpointId: string } {
+		const recorded: Call[] = [];
 		const idsBefore = new Set(this.workspace.spriteIds());
 		const countersBefore = this.workspace.counterSnapshot();
 		const before: SpriteMap = new Map();
@@ -113,6 +195,7 @@ export class Session {
 					);
 					continue;
 				}
+				recorded.push({ op: call.op, input: journalInput(call.input) });
 				// Relies on every op naming the sprite it mutates in `spriteId`.
 				const spriteId = (call.input as { spriteId?: unknown } | null)
 					?.spriteId;
@@ -139,7 +222,7 @@ export class Session {
 			}
 		} catch (error) {
 			this.rollback(before, idsBefore, countersBefore);
-			if (prefixErrors && error instanceof OpError) {
+			if (isBatch && error instanceof OpError) {
 				const prefix = `ops.${index}`;
 				throw new OpError(error.code, error.message, {
 					path: error.path ? `${prefix}.${error.path}` : prefix,
@@ -153,9 +236,22 @@ export class Session {
 			return { results, checkpointId: this.currentCheckpointId() };
 		}
 		this.steps.length = this.position;
+		const live = new Set(this.steps.map((s) => s.checkpointId));
+		live.add("checkpoint-0");
+		for (const [name, id] of this.names) {
+			if (!live.has(id)) this.names.delete(name);
+		}
 		const step: Step = {
-			label,
 			checkpointId: `checkpoint-${++this.lastCheckpoint}`,
+			journalEntry: isBatch
+				? {
+						op: "session.apply",
+						input:
+							label === undefined
+								? { ops: recorded }
+								: { label, ops: recorded },
+					}
+				: (recorded[0] as Call),
 			before,
 			after: new Map(),
 			countersBefore,

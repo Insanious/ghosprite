@@ -1,7 +1,20 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { deflateSync } from "node:zlib";
+import { encodePng } from "./core/png.ts";
+import { renderFrame } from "./core/render.ts";
+import type { Sprite } from "./core/sprite.ts";
 import { OpError } from "./errors.ts";
 import type { MutationResult } from "./ops/registry.ts";
-import { Session } from "./session.ts";
+import { type Call, Session } from "./session.ts";
+
+function pixelsOf(sprite: Sprite): string {
+	return Buffer.from(encodePng(renderFrame(sprite, 0), deflateSync)).toString(
+		"base64",
+	);
+}
 
 type Created = { spriteId: string; layerId: string };
 
@@ -204,5 +217,142 @@ describe("Session undo and redo", () => {
 		session.undo(2);
 		session.redo();
 		expect(render(session, spriteId)).toBe(a);
+	});
+});
+
+describe("Session checkpoints, restore and journal", () => {
+	test("restore moves between named and numbered checkpoints", () => {
+		const { session, spriteId, layerId } = setup();
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		const a = render(session, spriteId);
+		session.checkpoint("a");
+		const b = draw(session, spriteId, layerId, 1, "#00ff00");
+		const withB = render(session, spriteId);
+		session.restore("a");
+		expect(render(session, spriteId)).toBe(a);
+		session.restore(b.checkpointId as string);
+		expect(render(session, spriteId)).toBe(withB);
+	});
+
+	test("a checkpoint on a dropped redo branch is not found", () => {
+		const { session, spriteId, layerId } = setup();
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		const b = draw(session, spriteId, layerId, 1, "#00ff00");
+		session.checkpoint("b");
+		session.undo();
+		draw(session, spriteId, layerId, 2, "#0000ff");
+		const byName = thrown(() => session.restore("b"));
+		expect(byName.code).toBe("not_found");
+		expect(byName.path).toBe("checkpoint");
+		expect(thrown(() => session.restore(b.checkpointId as string)).code).toBe(
+			"not_found",
+		);
+	});
+
+	test("the journal leaves out undone steps and replays to the same document", () => {
+		const { session, spriteId, layerId } = setup();
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		draw(session, spriteId, layerId, 1, "#00ff00");
+		session.undo();
+		session.apply(
+			[
+				{
+					op: "draw.rect",
+					input: {
+						spriteId,
+						layerId,
+						frame: 0,
+						rect: { x: 2, y: 0, width: 1, height: 1 },
+						filled: true,
+						color: "#0000ff",
+					},
+				},
+				{ op: "sprite.render", input: { spriteId } },
+			],
+			"blue",
+		);
+		const journal = session.journal();
+		expect(journal.map((c) => c.op)).toEqual([
+			"sprite.create",
+			"layer.create",
+			"draw.rect",
+			"session.apply",
+		]);
+		const applied = journal[3]?.input as { label?: string; ops: Call[] };
+		expect(applied.label).toBe("blue");
+		expect(applied.ops.length).toBe(1);
+
+		const replay = new Session();
+		for (const { op, input } of journal) {
+			if (op === "session.apply") {
+				const batch = input as { label?: string; ops: Call[] };
+				replay.apply(batch.ops, batch.label);
+			} else {
+				replay.run(op, input);
+			}
+		}
+		const dir = mkdtempSync(join(tmpdir(), "ghosprite-"));
+		const saved = (s: Session, name: string) => {
+			s.run("sprite.save", { spriteId, path: join(dir, name) });
+			return readFileSync(join(dir, name));
+		};
+		expect(
+			saved(replay, "b.aseprite").equals(saved(session, "a.aseprite")),
+		).toBe(true);
+	});
+
+	test("the journal drops render keys and omits a missing label", () => {
+		const session = new Session();
+		session.run("sprite.create", {
+			width: 1,
+			height: 1,
+			render: { frames: [0] },
+		});
+		session.apply([{ op: "sprite.create", input: { width: 1, height: 1 } }]);
+		const [first, second] = session.journal();
+		expect(first?.input).toEqual({ width: 1, height: 1 });
+		expect(second?.input).toEqual({
+			ops: [{ op: "sprite.create", input: { width: 1, height: 1 } }],
+		});
+	});
+
+	test("spriteAt returns past pixels after later edits and after undo", () => {
+		const { session, spriteId, layerId } = setup();
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		const a = pixelsOf(session.workspace.getSprite(spriteId));
+		const { checkpointId } = session.checkpoint("a");
+		draw(session, spriteId, layerId, 1, "#00ff00");
+		expect(pixelsOf(session.spriteAt(checkpointId, spriteId))).toBe(a);
+		session.undo(2);
+		expect(pixelsOf(session.spriteAt("a", spriteId))).toBe(a);
+	});
+
+	test("spriteAt after a redo ignores the stale after-map", () => {
+		const { session, spriteId, layerId } = setup();
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		const a = pixelsOf(session.workspace.getSprite(spriteId));
+		session.checkpoint("a");
+		draw(session, spriteId, layerId, 1, "#00ff00");
+		session.undo();
+		session.redo();
+		expect(pixelsOf(session.spriteAt("a", spriteId))).toBe(a);
+	});
+
+	test("spriteAt throws when the sprite did not exist yet", () => {
+		const session = new Session();
+		const { spriteId } = session.run("sprite.create", {
+			width: 1,
+			height: 1,
+		}) as unknown as Created;
+		const error = thrown(() => session.spriteAt("checkpoint-0", spriteId));
+		expect(error.code).toBe("not_found");
+		expect(error.path).toBe("spriteId");
+	});
+
+	test("a checkpoint name that looks like an id is rejected", () => {
+		const session = new Session();
+		const error = thrown(() => session.checkpoint("checkpoint-3"));
+		expect(error.code).toBe("invalid_input");
+		expect(error.path).toBe("name");
 	});
 });
