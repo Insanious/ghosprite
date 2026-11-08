@@ -1,6 +1,12 @@
 import type { z } from "zod";
 import { celCanvas, commitCel } from "../core/cel-edit.ts";
 import { createBrush, imageBrush } from "../core/draw/brush.ts";
+import {
+	maskFromBits,
+	maskFromPolygon,
+	maskFromRect,
+} from "../core/draw/mask.ts";
+import type { Mask } from "../core/draw/spans.ts";
 import { drawShape, type Shape } from "../core/draw/stroke.ts";
 import { isEmptyRect } from "../core/image.ts";
 import type { ImageLayer, Sprite } from "../core/sprite.ts";
@@ -40,6 +46,19 @@ export function resolveTarget(
 		});
 	}
 	return { sprite, layer };
+}
+
+function toMask(spec: NonNullable<DrawInput["mask"]>): Mask {
+	if ("rect" in spec) return maskFromRect(spec.rect);
+	if ("polygon" in spec) return maskFromPolygon(spec.polygon);
+	const rows = spec.rows.map((row) => Array.from(row));
+	return maskFromBits(
+		spec.x,
+		spec.y,
+		rows[0].length,
+		rows.length,
+		rows.flatMap((row) => row.map((char) => (char === " " ? 0 : 1))),
+	);
 }
 
 export function runDraw(workspace: Workspace, input: DrawInput, shape: Shape) {
@@ -82,6 +101,8 @@ export function runDraw(workspace: Workspace, input: DrawInput, shape: Shape) {
 		ink: input.ink,
 		opacity: input.opacity,
 		brush,
+		tiled: input.tiled,
+		mask: input.mask && toMask(input.mask),
 	});
 	const commit = commitCel(sprite, layer, input.frame, canvas);
 	return {

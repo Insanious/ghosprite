@@ -1,0 +1,633 @@
+{
+	"width": 16,
+	"height": 16,
+	"cases": {
+		"brush5-x": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 0,
+							"y": 8
+						}
+					],
+					"tiled": "x"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 15,
+							"y": 8
+						}
+					],
+					"tiled": "x"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 8,
+							"y": 0
+						}
+					],
+					"tiled": "x"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 8,
+							"y": 15
+						}
+					],
+					"tiled": "x"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 15,
+							"y": 15
+						}
+					],
+					"tiled": "x"
+				}
+			}
+		],
+		"square5-x": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 1,
+							"y": 1
+						}
+					],
+					"tiled": "x"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 14,
+							"y": 14
+						}
+					],
+					"tiled": "x"
+				}
+			}
+		],
+		"brush5-y": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 0,
+							"y": 8
+						}
+					],
+					"tiled": "y"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 15,
+							"y": 8
+						}
+					],
+					"tiled": "y"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 8,
+							"y": 0
+						}
+					],
+					"tiled": "y"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 8,
+							"y": 15
+						}
+					],
+					"tiled": "y"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 15,
+							"y": 15
+						}
+					],
+					"tiled": "y"
+				}
+			}
+		],
+		"square5-y": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 1,
+							"y": 1
+						}
+					],
+					"tiled": "y"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 14,
+							"y": 14
+						}
+					],
+					"tiled": "y"
+				}
+			}
+		],
+		"brush5-both": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 0,
+							"y": 8
+						}
+					],
+					"tiled": "both"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 15,
+							"y": 8
+						}
+					],
+					"tiled": "both"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 8,
+							"y": 0
+						}
+					],
+					"tiled": "both"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 8,
+							"y": 15
+						}
+					],
+					"tiled": "both"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 15,
+							"y": 15
+						}
+					],
+					"tiled": "both"
+				}
+			}
+		],
+		"square5-both": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 1,
+							"y": 1
+						}
+					],
+					"tiled": "both"
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 14,
+							"y": 14
+						}
+					],
+					"tiled": "both"
+				}
+			}
+		],
+		"line-diagonal-both": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 3
+					},
+					"points": [
+						{
+							"x": -2,
+							"y": 3
+						},
+						{
+							"x": 20,
+							"y": 12
+						}
+					],
+					"tiled": "both"
+				}
+			}
+		],
+		"ellipse-big-x": [
+			{
+				"op": "draw.ellipse",
+				"input": {
+					"color": "#e03020",
+					"rect": {
+						"x": -4,
+						"y": -3,
+						"width": 24,
+						"height": 22
+					},
+					"filled": true,
+					"tiled": "x"
+				}
+			}
+		],
+		"ellipse-big-y": [
+			{
+				"op": "draw.ellipse",
+				"input": {
+					"color": "#e03020",
+					"rect": {
+						"x": -4,
+						"y": -3,
+						"width": 24,
+						"height": 22
+					},
+					"filled": true,
+					"tiled": "y"
+				}
+			}
+		],
+		"ellipse-big-both": [
+			{
+				"op": "draw.ellipse",
+				"input": {
+					"color": "#e03020",
+					"rect": {
+						"x": -4,
+						"y": -3,
+						"width": 24,
+						"height": 22
+					},
+					"filled": true,
+					"tiled": "both"
+				}
+			}
+		],
+		"line-mask-rect": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 3
+					},
+					"points": [
+						{
+							"x": 0,
+							"y": 3
+						},
+						{
+							"x": 15,
+							"y": 10
+						}
+					],
+					"mask": {
+						"rect": {
+							"x": 3,
+							"y": 2,
+							"width": 8,
+							"height": 6
+						}
+					}
+				}
+			}
+		],
+		"line-mask-polygon": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 3
+					},
+					"points": [
+						{
+							"x": 0,
+							"y": 3
+						},
+						{
+							"x": 15,
+							"y": 10
+						}
+					],
+					"mask": {
+						"polygon": [
+							{
+								"x": 2,
+								"y": 1
+							},
+							{
+								"x": 12,
+								"y": 4
+							},
+							{
+								"x": 6,
+								"y": 12
+							}
+						]
+					}
+				}
+			}
+		],
+		"line-mask-rows": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "square",
+						"size": 3
+					},
+					"points": [
+						{
+							"x": 0,
+							"y": 3
+						},
+						{
+							"x": 15,
+							"y": 10
+						}
+					],
+					"mask": {
+						"x": 2,
+						"y": 2,
+						"rows": [
+							"  ####  ",
+							" ###### ",
+							"########",
+							"## ## ##",
+							"########",
+							" ###### "
+						]
+					}
+				}
+			}
+		],
+		"rect-mask-hole": [
+			{
+				"op": "draw.rect",
+				"input": {
+					"color": "#e03020",
+					"rect": {
+						"x": 1,
+						"y": 1,
+						"width": 13,
+						"height": 12
+					},
+					"filled": true,
+					"mask": {
+						"x": 3,
+						"y": 3,
+						"rows": [
+							"##########",
+							"##########",
+							"####  ####",
+							"####  ####",
+							"##########",
+							"##########"
+						]
+					}
+				}
+			}
+		],
+		"tiled-mask-both": [
+			{
+				"op": "draw.ellipse",
+				"input": {
+					"color": "#e03020",
+					"rect": {
+						"x": -4,
+						"y": -3,
+						"width": 24,
+						"height": 22
+					},
+					"filled": true,
+					"tiled": "both",
+					"mask": {
+						"rect": {
+							"x": 2,
+							"y": 2,
+							"width": 10,
+							"height": 9
+						}
+					}
+				}
+			}
+		],
+		"tiled-brush-mask-rows": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": {
+						"type": "circle",
+						"size": 5
+					},
+					"points": [
+						{
+							"x": 14,
+							"y": 8
+						},
+						{
+							"x": 18,
+							"y": 8
+						}
+					],
+					"tiled": "x",
+					"mask": {
+						"x": 0,
+						"y": 5,
+						"rows": [
+							"######  ########",
+							"######  ########",
+							"######  ########",
+							"######  ########",
+							"######  ########"
+						]
+					}
+				}
+			}
+		]
+	}
+}

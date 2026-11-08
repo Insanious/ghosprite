@@ -8,6 +8,8 @@
 --   draw.line -> pencil, with freehandAlgorithm=1 when pixelPerfect
 --   draw.polygon -> contour, a filled polygon through the points
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
+-- A call's tiled and mask inputs set the tiled mode and the selection around it:
+--   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
 -- The eraser ink is the eraser tool. A colour is "#rrggbb[aa]" or {r, g, b, a}.
 
 local dir = debug.getinfo(1, "S").source:sub(2):match("^(.*)[/\\]") or "."
@@ -92,7 +94,33 @@ local function draw_box(layer, tool, input)
   use_tool((input.filled and "filled_" or "") .. tool, layer, { color = input.color, brush = input.brush, opacity = input.opacity, ink = input.ink, points = corners })
 end
 
-local function apply(sprite, layer, call)
+local TILED = { x = 1, y = 2, both = 3 }
+
+local function select_mask(sprite, mask)
+  if mask.rect then
+    local r = mask.rect
+    sprite.selection = Selection(Rectangle(r.x, r.y, r.width, r.height))
+  elseif mask.polygon then
+    local points = {}
+    for i, p in ipairs(mask.polygon) do points[i] = Point(p.x, p.y) end
+    app.useTool { tool = "lasso", points = points }
+  else
+    local selection = Selection()
+    for y, row in ipairs(mask.rows) do
+      for x = 1, #row do
+        if row:sub(x, x) ~= " " then selection:add(Rectangle(mask.x + x - 1, mask.y + y - 1, 1, 1)) end
+      end
+    end
+    sprite.selection = selection
+  end
+end
+
+local function reset_state(sprite)
+  sprite.selection:deselect()
+  app.preferences.document(sprite).tiled.mode = 0
+end
+
+local function apply_op(sprite, layer, call)
   local input = call.input
   if call.op == "cel.set" then
     local cel = sprite:newCel(layer, 1, image_from_rows(input.legend, input.rows), Point(input.x or 0, input.y or 0))
@@ -108,6 +136,14 @@ local function apply(sprite, layer, call)
   else
     error("unsupported op " .. call.op)
   end
+end
+
+local function apply(sprite, layer, call)
+  local input = call.input
+  if input.tiled then app.preferences.document(sprite).tiled.mode = TILED[input.tiled] end
+  if input.mask then select_mask(sprite, input.mask) end
+  apply_op(sprite, layer, call)
+  reset_state(sprite)
 end
 
 local names = {}
