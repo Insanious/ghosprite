@@ -12,10 +12,14 @@ import { drawSpray } from "./draw-spray.ts";
 import { layerCreate } from "./layer-create.ts";
 import { layerDelete } from "./layer-delete.ts";
 import type { Operation } from "./registry.ts";
+import { sliceCreate } from "./slice-create.ts";
+import { sliceDelete } from "./slice-delete.ts";
 import { spriteCreate } from "./sprite-create.ts";
 import { spriteLoad } from "./sprite-load.ts";
 import { spriteRender } from "./sprite-render.ts";
 import { spriteSave } from "./sprite-save.ts";
+import { tagCreate } from "./tag-create.ts";
+import { tagDelete } from "./tag-delete.ts";
 
 export const operations: Operation[] = [
 	spriteCreate,
@@ -35,4 +39,8 @@ export const operations: Operation[] = [
 	spriteRender,
 	spriteLoad,
 	spriteSave,
+	tagCreate,
+	tagDelete,
+	sliceCreate,
+	sliceDelete,
 ];

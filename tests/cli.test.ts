@@ -138,6 +138,10 @@ describe("cli ops", () => {
 			"sprite.render",
 			"sprite.load",
 			"sprite.save",
+			"tag.create",
+			"tag.delete",
+			"slice.create",
+			"slice.delete",
 		]);
 	});
 });

@@ -1,18 +1,14 @@
 import type { UserData } from "./user-data.ts";
 
-export type TagDirection =
-	| "forward"
-	| "reverse"
-	| "ping-pong"
-	| "ping-pong-reverse";
-
 /** Indexed by the direction byte of the file's tags chunk. */
-export const TAG_DIRECTIONS: TagDirection[] = [
+export const TAG_DIRECTIONS = [
 	"forward",
 	"reverse",
 	"ping-pong",
 	"ping-pong-reverse",
-];
+] as const;
+
+export type TagDirection = (typeof TAG_DIRECTIONS)[number];
 
 export type Tag = {
 	name: string;
@@ -22,3 +18,15 @@ export type Tag = {
 	repeat: number;
 	userData: UserData;
 };
+
+/**
+ * Aseprite keeps tags ordered by from, then longest first, and a tag equal to
+ * an existing one goes after it.
+ */
+export function insertTag(tags: Tag[], tag: Tag): void {
+	const before = tags.findIndex(
+		(other) =>
+			other.from > tag.from || (other.from === tag.from && other.to < tag.to),
+	);
+	tags.splice(before < 0 ? tags.length : before, 0, tag);
+}

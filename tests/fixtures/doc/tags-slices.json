@@ -1,0 +1,73 @@
+{
+	"base": "base",
+	"cases": {
+		"tag-default": [
+			{ "op": "tag.create", "input": { "name": "run", "from": 1, "to": 2 } }
+		],
+		"tag-full": [
+			{
+				"op": "tag.create",
+				"input": {
+					"name": "jump",
+					"from": 0,
+					"to": 1,
+					"direction": "ping-pong-reverse",
+					"repeat": 3,
+					"color": "#ff8000c0"
+				}
+			}
+		],
+		"tag-before-existing": [
+			{
+				"op": "tag.create",
+				"input": { "name": "aaa", "from": 3, "to": 3, "direction": "reverse" }
+			},
+			{ "op": "tag.create", "input": { "name": "zzz", "from": 0, "to": 0 } }
+		],
+		"tag-order": [
+			{ "op": "tag.create", "input": { "name": "t1", "from": 1, "to": 3 } },
+			{ "op": "tag.create", "input": { "name": "t2", "from": 1, "to": 1 } },
+			{ "op": "tag.create", "input": { "name": "t3", "from": 1, "to": 2 } },
+			{ "op": "tag.create", "input": { "name": "t4", "from": 1, "to": 3 } },
+			{ "op": "tag.create", "input": { "name": "t5", "from": 0, "to": 3 } }
+		],
+		"slice-order": [
+			{
+				"op": "slice.create",
+				"input": {
+					"name": "a",
+					"bounds": { "x": 0, "y": 0, "width": 2, "height": 2 }
+				}
+			},
+			{
+				"op": "slice.create",
+				"input": {
+					"name": "b",
+					"bounds": { "x": 0, "y": 0, "width": 2, "height": 2 }
+				}
+			}
+		],
+		"tag-delete-all": [{ "op": "tag.delete", "input": { "name": "all" } }],
+		"slice-default": [
+			{
+				"op": "slice.create",
+				"input": {
+					"name": "box",
+					"bounds": { "x": 2, "y": 3, "width": 5, "height": 4 }
+				}
+			}
+		],
+		"slice-full": [
+			{
+				"op": "slice.create",
+				"input": {
+					"name": "panel",
+					"bounds": { "x": 1, "y": 1, "width": 10, "height": 8 },
+					"center": { "x": 2, "y": 2, "width": 6, "height": 4 },
+					"pivot": { "x": 3, "y": 5 }
+				}
+			}
+		],
+		"slice-delete-hit": [{ "op": "slice.delete", "input": { "name": "hit" } }]
+	}
+}

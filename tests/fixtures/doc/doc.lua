@@ -60,6 +60,44 @@ OPS["cel.unlink"] = function(sprite, input)
   app.command.UnlinkCel()
 end
 
+local function color(value)
+  if type(value) == "string" then
+    local function byte(offset) return tonumber(value:sub(offset, offset + 1), 16) end
+    return Color { r = byte(2), g = byte(4), b = byte(6), a = #value == 9 and byte(8) or 255 }
+  end
+  return Color { r = value.r, g = value.g, b = value.b, a = value.a or 255 }
+end
+
+OPS["tag.create"] = function(sprite, input)
+  local tag = sprite:newTag(input.from + 1, input.to + 1)
+  tag.name = input.name
+  if input.direction == "reverse" then tag.aniDir = AniDir.REVERSE
+  elseif input.direction == "ping-pong" then tag.aniDir = AniDir.PING_PONG
+  elseif input.direction == "ping-pong-reverse" then tag.aniDir = AniDir.PING_PONG_REVERSE
+  end
+  if input["repeat"] then tag.repeats = input["repeat"] end
+  if input.color then tag.color = color(input.color) end
+end
+
+OPS["tag.delete"] = function(sprite, input)
+  sprite:deleteTag(input.name)
+end
+
+OPS["slice.create"] = function(sprite, input)
+  local b = input.bounds
+  local slice = sprite:newSlice(Rectangle(b.x, b.y, b.width, b.height))
+  slice.name = input.name
+  if input.center then
+    local c = input.center
+    slice.center = Rectangle(c.x, c.y, c.width, c.height)
+  end
+  if input.pivot then slice.pivot = Point(input.pivot.x, input.pivot.y) end
+end
+
+OPS["slice.delete"] = function(sprite, input)
+  sprite:deleteSlice(input.name)
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end
