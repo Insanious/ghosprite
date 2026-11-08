@@ -1,22 +1,10 @@
-import { readFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 import { z } from "zod";
 import { AsepriteFileError } from "../core/ase-bytes.ts";
 import { readAseprite } from "../core/ase-read.ts";
 import { OpError } from "../errors.ts";
+import { readFile } from "./file.ts";
 import { defineOp } from "./registry.ts";
-
-function readFile(path: string): Uint8Array {
-	try {
-		return readFileSync(path);
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		const missing = (error as NodeJS.ErrnoException).code === "ENOENT";
-		throw new OpError(missing ? "not_found" : "invalid_input", message, {
-			path: "path",
-		});
-	}
-}
 
 export const spriteLoad = defineOp({
 	name: "sprite.load",

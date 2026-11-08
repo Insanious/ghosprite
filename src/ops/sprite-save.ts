@@ -1,9 +1,9 @@
-import { writeFileSync } from "node:fs";
 import { deflateSync } from "node:zlib";
 import { z } from "zod";
 import { AsepriteFileError } from "../core/ase-bytes.ts";
 import { writeAseprite } from "../core/ase-write.ts";
 import { OpError } from "../errors.ts";
+import { writeFile } from "./file.ts";
 import { defineOp } from "./registry.ts";
 
 export const spriteSave = defineOp({
@@ -22,12 +22,7 @@ export const spriteSave = defineOp({
 			if (!(error instanceof AsepriteFileError)) throw error;
 			throw new OpError("unsupported", error.message, { path: "spriteId" });
 		}
-		try {
-			writeFileSync(input.path, bytes);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			throw new OpError("invalid_input", message, { path: "path" });
-		}
+		writeFile(input.path, bytes, "path");
 		return {};
 	},
 });

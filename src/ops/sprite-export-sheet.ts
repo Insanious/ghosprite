@@ -1,4 +1,3 @@
-import { writeFileSync } from "node:fs";
 import { basename } from "node:path";
 import { deflateSync } from "node:zlib";
 import { z } from "zod";
@@ -6,6 +5,7 @@ import { encodePng } from "../core/png.ts";
 import { layoutSheet } from "../core/sheet.ts";
 import { buildSheetJson } from "../core/sheet-json.ts";
 import { OpError } from "../errors.ts";
+import { writeFile } from "./file.ts";
 import { defineOp } from "./registry.ts";
 import { requireRgba } from "./require-rgba.ts";
 
@@ -94,12 +94,3 @@ export const spriteExportSheet = defineOp({
 		return {};
 	},
 });
-
-function writeFile(path: string, data: Uint8Array | string, field: string) {
-	try {
-		writeFileSync(path, data);
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		throw new OpError("invalid_input", message, { path: field });
-	}
-}
