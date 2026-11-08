@@ -15,7 +15,7 @@ import { firstDifference } from "./draw-parity.ts";
 
 type Call = { op: string; input: Record<string, unknown> };
 type GroupFile = {
-	base: "base" | "base-clear";
+	base: "base" | "base-clear" | "base-layers";
 	cases: Record<string, Call[]>;
 };
 

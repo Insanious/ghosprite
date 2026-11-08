@@ -1,6 +1,7 @@
 -- Builds the base sprites that the document goldens start from, run by doc.lua:
 --   base.aseprite       16x12, 4 frames, layers bg, body, group fx { glow, ghost }
 --   base-clear.aseprite the same without bg
+--   base-layers.aseprite 3 frames of padded cels, for layer.mergeDown and sprite.flatten
 -- Every layer name is unique. Only glow is continuous, since sprite:newLayer()
 -- makes layers that aren't.
 
@@ -125,8 +126,69 @@ local function build(with_background)
   return sprite
 end
 
-for _, spec in ipairs { { "base", true }, { "base-clear", false } } do
-  local sprite = build(spec[2])
+-- 16x12, 3 frames, bottom to top: hid-low (hidden), hid-up, blend-low (opacity 180),
+-- blend-up (multiply, opacity 150, frame 1 cel opacity 100), part-low (addition,
+-- opacity 128), part-up (no cel in frame 1), root-hidden (hidden), group hidden-group
+-- (hidden) { hg-kid }, group visible-group { nested-hidden (hidden), vg-kid }.
+-- Every cel has a transparent border so trimmed and untrimmed cels differ.
+local function padded_image(r, g, b, frame)
+  return image_of(6, 5, function(x, y)
+    if x == 0 or y == 0 or x == 5 or y == 4 then return rgba(0, 0, 0, 0) end
+    local alpha = (x + y + frame) % 4 == 0 and 120 or 255
+    return rgba(r - x * 10, g + y * 20 + frame * 15, b, alpha)
+  end)
+end
+
+local function build_layers()
+  local sprite = Sprite(WIDTH, HEIGHT, ColorMode.RGB)
+  for _ = 2, 3 do sprite:newEmptyFrame() end
+  sprite:deleteLayer(sprite.layers[1])
+
+  local function add(name, colour, offset, frames, parent)
+    local layer = sprite:newLayer()
+    layer.name = name
+    if parent then layer.parent = parent end
+    for _, frame in ipairs(frames) do
+      set_cel(sprite, layer, frame, padded_image(colour[1], colour[2], colour[3], frame),
+        3 + offset + frame, 2 + offset)
+    end
+    return layer
+  end
+
+  local all = { 0, 1, 2 }
+  add("hid-low", { 200, 40, 40 }, 0, all).isVisible = false
+  add("hid-up", { 40, 200, 40 }, 2, all)
+  local blend_low = add("blend-low", { 220, 180, 60 }, 0, all)
+  blend_low.opacity = 180
+  local blend_up = add("blend-up", { 120, 160, 240 }, 1, all)
+  blend_up.blendMode = BlendMode.MULTIPLY
+  blend_up.opacity = 150
+  blend_up:cel(2).opacity = 100
+  local part_low = add("part-low", { 90, 90, 220 }, 0, all)
+  part_low.blendMode = BlendMode.ADDITION
+  part_low.opacity = 128
+  add("part-up", { 230, 120, 30 }, 2, { 0, 2 })
+  add("root-hidden", { 20, 220, 220 }, 3, all).isVisible = false
+
+  local hidden_group = sprite:newGroup()
+  hidden_group.name = "hidden-group"
+  hidden_group.isVisible = false
+  add("hg-kid", { 250, 60, 160 }, 4, all, hidden_group)
+
+  local visible_group = sprite:newGroup()
+  visible_group.name = "visible-group"
+  add("nested-hidden", { 60, 250, 100 }, 5, all, visible_group).isVisible = false
+  add("vg-kid", { 160, 60, 250 }, 6, all, visible_group)
+
+  return sprite
+end
+
+for _, spec in ipairs {
+  { "base", function() return build(true) end },
+  { "base-clear", function() return build(false) end },
+  { "base-layers", build_layers },
+} do
+  local sprite = spec[2]()
   sprite:saveAs(dir .. "/" .. spec[1] .. ".aseprite")
   sprite:close()
 end

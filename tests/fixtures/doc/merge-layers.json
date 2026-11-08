@@ -1,0 +1,15 @@
+{
+	"base": "base-layers",
+	"cases": {
+		"merge-hidden-lower": [
+			{ "op": "layer.mergeDown", "input": { "layerId": "hid-up" } }
+		],
+		"merge-blend-opacity": [
+			{ "op": "layer.mergeDown", "input": { "layerId": "blend-up" } }
+		],
+		"merge-partial-frames": [
+			{ "op": "layer.mergeDown", "input": { "layerId": "part-up" } }
+		],
+		"flatten": [{ "op": "sprite.flatten", "input": {} }]
+	}
+}
