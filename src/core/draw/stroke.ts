@@ -29,7 +29,16 @@ export type Shape =
 			contiguous: boolean;
 			/** 0 to 255. */
 			tolerance: number;
-	  };
+	  }
+	| { kind: "dots"; points: readonly Point[] };
+
+/** Resolved into a `dots` shape before symmetry, so every mirrored copy shares the same scatter. */
+export type SprayShape = {
+	kind: "spray";
+	points: readonly Point[];
+	radius: number;
+	count: number;
+};
 
 export type StrokeOptions = {
 	color: Rgba;
@@ -111,10 +120,25 @@ function dropsLCorners(brush: Brush): boolean {
 	return angle === undefined || brush.width <= 1 || angle % 90 === 0;
 }
 
+function scatter(spray: SprayShape, random: () => number): Shape {
+	const points: Point[] = [];
+	for (const center of spray.points) {
+		for (let i = 0; i < spray.count; i++) {
+			const distance = spray.radius * Math.sqrt(random());
+			const angle = 2 * Math.PI * random();
+			points.push({
+				x: center.x + Math.round(distance * Math.cos(angle)),
+				y: center.y + Math.round(distance * Math.sin(angle)),
+			});
+		}
+	}
+	return { kind: "dots", points };
+}
+
 export function drawShape(
 	target: CelCanvas,
 	canvas: { width: number; height: number },
-	shape: Shape,
+	requested: Shape | SprayShape,
 	options: StrokeOptions,
 ): void {
 	const { image } = target;
@@ -285,9 +309,14 @@ export function drawShape(
 				);
 				break;
 			}
+			case "dots":
+				for (const dot of shape.points) stamp(dot.x, dot.y);
+				break;
 		}
 	};
 
+	const shape =
+		requested.kind === "spray" ? scatter(requested, random) : requested;
 	for (const copy of symmetryCopies(shape, options.brush, options.symmetry))
 		drawCopy(copy.shape, copy.brush);
 }

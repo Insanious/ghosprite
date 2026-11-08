@@ -5,6 +5,7 @@ import { drawFill } from "./draw-fill.ts";
 import { drawLine } from "./draw-line.ts";
 import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
+import { drawSpray } from "./draw-spray.ts";
 import { layerCreate } from "./layer-create.ts";
 import type { Operation } from "./registry.ts";
 import { spriteCreate } from "./sprite-create.ts";
@@ -22,6 +23,7 @@ export const operations: Operation[] = [
 	drawRect,
 	drawEllipse,
 	drawFill,
+	drawSpray,
 	spriteRender,
 	spriteLoad,
 	spriteSave,

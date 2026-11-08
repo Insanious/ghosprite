@@ -7,7 +7,7 @@ import {
 	maskFromRect,
 } from "../core/draw/mask.ts";
 import type { Mask } from "../core/draw/spans.ts";
-import { drawShape, type Shape } from "../core/draw/stroke.ts";
+import { drawShape, type Shape, type SprayShape } from "../core/draw/stroke.ts";
 import { isEmptyRect } from "../core/image.ts";
 import type { ImageLayer, Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
@@ -63,7 +63,11 @@ function toMask(spec: NonNullable<DrawInput["mask"]>): Mask {
 
 const COLORLESS_INKS: readonly string[] = ["eraser", "blur", "jumble"];
 
-export function runDraw(workspace: Workspace, input: DrawInput, shape: Shape) {
+export function runDraw(
+	workspace: Workspace,
+	input: DrawInput,
+	shape: Shape | SprayShape,
+) {
 	const { sprite, layer } = resolveTarget(
 		workspace,
 		input.spriteId,

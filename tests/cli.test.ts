@@ -130,6 +130,7 @@ describe("cli ops", () => {
 			"draw.rect",
 			"draw.ellipse",
 			"draw.fill",
+			"draw.spray",
 			"sprite.render",
 			"sprite.load",
 			"sprite.save",

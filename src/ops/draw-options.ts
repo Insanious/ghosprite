@@ -109,5 +109,5 @@ export const drawFields = {
 		.int()
 		.min(0)
 		.default(0)
-		.describe("Seeds the random choices of the jumble ink"),
+		.describe("Seeds the random choices of the jumble ink and of draw.spray"),
 };

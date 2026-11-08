@@ -119,6 +119,7 @@ function mirroredShape(
 		case "line":
 		case "bezier":
 		case "polygon":
+		case "dots":
 			return { ...shape, points: shape.points.map(mirrorPoint) };
 		case "rect":
 		case "ellipse":
