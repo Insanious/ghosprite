@@ -47,7 +47,10 @@ local function image_from_rows(legend, rows)
   local image = Image(width, #rows, ColorMode.RGB)
   for y, row in ipairs(rows) do
     for x = 1, width do
-      local c = color(legend[row:sub(x, x)])
+      local char = row:sub(x, x)
+      local entry = legend[char]
+      if entry == nil and (char == "." or char == " ") then entry = "#00000000" end
+      local c = color(entry)
       image:putPixel(x - 1, y - 1, app.pixelColor.rgba(c.red, c.green, c.blue, c.alpha))
     end
   end

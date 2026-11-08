@@ -162,6 +162,18 @@ describe("sprite.render", () => {
 	});
 });
 
+describe("legend rows schemas", () => {
+	test("cel.set and the draw.line image brush carry the legend description", () => {
+		const described = registry.describeOps();
+		for (const name of ["cel.set", "draw.line"]) {
+			const schema = JSON.stringify(
+				described.find((op) => op.name === name)?.inputSchema,
+			);
+			expect(schema).toContain("are transparent unless mapped");
+		}
+	});
+});
+
 describe("sprite.load and sprite.save", () => {
 	const fixture = "tests/fixtures/sprites/groups3abc.aseprite";
 	const scratch = mkdtempSync(join(tmpdir(), "ghosprite-ops-test-"));

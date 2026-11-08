@@ -4,8 +4,17 @@ import type { Palette } from "../core/palette.ts";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
 
-export const legendSchema = z.record(z.string().regex(/^.$/su), colorSchema);
-export const rowsSchema = z.array(z.string().min(1)).min(1);
+export const legendSchema = z
+	.record(z.string().regex(/^.$/su), colorSchema)
+	.describe(
+		'Maps single characters to colours; "." and " " are transparent unless mapped',
+	);
+export const rowsSchema = z
+	.array(z.string().min(1))
+	.min(1)
+	.describe("Equal-length strings with one legend character per pixel");
+
+const TRANSPARENT_CHARS = new Set([".", " "]);
 
 /** Builds an RGBA image from rows of legend characters. Errors point at `<path>.rows.N` and `<path>.legend.K`. */
 export function imageFromRows(
@@ -34,14 +43,18 @@ export function imageFromRows(
 		}
 		row.forEach((char, x) => {
 			const color = colors.get(char);
-			if (!color) {
+			if (color) {
+				setPixel(image, x, y, [color.r, color.g, color.b, color.a]);
+			} else if (!TRANSPARENT_CHARS.has(char)) {
 				throw new OpError(
 					"invalid_input",
 					`Character "${char}" is not in the legend`,
-					{ path: `${prefix}rows.${y}`, hint: "Add it to the legend" },
+					{
+						path: `${prefix}rows.${y}`,
+						hint: 'Add it to the legend, or use "." or " " for a transparent pixel',
+					},
 				);
 			}
-			setPixel(image, x, y, [color.r, color.g, color.b, color.a]);
 		});
 	});
 	return image;

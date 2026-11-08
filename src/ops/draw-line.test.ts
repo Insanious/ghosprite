@@ -162,6 +162,34 @@ describe("draw.line", () => {
 		expect(Array.from(pixel)).toEqual([255, 0, 0, 255]);
 	});
 
+	test('an image brush skips "." pixels missing from its legend', () => {
+		const { workspace, spriteId, layer, sprite } = setup();
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			color: "#00ff00",
+			points: [
+				{ x: 3, y: 4 },
+				{ x: 5, y: 4 },
+			],
+			brush: { legend: { G: "#00ff00" }, rows: ["G"] },
+		});
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			points: [{ x: 4, y: 4 }],
+			brush: { legend: { R: "#ff0000" }, rows: [".R."] },
+		});
+		const pixels = renderFrame(sprite, 0).data;
+		const at = (x: number) =>
+			Array.from(pixels.slice((4 * 8 + x) * 4, (4 * 8 + x) * 4 + 4));
+		expect(at(3)).toEqual([0, 255, 0, 255]);
+		expect(at(4)).toEqual([255, 0, 0, 255]);
+		expect(at(5)).toEqual([0, 255, 0, 255]);
+	});
+
 	test("a group layer is rejected", () => {
 		const { workspace, spriteId, group } = setup();
 		const error = thrown(() =>

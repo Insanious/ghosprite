@@ -249,6 +249,42 @@ describe("cel.set", () => {
 		expect(layer.cels.get(0)?.data.image.width).toBe(1);
 	});
 
+	test('"." and " " missing from the legend are transparent and trimmed', () => {
+		const { workspace, spriteId, layer } = setup();
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			x: 0,
+			y: 0,
+			legend: { R: "#ff0000" },
+			rows: [".R", " R"],
+		});
+		const cel = layer.cels.get(0);
+		expect(cel?.data.x).toBe(1);
+		expect(cel?.data.image.width).toBe(1);
+		expect(cel?.data.image.height).toBe(2);
+	});
+
+	test('rows of only "." missing from the legend remove the cel', () => {
+		const { workspace, spriteId, layer, sprite } = setup();
+		setCel(sprite, layer, 0, {
+			image: createImage(1, 1, "rgba"),
+			x: 0,
+			y: 0,
+			opacity: 255,
+			userData: createUserData(),
+		});
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			legend: { R: "#ff0000" },
+			rows: ["."],
+		});
+		expect(layer.cels.size).toBe(0);
+	});
+
 	test("all-transparent rows remove the cel", () => {
 		const { workspace, spriteId, layer, sprite } = setup();
 		setCel(sprite, layer, 0, {
