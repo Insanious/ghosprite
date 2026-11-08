@@ -10,7 +10,7 @@ export type SpanClip = {
 
 export type EmitSpan = (x1: number, y: number, x2: number) => void;
 
-function wrap(value: number, size: number): number {
+export function wrap(value: number, size: number): number {
 	return ((value % size) + size) % size;
 }
 

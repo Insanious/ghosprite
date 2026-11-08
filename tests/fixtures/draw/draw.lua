@@ -126,7 +126,9 @@ local function draw_fill(layer, input)
   }
   if input.ink == "eraser" then error("draw.fill cannot be recorded with the eraser ink; Ink has no eraser") end
   params.ink = INKS[input.ink or "simple"]
+  set_symmetry(layer.sprite, input.symmetry)
   app.useTool(params)
+  set_symmetry(layer.sprite, nil)
 end
 
 local TILED = { x = 1, y = 2, both = 3 }

@@ -14,7 +14,7 @@ import { floodfill } from "./floodfill.ts";
 import { applyInk, type InkName, type Surroundings } from "./ink.ts";
 import { fillPolygon, type Point } from "./polygon.ts";
 import { createRandom } from "./random.ts";
-import { clipSpan, type Mask } from "./spans.ts";
+import { clipSpan, type Mask, wrap } from "./spans.ts";
 import { type Symmetry, symmetryCopies } from "./symmetry.ts";
 
 export type Shape =
@@ -286,7 +286,23 @@ export function drawShape(
 						row * canvas.width * 4,
 					);
 				}
-				const { point } = shape;
+				// A mirrored seed can leave the canvas: Aseprite wraps it in tiled mode and clamps it otherwise.
+				const seedAxis = (value: number, size: number, tiledAxis: boolean) =>
+					tiledAxis
+						? wrap(value, size)
+						: Math.min(Math.max(value, 0), size - 1);
+				const point = {
+					x: seedAxis(
+						shape.point.x,
+						canvas.width,
+						tiled !== undefined && tiled !== "y",
+					),
+					y: seedAxis(
+						shape.point.y,
+						canvas.height,
+						tiled !== undefined && tiled !== "x",
+					),
+				};
 				const at = (point.y * canvas.width + point.x) * 4;
 				const seed = {
 					r: flooded.data[at],
