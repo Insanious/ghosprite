@@ -148,6 +148,8 @@ describe("cli ops", () => {
 			"tag.delete",
 			"slice.create",
 			"slice.delete",
+			"sprite.crop",
+			"sprite.trim",
 		]);
 	});
 });

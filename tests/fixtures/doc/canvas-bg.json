@@ -1,0 +1,59 @@
+{
+	"base": "base",
+	"cases": {
+		"shrink": [
+			{
+				"op": "sprite.crop",
+				"input": { "rect": { "x": 2, "y": 1, "width": 10, "height": 8 } }
+			}
+		],
+		"grow-all-sides": [
+			{
+				"op": "sprite.crop",
+				"input": {
+					"rect": { "x": -3, "y": -2, "width": 24, "height": 18 },
+					"background": "#336699"
+				}
+			}
+		],
+		"grow-translucent-background": [
+			{
+				"op": "sprite.crop",
+				"input": {
+					"rect": { "x": 0, "y": 0, "width": 20, "height": 16 },
+					"background": "#ff000080"
+				}
+			}
+		],
+		"shift-and-grow": [
+			{
+				"op": "sprite.crop",
+				"input": {
+					"rect": { "x": 4, "y": 4, "width": 16, "height": 12 },
+					"background": "#00ff00"
+				}
+			}
+		],
+		"trim-plain": [{ "op": "sprite.trim", "input": {} }],
+		"trim-after-grow": [
+			{
+				"op": "sprite.crop",
+				"input": {
+					"rect": { "x": -3, "y": -2, "width": 24, "height": 18 },
+					"background": "#336699"
+				}
+			},
+			{ "op": "sprite.trim", "input": {} }
+		],
+		"trim-after-transparent-grow": [
+			{
+				"op": "sprite.crop",
+				"input": {
+					"rect": { "x": -3, "y": -2, "width": 24, "height": 18 },
+					"background": "#33669900"
+				}
+			},
+			{ "op": "sprite.trim", "input": {} }
+		]
+	}
+}

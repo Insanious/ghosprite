@@ -18,12 +18,14 @@ import type { Operation } from "./registry.ts";
 import { sliceCreate } from "./slice-create.ts";
 import { sliceDelete } from "./slice-delete.ts";
 import { spriteCreate } from "./sprite-create.ts";
+import { spriteCrop } from "./sprite-crop.ts";
 import { spriteFlip } from "./sprite-flip.ts";
 import { spriteLoad } from "./sprite-load.ts";
 import { spriteRender } from "./sprite-render.ts";
 import { spriteResize } from "./sprite-resize.ts";
 import { spriteRotate } from "./sprite-rotate.ts";
 import { spriteSave } from "./sprite-save.ts";
+import { spriteTrim } from "./sprite-trim.ts";
 import { tagCreate } from "./tag-create.ts";
 import { tagDelete } from "./tag-delete.ts";
 
@@ -55,4 +57,6 @@ export const operations: Operation[] = [
 	tagDelete,
 	sliceCreate,
 	sliceDelete,
+	spriteCrop,
+	spriteTrim,
 ];

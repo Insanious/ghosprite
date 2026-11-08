@@ -126,6 +126,17 @@ OPS["sprite.resize"] = function(sprite, input)
   sprite:resize(input.width, input.height)
 end
 
+OPS["sprite.crop"] = function(sprite, input)
+  if input.background then app.bgColor = color(input.background) end
+  local r = input.rect
+  sprite:crop(r.x, r.y, r.width, r.height)
+end
+
+OPS["sprite.trim"] = function(sprite)
+  app.sprite = sprite
+  app.command.AutocropSprite()
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end
