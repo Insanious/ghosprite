@@ -1,0 +1,26 @@
+{
+	"base": "base-clear",
+	"cases": {
+		"create-start": [{ "op": "frame.create", "input": { "at": 0 } }],
+		"create-start-duration": [
+			{ "op": "frame.create", "input": { "at": 0, "duration": 80 } }
+		],
+		"create-after-first": [{ "op": "frame.create", "input": { "at": 1 } }],
+		"create-middle": [{ "op": "frame.create", "input": { "at": 2 } }],
+		"create-middle-duration": [
+			{ "op": "frame.create", "input": { "at": 2, "duration": 333 } }
+		],
+		"create-before-idle": [{ "op": "frame.create", "input": { "at": 3 } }],
+		"create-end": [{ "op": "frame.create", "input": {} }],
+		"create-end-duration": [
+			{ "op": "frame.create", "input": { "at": 4, "duration": 20 } }
+		],
+		"duplicate-1": [{ "op": "frame.duplicate", "input": { "frame": 1 } }],
+		"duplicate-2": [{ "op": "frame.duplicate", "input": { "frame": 2 } }],
+		"duplicate-3": [{ "op": "frame.duplicate", "input": { "frame": 3 } }],
+		"delete-0": [{ "op": "frame.delete", "input": { "frame": 0 } }],
+		"delete-1": [{ "op": "frame.delete", "input": { "frame": 1 } }],
+		"delete-2": [{ "op": "frame.delete", "input": { "frame": 2 } }],
+		"delete-3": [{ "op": "frame.delete", "input": { "frame": 3 } }]
+	}
+}

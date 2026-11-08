@@ -209,7 +209,7 @@ export function isLayerVisible(sprite: Sprite, layer: Layer): boolean {
 	return true;
 }
 
-function findBackground(sprite: Sprite): Layer | undefined {
+export function findBackground(sprite: Sprite): Layer | undefined {
 	for (const layer of walkRenderOrder(sprite.root)) {
 		if (layer.flags.background) return layer;
 	}
@@ -342,9 +342,18 @@ export function linkCels(
 }
 
 /** Gives the cel at `frame` its own copy of its data. Returns false if it had no cel or wasn't linked. */
+export function copyCelData(data: CelData): CelData {
+	return structuredClone(data);
+}
+
+/** The image layers under `parent`, in render order. */
+export function imageLayers(parent: GroupLayer): ImageLayer[] {
+	return [...walkRenderOrder(parent)].filter((layer) => layer.kind === "image");
+}
+
 export function unlinkCel(layer: ImageLayer, frame: number): boolean {
 	const cel = layer.cels.get(frame);
 	if (!cel || framesSharingData(layer, cel.data).length < 2) return false;
-	cel.data = structuredClone(cel.data);
+	cel.data = copyCelData(cel.data);
 	return true;
 }

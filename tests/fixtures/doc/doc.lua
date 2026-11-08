@@ -98,6 +98,20 @@ OPS["slice.delete"] = function(sprite, input)
   sprite:deleteSlice(input.name)
 end
 
+OPS["frame.create"] = function(sprite, input)
+  if input.background then app.bgColor = color(input.background) end
+  local frame = sprite:newEmptyFrame((input.at or #sprite.frames) + 1)
+  if input.duration then frame.duration = input.duration / 1000 end
+end
+
+OPS["frame.duplicate"] = function(sprite, input)
+  sprite:newFrame(input.frame + 1)
+end
+
+OPS["frame.delete"] = function(sprite, input)
+  sprite:deleteFrame(input.frame + 1)
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end

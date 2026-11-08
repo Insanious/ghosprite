@@ -1,0 +1,20 @@
+{
+	"base": "base",
+	"cases": {
+		"create-opaque": [
+			{ "op": "frame.create", "input": { "at": 2, "background": "#3070c0" } }
+		],
+		"create-half-transparent": [
+			{
+				"op": "frame.create",
+				"input": { "at": 1, "background": "#ff800080", "duration": 90 }
+			}
+		],
+		"create-end": [
+			{ "op": "frame.create", "input": { "background": "#102030" } }
+		],
+		"duplicate-1": [{ "op": "frame.duplicate", "input": { "frame": 1 } }],
+		"delete-1": [{ "op": "frame.delete", "input": { "frame": 1 } }],
+		"delete-0": [{ "op": "frame.delete", "input": { "frame": 0 } }]
+	}
+}

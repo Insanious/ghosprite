@@ -9,6 +9,9 @@ import { drawLine } from "./draw-line.ts";
 import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
 import { drawSpray } from "./draw-spray.ts";
+import { frameCreate } from "./frame-create.ts";
+import { frameDelete } from "./frame-delete.ts";
+import { frameDuplicate } from "./frame-duplicate.ts";
 import { layerCreate } from "./layer-create.ts";
 import { layerDelete } from "./layer-delete.ts";
 import type { Operation } from "./registry.ts";
@@ -29,6 +32,9 @@ export const operations: Operation[] = [
 	celDelete,
 	celLink,
 	celUnlink,
+	frameCreate,
+	frameDuplicate,
+	frameDelete,
 	drawLine,
 	drawBezier,
 	drawPolygon,
