@@ -5,6 +5,7 @@ import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
+import { requireRgba } from "./require-rgba.ts";
 
 export const frameCreate = defineOp({
 	name: "frame.create",
@@ -36,11 +37,7 @@ export const frameCreate = defineOp({
 				},
 			);
 		}
-		if (hasBackground && sprite.mode !== "rgba") {
-			throw new OpError("unsupported", `Cannot edit a ${sprite.mode} sprite`, {
-				hint: "Only RGBA sprites are supported",
-			});
-		}
+		if (hasBackground) requireRgba(sprite);
 		createFrame(sprite, at, {
 			duration: input.duration,
 			background:

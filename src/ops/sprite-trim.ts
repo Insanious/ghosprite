@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { cropSprite, trimmedBounds } from "../core/crop.ts";
-import { OpError } from "../errors.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
+import { requireRgba } from "./require-rgba.ts";
 
 export const spriteTrim = defineOp({
 	name: "sprite.trim",
@@ -11,11 +11,7 @@ export const spriteTrim = defineOp({
 	input: z.object({ spriteId: z.string() }),
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
-		if (sprite.mode !== "rgba") {
-			throw new OpError("unsupported", `Cannot edit a ${sprite.mode} sprite`, {
-				hint: "Only RGBA sprites are supported",
-			});
-		}
+		requireRgba(sprite);
 		const bounds = trimmedBounds(sprite);
 		if (!bounds) return {};
 		cropSprite(sprite, bounds);

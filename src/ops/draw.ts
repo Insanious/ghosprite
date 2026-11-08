@@ -14,6 +14,7 @@ import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import { toRgba } from "./color.ts";
 import type { drawFields } from "./draw-options.ts";
+import { requireRgba } from "./require-rgba.ts";
 import { imageFromRows } from "./rows.ts";
 
 type DrawInput = z.output<z.ZodObject<typeof drawFields>>;
@@ -40,11 +41,7 @@ export function resolveTarget(
 			{ path: "frame" },
 		);
 	}
-	if (sprite.mode !== "rgba") {
-		throw new OpError("unsupported", `Cannot edit a ${sprite.mode} sprite`, {
-			hint: "Only RGBA sprites are supported",
-		});
-	}
+	requireRgba(sprite);
 	return { sprite, layer };
 }
 

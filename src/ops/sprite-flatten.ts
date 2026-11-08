@@ -4,6 +4,7 @@ import { createImageLayer, findBackground } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { newLayerUuid } from "./layer-uuid.ts";
 import { defineOp } from "./registry.ts";
+import { requireRgba } from "./require-rgba.ts";
 
 export const spriteFlatten = defineOp({
 	name: "sprite.flatten",
@@ -12,11 +13,7 @@ export const spriteFlatten = defineOp({
 	input: z.object({ spriteId: z.string() }),
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
-		if (sprite.mode !== "rgba") {
-			throw new OpError("unsupported", `Cannot edit a ${sprite.mode} sprite`, {
-				hint: "Only RGBA sprites are supported",
-			});
-		}
+		requireRgba(sprite);
 		if (sprite.root.children.length === 0) return {};
 		const target =
 			findBackground(sprite) ??

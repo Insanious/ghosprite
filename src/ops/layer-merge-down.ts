@@ -3,6 +3,7 @@ import { mergeLayerDown } from "../core/merge.ts";
 import { findParent } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { defineOp } from "./registry.ts";
+import { requireRgba } from "./require-rgba.ts";
 
 export const layerMergeDown = defineOp({
 	name: "layer.mergeDown",
@@ -14,11 +15,7 @@ export const layerMergeDown = defineOp({
 	}),
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
-		if (sprite.mode !== "rgba") {
-			throw new OpError("unsupported", `Cannot edit a ${sprite.mode} sprite`, {
-				hint: "Only RGBA sprites are supported",
-			});
-		}
+		requireRgba(sprite);
 		const upper = workspace.getLayer(input.spriteId, input.layerId);
 		const siblings = findParent(sprite, upper)?.children ?? [];
 		const lower = siblings[siblings.indexOf(upper) - 1];
