@@ -36,7 +36,9 @@ export const filterFields = {
 		),
 	mask: maskSchema
 		.optional()
-		.describe("Limit the filter to a rect, a polygon, or rows"),
+		.describe(
+			"Limit the filter to a rect, a polygon, rows, or a stored selection by id",
+		),
 };
 
 export type FilterInput = z.output<z.ZodObject<typeof filterFields>>;
@@ -74,7 +76,7 @@ export function runFilter(
 		b: targeted.includes("b"),
 		a: targeted.includes("a") && !layer.flags.background,
 	};
-	const mask = input.mask && toMask(input.mask);
+	const mask = input.mask && toMask(workspace, input.spriteId, input.mask);
 	const canvasRect = { x: 0, y: 0, width: sprite.width, height: sprite.height };
 	const area = mask ? intersectRects(mask.bounds, canvasRect) : canvasRect;
 

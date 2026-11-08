@@ -46,6 +46,7 @@ export const tiledSchema = z.enum(["x", "y", "both"]).optional();
 export const maskSchema = z.union([
 	z.strictObject({ rect: rectSchema }),
 	z.strictObject({ polygon: z.array(pointSchema).min(3) }),
+	z.strictObject({ selectionId: z.string() }),
 	z
 		.strictObject({
 			x: z.number().int(),
@@ -100,7 +101,7 @@ export const drawFields = {
 	mask: maskSchema
 		.optional()
 		.describe(
-			"Limit drawing to a rect, a polygon, or rows where every non-space character is inside",
+			"Limit drawing to a rect, a polygon, rows where every non-space character is inside, or a stored selection by id",
 		),
 	symmetry: symmetrySchema,
 	seed: z

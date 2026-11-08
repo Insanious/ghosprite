@@ -46,7 +46,15 @@ export function resolveTarget(
 	return { sprite, layer };
 }
 
-export function toMask(spec: z.output<typeof maskSchema>): Mask {
+export function toMask(
+	workspace: Workspace,
+	spriteId: string,
+	spec: z.output<typeof maskSchema>,
+	selectionPath = "mask.selectionId",
+): Mask {
+	if ("selectionId" in spec) {
+		return workspace.getSelection(spriteId, spec.selectionId, selectionPath);
+	}
 	if ("rect" in spec) return maskFromRect(spec.rect);
 	if ("polygon" in spec) return maskFromPolygon(spec.polygon);
 	const rows = spec.rows.map((row) => Array.from(row));
@@ -108,7 +116,7 @@ export function runDraw(
 		seed: input.seed,
 		brush,
 		tiled: input.tiled,
-		mask: input.mask && toMask(input.mask),
+		mask: input.mask && toMask(workspace, input.spriteId, input.mask),
 		symmetry: input.symmetry && {
 			x:
 				input.symmetry.mode === "vertical"

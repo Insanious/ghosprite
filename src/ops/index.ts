@@ -26,6 +26,9 @@ import { layerMergeDown } from "./layer-merge-down.ts";
 import { paletteLoad, paletteSave, paletteSet } from "./palette.ts";
 import { paletteQuantize } from "./palette-quantize.ts";
 import type { Operation } from "./registry.ts";
+import { selectionCombine } from "./selection-combine.ts";
+import { selectionCreate } from "./selection-create.ts";
+import { selectionDelete } from "./selection-delete.ts";
 import { sliceCreate } from "./slice-create.ts";
 import { sliceDelete } from "./slice-delete.ts";
 import { spriteContactSheet } from "./sprite-contact-sheet.ts";
@@ -82,6 +85,9 @@ export const operations: Operation[] = [
 	spriteCrop,
 	spriteTrim,
 	spriteDescribe,
+	selectionCreate,
+	selectionCombine,
+	selectionDelete,
 	spriteMapToPalette,
 	paletteSet,
 	paletteLoad,
