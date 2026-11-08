@@ -26,7 +26,9 @@ import type { ChangedRect } from "./registry.ts";
 export const regionFields = {
 	spriteId: z.string(),
 	layerId: z.string(),
-	frames: filterFields.frames,
+	frames: filterFields.frames.describe(
+		"Frames to transform. Linked cels are transformed once, and every frame sharing the cel is reported as changed",
+	),
 	selectionId: z.string(),
 	fill: colorSchema
 		.optional()
