@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { type CelCanvas, celCanvas, commitCel } from "../core/cel-edit.ts";
 import type { Mask } from "../core/draw/spans.ts";
-import type { Channels, Filter } from "../core/filter/filter.ts";
+import type { ChannelName, Channels, Filter } from "../core/filter/filter.ts";
 import {
 	copyImage,
 	type Image,
@@ -16,7 +16,7 @@ import { resolveTarget, toMask } from "./draw.ts";
 import { maskSchema } from "./draw-options.ts";
 import type { ChangedRect } from "./registry.ts";
 
-const channelNames = ["r", "g", "b", "a"] as const;
+const channelNames: [ChannelName, ...ChannelName[]] = ["r", "g", "b", "a"];
 
 export const filterFields = {
 	spriteId: z.string(),
@@ -49,7 +49,7 @@ export function runFilter(
 	workspace: Workspace,
 	input: FilterInput,
 	filter: Filter,
-	defaultChannels: readonly (typeof channelNames)[number][],
+	defaultChannels: readonly ChannelName[],
 ) {
 	const { sprite, layer } = resolveTarget(
 		workspace,

@@ -11,6 +11,8 @@ import { drawRect } from "./draw-rect.ts";
 import { drawSpray } from "./draw-spray.ts";
 import { filterBrightnessContrast } from "./filter-brightness-contrast.ts";
 import { filterColorCurve } from "./filter-color-curve.ts";
+import { filterConvolution } from "./filter-convolution.ts";
+import { filterDespeckle } from "./filter-despeckle.ts";
 import { filterHueSaturation } from "./filter-hue-saturation.ts";
 import { filterInvert } from "./filter-invert.ts";
 import { filterOutline } from "./filter-outline.ts";
@@ -89,4 +91,6 @@ export const operations: Operation[] = [
 	filterBrightnessContrast,
 	filterHueSaturation,
 	filterOutline,
+	filterConvolution,
+	filterDespeckle,
 ];

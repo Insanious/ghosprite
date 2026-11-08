@@ -1,6 +1,8 @@
 import { wrap } from "../draw/spans.ts";
 import type { Image, Rect } from "../image.ts";
 
+export type ChannelName = "r" | "g" | "b" | "a";
+
 export type Channels = { r: boolean; g: boolean; b: boolean; a: boolean };
 
 /**

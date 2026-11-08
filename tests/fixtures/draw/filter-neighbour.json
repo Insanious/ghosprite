@@ -1,0 +1,1046 @@
+{
+	"width": 8,
+	"height": 8,
+	"cases": {
+		"blur-3x3": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3"
+				}
+			}
+		],
+		"sharpen-3x3": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "sharpen-3x3"
+				}
+			}
+		],
+		"edges-find": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "edges-find"
+				}
+			}
+		],
+		"misc-emboss": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "misc-emboss"
+				}
+			}
+		],
+		"blur-5x3-left": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-5x3-left"
+				}
+			}
+		],
+		"blur-5x5-diagonal(\\)": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-5x5-diagonal(\\)"
+				}
+			}
+		],
+		"blur-3x17-top": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x17-top"
+				}
+			}
+		],
+		"blur-17x17": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-17x17"
+				}
+			}
+		],
+		"blur-5x5": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-5x5"
+				}
+			}
+		],
+		"drunk-3x3_x": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "drunk-3x3_x"
+				}
+			}
+		],
+		"blur-3x3-tiled-both": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3",
+					"tiled": "both"
+				}
+			}
+		],
+		"blur-5x3-left-tiled-x": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-5x3-left",
+					"tiled": "x"
+				}
+			}
+		],
+		"blur-3x3-tiled-y": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3",
+					"tiled": "y"
+				}
+			}
+		],
+		"blur-17x17-tiled-both": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-17x17",
+					"tiled": "both"
+				}
+			}
+		],
+		"blur-3x3-mask": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3",
+					"mask": {
+						"rect": {
+							"x": 2,
+							"y": 1,
+							"width": 4,
+							"height": 5
+						}
+					}
+				}
+			}
+		],
+		"blur-3x3-mask-tiled": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3",
+					"mask": {
+						"rect": {
+							"x": 0,
+							"y": 0,
+							"width": 3,
+							"height": 3
+						}
+					},
+					"tiled": "both"
+				}
+			}
+		],
+		"blur-3x3-small-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": ["RGB.", "KWHR", ".GGB", "BRKW"],
+					"x": 2,
+					"y": 2
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3"
+				}
+			}
+		],
+		"blur-3x3-small-cel-tiled": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": ["RGB.", "KWHR", ".GGB", "BRKW"],
+					"x": 2,
+					"y": 2
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3",
+					"tiled": "both"
+				}
+			}
+		],
+		"blur-3x3-wide-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": ["RGBKWRGBKW", "KWHRGGBBHK", "..GGBBKKRR", "BRKWBRKWBR"],
+					"x": -2,
+					"y": 3
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3"
+				}
+			}
+		],
+		"blur-3x3-wide-cel-tiled": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": ["RGBKWRGBKW", "KWHRGGBBHK", "..GGBBKKRR", "BRKWBRKWBR"],
+					"x": -2,
+					"y": 3
+				}
+			},
+			{
+				"op": "filter.convolution",
+				"input": {
+					"frames": [0],
+					"matrix": "blur-3x3",
+					"tiled": "both"
+				}
+			}
+		],
+		"despeckle-3x3": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0]
+				}
+			}
+		],
+		"despeckle-5x3": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"width": 5,
+					"height": 3
+				}
+			}
+		],
+		"despeckle-2x2": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"width": 2,
+					"height": 2
+				}
+			}
+		],
+		"despeckle-1x4": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"width": 1,
+					"height": 4
+				}
+			}
+		],
+		"despeckle-3x3-all-channels": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"channels": ["r", "g", "b", "a"]
+				}
+			}
+		],
+		"despeckle-3x3-tiled-both": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"tiled": "both"
+				}
+			}
+		],
+		"despeckle-5x3-tiled-y": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"width": 5,
+					"height": 3,
+					"tiled": "y"
+				}
+			}
+		],
+		"despeckle-3x3-mask": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"mask": {
+						"rect": {
+							"x": 2,
+							"y": 1,
+							"width": 4,
+							"height": 5
+						}
+					}
+				}
+			}
+		],
+		"despeckle-9x9": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBHH",
+						"RKGG.WHH",
+						"GGBBKK..",
+						"WWRRK.GG",
+						"RRGGBBHH",
+						"..GKKKKB",
+						"HHKGRRGG",
+						"BBGG..WW"
+					],
+					"x": 0,
+					"y": 0
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"width": 9,
+					"height": 9
+				}
+			}
+		],
+		"despeckle-3x3-small-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"H": "#e0302080",
+						"K": "#101018",
+						"W": "#ffffff",
+						".": "#00000000"
+					},
+					"rows": ["RGB.", "KWHR", ".GGB", "BRKW"],
+					"x": 2,
+					"y": 2
+				}
+			},
+			{
+				"op": "filter.despeckle",
+				"input": {
+					"frames": [0],
+					"channels": ["r", "g", "b", "a"]
+				}
+			}
+		]
+	}
+}

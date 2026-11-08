@@ -13,6 +13,7 @@
 --     ReplaceColor, BrightnessContrast and HueSaturation commands on the case's layer
 --   filter.colorCurve -> the ColorCurve command, with the points as a Point table
 --   filter.outline -> the Outline command on the case's layer, with tiled passed as its tiledMode
+--   filter.convolution, filter.despeckle -> the ConvolutionMatrix (fromResource) and Despeckle commands
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
 -- A call's symmetry is set as document preferences around the tool call.
@@ -221,6 +222,10 @@ local function apply_op(sprite, layer, call)
       lightness = input.lightness or 0,
       alpha = input.alpha or 0,
     })
+  elseif call.op == "filter.convolution" then
+    run_filter(sprite, layer, "ConvolutionMatrix", input, { fromResource = input.matrix, tiledMode = input.tiled and TILED[input.tiled] })
+  elseif call.op == "filter.despeckle" then
+    run_filter(sprite, layer, "Despeckle", input, { width = input.width, height = input.height, tiledMode = input.tiled and TILED[input.tiled] })
   else
     error("unsupported op " .. call.op)
   end
