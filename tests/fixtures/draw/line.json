@@ -1,0 +1,643 @@
+{
+	"width": 24,
+	"height": 24,
+	"cases": {
+		"size1-shallow": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [{ "x": 2, "y": 3 }, { "x": 20, "y": 9 }]
+				}
+			}
+		],
+		"size1-steep": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [{ "x": 4, "y": 1 }, { "x": 9, "y": 22 }]
+				}
+			}
+		],
+		"size1-diagonal": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [{ "x": 2, "y": 2 }, { "x": 17, "y": 17 }]
+				}
+			}
+		],
+		"size1-point": [
+			{
+				"op": "draw.line",
+				"input": { "color": "#e03020", "points": [{ "x": 7, "y": 8 }] }
+			}
+		],
+		"size1-crossing": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [
+						{ "x": 3, "y": 3 },
+						{ "x": 20, "y": 20 },
+						{ "x": 20, "y": 3 },
+						{ "x": 3, "y": 20 }
+					]
+				}
+			}
+		],
+		"pixel-perfect-size1": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"pixelPerfect": true,
+					"points": [
+						{ "x": 2, "y": 10 },
+						{ "x": 5, "y": 10 },
+						{ "x": 6, "y": 11 },
+						{ "x": 8, "y": 11 },
+						{ "x": 9, "y": 13 },
+						{ "x": 12, "y": 12 },
+						{ "x": 14, "y": 8 },
+						{ "x": 15, "y": 8 },
+						{ "x": 15, "y": 9 }
+					]
+				}
+			}
+		],
+		"pixel-perfect-square3": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"pixelPerfect": true,
+					"brush": { "type": "square", "size": 3 },
+					"points": [
+						{ "x": 3, "y": 10 },
+						{ "x": 6, "y": 10 },
+						{ "x": 7, "y": 11 },
+						{ "x": 9, "y": 11 },
+						{ "x": 10, "y": 13 },
+						{ "x": 13, "y": 12 },
+						{ "x": 15, "y": 8 },
+						{ "x": 16, "y": 8 },
+						{ "x": 16, "y": 9 }
+					]
+				}
+			}
+		],
+		"brush-square3": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "square", "size": 3 },
+					"points": [{ "x": 3, "y": 4 }, { "x": 19, "y": 12 }]
+				}
+			}
+		],
+		"brush-circle4": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "circle", "size": 4 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-circle5": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "circle", "size": 5 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle0": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": 0 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle45": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": 45 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle90": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": 90 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle180": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": 180 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle-45": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": -45 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle-90": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": -90 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle-180": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": -180 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"brush-line5-angle0-zigzag": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": 0 },
+					"points": [
+						{ "x": 12, "y": 4 },
+						{ "x": 4, "y": 8 },
+						{ "x": 12, "y": 12 },
+						{ "x": 12, "y": 20 },
+						{ "x": 20, "y": 14 },
+						{ "x": 8, "y": 14 }
+					]
+				}
+			}
+		],
+		"brush-line5-angle45-zigzag": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": 45 },
+					"points": [
+						{ "x": 12, "y": 4 },
+						{ "x": 4, "y": 8 },
+						{ "x": 12, "y": 12 },
+						{ "x": 12, "y": 20 },
+						{ "x": 20, "y": 14 },
+						{ "x": 8, "y": 14 }
+					]
+				}
+			}
+		],
+		"brush-line5-angle-45-zigzag": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 5, "angle": -45 },
+					"points": [
+						{ "x": 12, "y": 4 },
+						{ "x": 4, "y": 8 },
+						{ "x": 12, "y": 12 },
+						{ "x": 12, "y": 20 },
+						{ "x": 20, "y": 14 },
+						{ "x": 8, "y": 14 }
+					]
+				}
+			}
+		],
+		"brush-line4-angle0": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "line", "size": 4, "angle": 0 },
+					"points": [{ "x": 4, "y": 4 }, { "x": 19, "y": 14 }]
+				}
+			}
+		],
+		"pixel-perfect-line5-angle0": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"pixelPerfect": true,
+					"brush": { "type": "line", "size": 5, "angle": 0 },
+					"points": [
+						{ "x": 3, "y": 10 },
+						{ "x": 6, "y": 10 },
+						{ "x": 7, "y": 11 },
+						{ "x": 9, "y": 11 },
+						{ "x": 10, "y": 13 },
+						{ "x": 13, "y": 12 },
+						{ "x": 15, "y": 8 }
+					]
+				}
+			}
+		],
+		"pixel-perfect-line5-angle45": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"pixelPerfect": true,
+					"brush": { "type": "line", "size": 5, "angle": 45 },
+					"points": [
+						{ "x": 3, "y": 10 },
+						{ "x": 6, "y": 10 },
+						{ "x": 7, "y": 11 },
+						{ "x": 9, "y": 11 },
+						{ "x": 10, "y": 13 },
+						{ "x": 13, "y": 12 },
+						{ "x": 15, "y": 8 }
+					]
+				}
+			}
+		],
+		"brush-image": [
+			{
+				"op": "draw.line",
+				"input": {
+					"brush": {
+						"legend": {
+							".": "#00000000",
+							"r": "#e03020",
+							"g": "#30c050",
+							"b": "#3050e0"
+						},
+						"rows": ["r.g", ".b.", "gr."]
+					},
+					"points": [{ "x": 4, "y": 4 }, { "x": 18, "y": 12 }]
+				}
+			}
+		],
+		"semi-transparent-crossing": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e0302080",
+					"brush": { "type": "square", "size": 3 },
+					"points": [
+						{ "x": 3, "y": 3 },
+						{ "x": 20, "y": 20 },
+						{ "x": 20, "y": 3 },
+						{ "x": 3, "y": 20 }
+					]
+				}
+			}
+		],
+		"ink-simple-255": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "simple",
+					"opacity": 255,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-simple-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "simple",
+					"opacity": 128,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-alphaCompositing-255": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "alphaCompositing",
+					"opacity": 255,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-alphaCompositing-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "alphaCompositing",
+					"opacity": 128,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-copy-255": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "copy",
+					"opacity": 255,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-copy-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "copy",
+					"opacity": 128,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-lockAlpha-255": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "lockAlpha",
+					"opacity": 255,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-lockAlpha-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#30a0e0c0",
+					"ink": "lockAlpha",
+					"opacity": 128,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-eraser-255": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "eraser",
+					"opacity": 255,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"ink-eraser-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 4,
+					"y": 4,
+					"legend": { ".": "#00000000", "a": "#c86432", "b": "#ffffff80" },
+					"rows": [
+						"aaaabbbb",
+						"a.b.a.bb",
+						"bbbbaaaa",
+						"..a..b..",
+						"a......a",
+						"bbaabbaa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "eraser",
+					"opacity": 128,
+					"points": [{ "x": 2, "y": 3 }, { "x": 14, "y": 10 }]
+				}
+			}
+		],
+		"off-canvas": [
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"brush": { "type": "square", "size": 3 },
+					"points": [
+						{ "x": -6, "y": 12 },
+						{ "x": 10, "y": -4 },
+						{ "x": 30, "y": 14 }
+					]
+				}
+			}
+		],
+		"grows-cel": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 10,
+					"y": 10,
+					"legend": { "a": "#3050e0" },
+					"rows": ["aaa", "aaa", "aaa"]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"color": "#e03020",
+					"points": [{ "x": 2, "y": 2 }, { "x": 20, "y": 5 }]
+				}
+			}
+		],
+		"eraser-empties": [
+			{
+				"op": "cel.set",
+				"input": {
+					"x": 5,
+					"y": 5,
+					"legend": { "a": "#3050e0" },
+					"rows": ["aaa"]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "eraser",
+					"points": [{ "x": 5, "y": 5 }, { "x": 7, "y": 5 }]
+				}
+			}
+		]
+	}
+}

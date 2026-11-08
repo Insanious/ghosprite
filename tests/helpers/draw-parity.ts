@@ -1,0 +1,91 @@
+import { expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import type { Image } from "../../src/core/image.ts";
+import type { CelData } from "../../src/core/sprite.ts";
+import { operations } from "../../src/ops/index.ts";
+import { createRegistry } from "../../src/ops/registry.ts";
+import { Workspace } from "../../src/workspace.ts";
+import { imageLayer, readFixture } from "./ase-build.ts";
+
+type Case = { op: string; input: Record<string, unknown> }[];
+type CaseFile = {
+	width: number;
+	height: number;
+	cases: Record<string, Case>;
+};
+
+const registry = createRegistry(operations);
+
+function runCase(file: CaseFile, calls: Case): CelData | undefined {
+	const workspace = new Workspace();
+	const { spriteId } = registry.callOp(workspace, "sprite.create", {
+		width: file.width,
+		height: file.height,
+	}) as unknown as { spriteId: string };
+	const { layerId } = registry.callOp(workspace, "layer.create", {
+		spriteId,
+	}) as unknown as { layerId: string };
+	for (const call of calls) {
+		registry.callOp(workspace, call.op, {
+			...call.input,
+			spriteId,
+			layerId,
+			frame: 0,
+		});
+	}
+	const layer = workspace.getLayer(spriteId, layerId);
+	if (layer.kind !== "image") throw new Error("Expected an image layer");
+	return layer.cels.get(0)?.data;
+}
+
+function describe(cel: CelData | undefined): string {
+	return cel
+		? `cel ${cel.image.width}x${cel.image.height} at (${cel.x}, ${cel.y}), opacity ${cel.opacity}`
+		: "no cel";
+}
+
+function firstDifference(
+	ours: Image,
+	golden: Image,
+	origin: { x: number; y: number },
+): string | undefined {
+	const index = ours.data.findIndex((v, i) => v !== golden.data[i]);
+	if (index === -1) return undefined;
+	const pixel = Math.floor(index / 4);
+	const x = pixel % golden.width;
+	const y = Math.floor(pixel / golden.width);
+	const at = (data: Uint8Array) =>
+		`[${Array.from(data.subarray(pixel * 4, pixel * 4 + 4)).join(", ")}]`;
+	return `first difference at sprite (${origin.x + x}, ${origin.y + y}): ghosprite ${at(ours.data)}, Aseprite ${at(golden.data)}`;
+}
+
+/** Registers one test per case in `fixtures/draw/<group>.json`, compared with `<group>.aseprite`. */
+export function drawParity(group: string) {
+	const file: CaseFile = JSON.parse(
+		readFileSync(
+			new URL(`../fixtures/draw/${group}.json`, import.meta.url),
+			"utf8",
+		),
+	);
+	const { sprite } = readFixture(`draw/${group}.aseprite`);
+
+	for (const [name, calls] of Object.entries(file.cases)) {
+		test(`${group}: ${name} matches Aseprite`, () => {
+			const golden = imageLayer(sprite.root.children, name).cels.get(0)?.data;
+			const ours = runCase(file, calls);
+			if (!golden || !ours) {
+				expect(describe(ours)).toBe(describe(golden));
+				return;
+			}
+			const bounds = (cel: CelData) =>
+				[cel.x, cel.y, cel.image.width, cel.image.height, cel.opacity].join();
+			if (bounds(ours) !== bounds(golden)) {
+				throw new Error(
+					`${name}: ghosprite ${describe(ours)}, Aseprite ${describe(golden)}`,
+				);
+			}
+			const difference = firstDifference(ours.image, golden.image, golden);
+			if (difference) throw new Error(`${name}: ${difference}`);
+		});
+	}
+}

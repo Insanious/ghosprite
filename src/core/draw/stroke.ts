@@ -31,6 +31,9 @@ export type StrokeOptions = {
 	mask?: Mask;
 };
 
+// Zero counts as positive: Aseprite's output at angle 0, where sin is exactly 0, shows it.
+const sign = (value: number) => (value >= 0 ? 1 : -1);
+
 function segmentAlgorithm(
 	brush: Brush,
 	x1: number,
@@ -41,10 +44,10 @@ function segmentAlgorithm(
 	if (brush.lineAngle === undefined || brush.width <= 1)
 		return algoLineContinuous;
 	const angle = (Math.PI * brush.lineAngle) / 180;
-	const p = Math.sign(x2 - x1);
-	const q = Math.sign(y1 - y2);
-	const r = Math.sign(Math.cos(angle));
-	const s = Math.sign(Math.sin(angle));
+	const p = sign(x2 - x1);
+	const q = sign(y1 - y2);
+	const r = sign(Math.cos(angle));
+	const s = sign(Math.sin(angle));
 	return (p === q) !== (r === s)
 		? algoLineContinuousWithFixForLineBrush
 		: algoLineContinuous;
