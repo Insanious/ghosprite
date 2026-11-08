@@ -51,7 +51,7 @@ describe("cli run", () => {
 		const { lines } = cli(["run", file, "--out", scratch]);
 		const [{ frame, path }] = lines[2].result.render;
 		expect(frame).toBe(1);
-		expect(path).toBe(join(scratch, "2-sprite-1-f1.png"));
+		expect(path).toBe(join(scratch, "2-render-0.png"));
 		expect(existsSync(path)).toBe(true);
 		const image = decodePng(readFileSync(path), inflateSync);
 		expect([image.width, image.height]).toEqual([32, 32]);
@@ -108,6 +108,72 @@ describe("cli run", () => {
 		expect(existsSync(target)).toBe(true);
 	});
 
+	test("session.undo makes the next render show the undone state", async () => {
+		const file = scriptFile("undo.json", [
+			script[0],
+			script[1],
+			{
+				op: "session.apply",
+				input: {
+					ops: [
+						{
+							op: "draw.rect",
+							input: {
+								spriteId: "sprite-1",
+								layerId: "layer-1",
+								frame: 0,
+								color: "#ff0000",
+								rect: { x: 0, y: 0, width: 8, height: 8 },
+								filled: true,
+								render: { scale: 1 },
+							},
+						},
+					],
+				},
+			},
+			{ op: "session.undo", input: {} },
+			{ op: "sprite.render", input: { spriteId: "sprite-1", frames: [0] } },
+		]);
+		await Bun.sleep(10);
+		const { lines, status } = cli(["run", file, "--out", scratch]);
+		expect(status).toBe(0);
+		const drawn = lines[2].result.results[0].render[0].path;
+		expect(drawn).toBe(join(scratch, "2-results-0-render-0.png"));
+		const before = decodePng(readFileSync(drawn), inflateSync);
+		expect(before.data[3]).toBe(255);
+		const after = decodePng(
+			readFileSync(lines[4].result.render[0].path),
+			inflateSync,
+		);
+		expect(after.data[3]).toBe(0);
+	});
+
+	test("sprite.contactSheet writes one file and prints its path", async () => {
+		const file = scriptFile("sheet.json", [
+			script[0],
+			{ op: "sprite.contactSheet", input: { spriteId: "sprite-1" } },
+		]);
+		await Bun.sleep(10);
+		const { lines } = cli(["run", file, "--out", scratch]);
+		const { path } = lines[1].result;
+		expect(path).toBe(join(scratch, "1.png"));
+		expect(existsSync(path)).toBe(true);
+	});
+
+	test("a saved journal replays with run", async () => {
+		const journalPath = join(scratch, "journal.json");
+		const file = scriptFile("journal-src.json", [
+			script[0],
+			script[1],
+			{ op: "session.journal", input: { path: journalPath } },
+		]);
+		await Bun.sleep(10);
+		expect(cli(["run", file, "--out", scratch]).status).toBe(0);
+		const replay = cli(["run", journalPath, "--out", scratch]);
+		expect(replay.status).toBe(0);
+		expect(replay.lines.length).toBeGreaterThan(0);
+	});
+
 	test("malformed JSON exits 2 with usage on stderr", () => {
 		const { status, stderr, lines } = cli(["run"], "{nope");
 		expect(status).toBe(2);
@@ -117,10 +183,12 @@ describe("cli run", () => {
 });
 
 describe("cli ops", () => {
-	test("lists all six ops", () => {
+	test("lists the ops and the session tools", () => {
 		const proc = Bun.spawnSync(["bun", "src/cli.ts", "ops"]);
 		const ops = JSON.parse(proc.stdout.toString());
-		expect(ops.map((o: { name: string }) => o.name)).toEqual([
+		const names = ops.map((o: { name: string }) => o.name);
+		expect(names).toContain("session.apply");
+		expect(names.slice(0, 34)).toEqual([
 			"sprite.create",
 			"layer.create",
 			"layer.delete",
