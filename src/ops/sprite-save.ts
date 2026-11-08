@@ -12,6 +12,7 @@ export const spriteSave = defineOp({
 		"Write a sprite to an .aseprite file, overwriting any file at path. Changes nothing in the sprite.",
 	input: z.object({ spriteId: z.string(), path: z.string() }),
 	renderOption: false,
+	readOnly: true,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
 		let bytes: Uint8Array;

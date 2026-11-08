@@ -71,6 +71,7 @@ export const spriteExportSheet = defineOp({
 			message: "rows needs type columns",
 		}),
 	renderOption: false,
+	readOnly: true,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
 		requireRgba(sprite);

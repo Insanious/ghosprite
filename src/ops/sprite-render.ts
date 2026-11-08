@@ -10,6 +10,7 @@ export const spriteRender = defineOp({
 		z.object({ spriteId: z.string(), ...renderOptionFields }),
 	),
 	renderOption: false,
+	readOnly: true,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
 		const frames =

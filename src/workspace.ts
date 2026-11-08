@@ -20,6 +20,31 @@ export class Workspace {
 		return id;
 	}
 
+	spriteIds(): string[] {
+		return [...this.sprites.keys()];
+	}
+
+	hasSprite(id: string): boolean {
+		return this.sprites.has(id);
+	}
+
+	setSprite(id: string, sprite: Sprite): void {
+		this.sprites.set(id, sprite);
+	}
+
+	removeSprite(id: string): void {
+		this.sprites.delete(id);
+	}
+
+	counterSnapshot(): Map<IdKind, number> {
+		return new Map(this.counters);
+	}
+
+	restoreCounters(snapshot: Map<IdKind, number>): void {
+		this.counters.clear();
+		for (const [kind, n] of snapshot) this.counters.set(kind, n);
+	}
+
 	getSprite(id: string): Sprite {
 		const sprite = this.sprites.get(id);
 		if (!sprite) {

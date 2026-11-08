@@ -26,6 +26,8 @@ export type OpDefinition<S extends z.ZodObject> = {
 	input: S;
 	/** Set to false when the input schema already carries the render fields. */
 	renderOption?: boolean;
+	/** Set on operations that never change a sprite, so sessions skip history for them. */
+	readOnly?: boolean;
 	run: (workspace: Workspace, input: z.infer<S>) => OpOutput;
 };
 
@@ -33,6 +35,7 @@ export type Operation = {
 	name: string;
 	description: string;
 	schema: z.ZodObject;
+	readOnly?: boolean;
 	call: (workspace: Workspace, rawInput: unknown) => MutationResult;
 };
 
@@ -48,6 +51,7 @@ export function defineOp<S extends z.ZodObject>(
 		name: definition.name,
 		description: definition.description,
 		schema,
+		readOnly: definition.readOnly,
 		call(workspace, rawInput) {
 			const parsed = schema.safeParse(rawInput);
 			if (!parsed.success) {
@@ -106,6 +110,10 @@ export function createRegistry(operations: Operation[]) {
 	const byName = new Map(operations.map((op) => [op.name, op]));
 
 	return {
+		isReadOnly(name: string): boolean {
+			return byName.get(name)?.readOnly === true;
+		},
+
 		callOp(workspace: Workspace, name: string, input: unknown): MutationResult {
 			const op = byName.get(name);
 			if (!op) {
