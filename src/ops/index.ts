@@ -1,4 +1,5 @@
 import { celSet } from "./cel-set.ts";
+import { drawLine } from "./draw-line.ts";
 import { layerCreate } from "./layer-create.ts";
 import type { Operation } from "./registry.ts";
 import { spriteCreate } from "./sprite-create.ts";
@@ -10,6 +11,7 @@ export const operations: Operation[] = [
 	spriteCreate,
 	layerCreate,
 	celSet,
+	drawLine,
 	spriteRender,
 	spriteLoad,
 	spriteSave,

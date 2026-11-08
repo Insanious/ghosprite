@@ -124,6 +124,7 @@ describe("cli ops", () => {
 			"sprite.create",
 			"layer.create",
 			"cel.set",
+			"draw.line",
 			"sprite.render",
 			"sprite.load",
 			"sprite.save",
