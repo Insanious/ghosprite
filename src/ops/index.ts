@@ -25,6 +25,7 @@ import { layerDelete } from "./layer-delete.ts";
 import { layerMergeDown } from "./layer-merge-down.ts";
 import { paletteLoad, paletteSave, paletteSet } from "./palette.ts";
 import { paletteQuantize } from "./palette-quantize.ts";
+import { regionMove } from "./region-move.ts";
 import type { Operation } from "./registry.ts";
 import { selectionCombine } from "./selection-combine.ts";
 import { selectionCreate } from "./selection-create.ts";
@@ -92,6 +93,7 @@ export const operations: Operation[] = [
 	selectionDelete,
 	selectionInvert,
 	selectionModify,
+	regionMove,
 	spriteMapToPalette,
 	paletteSet,
 	paletteLoad,

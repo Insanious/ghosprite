@@ -9,7 +9,7 @@ import {
 	isEmptyRect,
 	type Rect,
 } from "../core/image.ts";
-import type { CelData } from "../core/sprite.ts";
+import type { CelData, Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import { resolveTarget, toMask } from "./draw.ts";
@@ -41,6 +41,18 @@ export const filterFields = {
 		),
 };
 
+export function checkFrames(sprite: Sprite, frames: number[]): void {
+	frames.forEach((frame, index) => {
+		if (frame >= sprite.frameDurations.length) {
+			throw new OpError(
+				"out_of_range",
+				`Frame ${frame} is outside 0..${sprite.frameDurations.length - 1}`,
+				{ path: `frames.${index}` },
+			);
+		}
+	});
+}
+
 export type FilterInput = z.output<z.ZodObject<typeof filterFields>>;
 
 /**
@@ -59,15 +71,7 @@ export function runFilter(
 		input.layerId,
 		0,
 	);
-	input.frames.forEach((frame, index) => {
-		if (frame >= sprite.frameDurations.length) {
-			throw new OpError(
-				"out_of_range",
-				`Frame ${frame} is outside 0..${sprite.frameDurations.length - 1}`,
-				{ path: `frames.${index}` },
-			);
-		}
-	});
+	checkFrames(sprite, input.frames);
 
 	const targeted = input.channels ?? defaultChannels;
 	const channels: Channels = {
