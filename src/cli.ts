@@ -3,12 +3,14 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
+import { serveStdio } from "./mcp.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
 
 const USAGE = `Usage:
   ghosprite run [file] [--out <dir>]   run a JSON array of {op, input} calls (stdin if no file or "-")
-  ghosprite ops                        print every operation and its input schema as JSON`;
+  ghosprite ops                        print every operation and its input schema as JSON
+  ghosprite mcp                        serve every operation and session tool over MCP on stdio`;
 
 function usageError(message: string): never {
 	process.stderr.write(`${message}\n${USAGE}\n`);
@@ -83,6 +85,8 @@ if (command === "run") {
 	await run(rest);
 } else if (command === "ops" && rest.length === 0) {
 	console.log(JSON.stringify(describeTools(new Session()), null, 2));
+} else if (command === "mcp" && rest.length === 0) {
+	await serveStdio();
 } else {
 	usageError(command ? `Unknown command "${command}"` : "Missing command");
 }
