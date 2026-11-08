@@ -38,7 +38,7 @@ Drawing:
 
 Document operations:
 
-- create and delete layers, frames, cels, tags and slices; link and unlink cels
+- create and delete layers, frames, cels, tags and slices; move layers within and between groups; link and unlink cels
 - canvas size, resize, rotate, flip, trim, merge, flatten
 
 Also: filters, colour quantization and dithering, palette files, selections, and region transforms (move, rotate, scale, flip).

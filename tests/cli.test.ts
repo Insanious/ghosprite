@@ -189,11 +189,12 @@ describe("cli ops", () => {
 		const names = ops.map((o: { name: string }) => o.name);
 		expect(names).toContain("session.apply");
 		expect(names).toContain("sprite.diff");
-		expect(names.slice(0, 36)).toEqual([
+		expect(names.slice(0, 37)).toEqual([
 			"sprite.create",
 			"layer.create",
 			"layer.delete",
 			"layer.mergeDown",
+			"layer.move",
 			"sprite.flatten",
 			"cel.set",
 			"cel.delete",
