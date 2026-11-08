@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { commitCel } from "../core/cel-edit.ts";
 import { isEmptyRect, unionRects } from "../core/image.ts";
+import { paletteAt } from "../core/palette.ts";
 import { celCanvasRect } from "../core/sprite.ts";
 import { resolveTarget } from "./draw.ts";
 import { defineOp } from "./registry.ts";
@@ -27,7 +28,11 @@ export const celSet = defineOp({
 			input.layerId,
 			input.frame,
 		);
-		const image = imageFromRows(input.legend, input.rows);
+		const image = imageFromRows(
+			input.legend,
+			input.rows,
+			paletteAt(sprite.palettes, input.frame),
+		);
 
 		const commit = commitCel(sprite, layer, input.frame, {
 			image,

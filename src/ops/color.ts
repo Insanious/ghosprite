@@ -1,20 +1,29 @@
 import { z } from "zod";
 import type { Rgba } from "../core/image.ts";
+import type { Palette } from "../core/palette.ts";
 import { OpError } from "../errors.ts";
 
 const byte = z.number().int().min(0).max(255);
 
-export const colorSchema = z.union([
-	z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, {
-		error: "Expected #rrggbb or #rrggbbaa",
-	}),
-	z.object({ r: byte, g: byte, b: byte, a: byte.default(255) }),
-	z.object({ index: byte }),
-]);
+export const colorSchema = z
+	.union([
+		z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, {
+			error: "Expected #rrggbb or #rrggbbaa",
+		}),
+		z.object({ r: byte, g: byte, b: byte, a: byte.default(255) }),
+		z.object({ index: byte }),
+	])
+	.describe(
+		"#rrggbb, #rrggbbaa, {r, g, b, a} or {index}. An index picks that entry of the palette in effect at the frame the operation works on (frame 0 when it has none), so it fails if the palette is shorter.",
+	);
 
 export type ColorInput = z.infer<typeof colorSchema>;
 
-export function toRgba(color: ColorInput, path: string): Rgba {
+export function toRgba(
+	color: ColorInput,
+	path: string,
+	palette: Palette,
+): Rgba {
 	if (typeof color === "string") {
 		const value = (offset: number) =>
 			Number.parseInt(color.slice(offset, offset + 2), 16);
@@ -26,10 +35,18 @@ export function toRgba(color: ColorInput, path: string): Rgba {
 		};
 	}
 	if ("index" in color) {
-		throw new OpError("unsupported", "Indexed colours are not supported yet", {
-			path,
-			hint: 'Use an RGBA colour such as "#rrggbb" or {r, g, b, a}',
-		});
+		const entry = palette.colors[color.index];
+		if (!entry) {
+			throw new OpError(
+				"out_of_range",
+				`Palette index ${color.index} does not exist`,
+				{
+					path,
+					hint: `The palette has ${palette.colors.length} colours, numbered from 0`,
+				},
+			);
+		}
+		return { ...entry };
 	}
 	return color;
 }

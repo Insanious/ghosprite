@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paletteAt } from "../core/palette.ts";
 import { insertTag, TAG_DIRECTIONS } from "../core/tag.ts";
 import { createUserData } from "../core/user-data.ts";
 import { OpError } from "../errors.ts";
@@ -37,7 +38,11 @@ export const tagCreate = defineOp({
 			);
 		}
 		const userData = createUserData();
-		userData.color = toRgba(input.color, "color");
+		userData.color = toRgba(
+			input.color,
+			"color",
+			paletteAt(sprite.palettes, 0),
+		);
 		insertTag(sprite.tags, {
 			name: input.name,
 			from: input.from,

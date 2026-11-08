@@ -159,7 +159,7 @@ describe("cel.set", () => {
 		expect(error.code).toBe("invalid_input");
 	});
 
-	test("an indexed legend colour is unsupported at its legend key", () => {
+	test("an indexed legend colour past the palette is out of range at its legend key", () => {
 		const { workspace, spriteId, layer } = setup();
 		const error = thrown(() =>
 			run(workspace, {
@@ -171,7 +171,7 @@ describe("cel.set", () => {
 			}),
 		);
 		expect(error.toJSON()).toMatchObject({
-			code: "unsupported",
+			code: "out_of_range",
 			path: "legend.A",
 		});
 	});

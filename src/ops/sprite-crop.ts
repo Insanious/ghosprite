@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { cropSprite } from "../core/crop.ts";
+import { paletteAt } from "../core/palette.ts";
 import { findBackground } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
@@ -45,7 +46,7 @@ export const spriteCrop = defineOp({
 			rect,
 			input.background === undefined
 				? undefined
-				: toRgba(input.background, "background"),
+				: toRgba(input.background, "background", paletteAt(sprite.palettes, 0)),
 		);
 		return {
 			changed: wholeCanvas(sprite, 0, sprite.frameDurations.length - 1),

@@ -2,9 +2,17 @@ import { describe, expect, test } from "bun:test";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
 
+const palette = {
+	startFrame: 0,
+	colors: [
+		{ r: 1, g: 2, b: 3, a: 255 },
+		{ r: 4, g: 5, b: 6, a: 255 },
+	],
+};
+
 function parse(value: unknown) {
 	const result = colorSchema.safeParse(value);
-	return result.success ? toRgba(result.data, "") : undefined;
+	return result.success ? toRgba(result.data, "", palette) : undefined;
 }
 
 describe("colorSchema", () => {
@@ -27,18 +35,28 @@ describe("colorSchema", () => {
 		});
 	});
 
-	test("{index} parses but converting it is unsupported", () => {
-		const parsed = colorSchema.parse({ index: 3 });
+	test("{index} resolves against the palette", () => {
+		const parsed = colorSchema.parse({ index: 1 });
+		expect(toRgba(parsed, "legend.a", palette)).toEqual({
+			r: 4,
+			g: 5,
+			b: 6,
+			a: 255,
+		});
+	});
+
+	test("{index} past the palette is out_of_range with a size hint", () => {
+		const parsed = colorSchema.parse({ index: 2 });
 		try {
-			toRgba(parsed, "legend.a");
+			toRgba(parsed, "legend.a", palette);
 			throw new Error("Expected an OpError");
 		} catch (error) {
 			expect(error).toBeInstanceOf(OpError);
 			expect((error as OpError).toJSON()).toMatchObject({
-				code: "unsupported",
+				code: "out_of_range",
 				path: "legend.a",
 			});
-			expect((error as OpError).hint).toBeDefined();
+			expect((error as OpError).hint).toContain("2 colours");
 		}
 	});
 

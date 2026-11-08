@@ -60,10 +60,11 @@ export const paletteSet = defineOp({
 		const sprite = workspace.getSprite(input.spriteId);
 		requireRgba(sprite);
 		checkExistingFrame(sprite, input.frame);
+		const current = paletteAt(sprite.palettes, input.frame);
 		setPalette(
 			sprite,
 			input.frame,
-			input.colors.map((color, i) => toRgba(color, `colors.${i}`)),
+			input.colors.map((color, i) => toRgba(color, `colors.${i}`, current)),
 		);
 		return {};
 	},

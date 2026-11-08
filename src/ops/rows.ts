@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createImage, type Image, setPixel } from "../core/image.ts";
+import type { Palette } from "../core/palette.ts";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
 
@@ -10,13 +11,14 @@ export const rowsSchema = z.array(z.string().min(1)).min(1);
 export function imageFromRows(
 	legend: z.infer<typeof legendSchema>,
 	rowStrings: string[],
+	palette: Palette,
 	path = "",
 ): Image {
 	const prefix = path === "" ? "" : `${path}.`;
 	const colors = new Map(
 		Object.entries(legend).map(([key, color]) => [
 			key,
-			toRgba(color, `${prefix}legend.${key}`),
+			toRgba(color, `${prefix}legend.${key}`, palette),
 		]),
 	);
 	const rows = rowStrings.map((row) => Array.from(row));

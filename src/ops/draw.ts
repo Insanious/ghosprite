@@ -9,6 +9,7 @@ import {
 import type { Mask } from "../core/draw/spans.ts";
 import { drawShape, type Shape, type SprayShape } from "../core/draw/stroke.ts";
 import { isEmptyRect } from "../core/image.ts";
+import { paletteAt } from "../core/palette.ts";
 import type { ImageLayer, Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
@@ -84,13 +85,14 @@ export function runDraw(
 
 	const spec = input.brush;
 	const isImageBrush = "rows" in spec;
+	const palette = paletteAt(sprite.palettes, input.frame);
 	const brush = isImageBrush
-		? imageBrush(imageFromRows(spec.legend, spec.rows, "brush"))
+		? imageBrush(imageFromRows(spec.legend, spec.rows, palette, "brush"))
 		: createBrush(spec);
 
 	let color = { r: 0, g: 0, b: 0, a: 0 };
 	if (input.color !== undefined) {
-		color = toRgba(input.color, "color");
+		color = toRgba(input.color, "color", palette);
 	} else if (!COLORLESS_INKS.includes(input.ink) && !isImageBrush) {
 		throw new OpError("invalid_input", "Missing colour", {
 			path: "color",

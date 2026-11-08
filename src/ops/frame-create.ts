@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createFrame } from "../core/frames.ts";
+import { paletteAt } from "../core/palette.ts";
 import { findBackground } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
@@ -42,7 +43,11 @@ export const frameCreate = defineOp({
 			duration: input.duration,
 			background:
 				hasBackground && input.background
-					? toRgba(input.background, "background")
+					? toRgba(
+							input.background,
+							"background",
+							paletteAt(sprite.palettes, at),
+						)
 					: undefined,
 		});
 		return {
