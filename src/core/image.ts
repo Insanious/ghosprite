@@ -11,6 +11,12 @@ export type Rect = { x: number; y: number; width: number; height: number };
 
 export type Rgba = { r: number; g: number; b: number; a: number };
 
+const hexByte = (n: number) => n.toString(16).padStart(2, "0");
+
+export function rgbaHex({ r, g, b, a }: Rgba): string {
+	return `#${hexByte(r)}${hexByte(g)}${hexByte(b)}${hexByte(a)}`;
+}
+
 const BYTES_PER_PIXEL: Record<ColorMode, number> = {
 	rgba: 4,
 	grayscale: 2,

@@ -21,6 +21,7 @@ import { sliceDelete } from "./slice-delete.ts";
 import { spriteContactSheet } from "./sprite-contact-sheet.ts";
 import { spriteCreate } from "./sprite-create.ts";
 import { spriteCrop } from "./sprite-crop.ts";
+import { spriteDescribe } from "./sprite-describe.ts";
 import { spriteExportSheet } from "./sprite-export-sheet.ts";
 import { spriteFlatten } from "./sprite-flatten.ts";
 import { spriteFlip } from "./sprite-flip.ts";
@@ -67,4 +68,5 @@ export const operations: Operation[] = [
 	sliceDelete,
 	spriteCrop,
 	spriteTrim,
+	spriteDescribe,
 ];

@@ -1,4 +1,4 @@
-import type { Rect, Rgba } from "./image.ts";
+import { type Rect, rgbaHex } from "./image.ts";
 import type { Sheet, SheetEntry } from "./sheet.ts";
 import type { Cel, GroupLayer, Layer, Sprite } from "./sprite.ts";
 import type { Tag } from "./tag.ts";
@@ -36,8 +36,6 @@ const rectJson = ({ x, y, width, height }: Rect) => ({
 	w: width,
 	h: height,
 });
-
-const hex = (n: number) => n.toString(16).padStart(2, "0");
 
 const UNSUPPORTED = "[unsupported type]";
 
@@ -106,16 +104,15 @@ function propertiesJson(properties: UserData["properties"]): JsonObject {
 }
 
 function userDataJson(data: UserData): JsonObject {
-	const { r, g, b, a }: Rgba = data.color;
 	const properties = propertiesJson(data.properties);
 	return {
-		...(a > 0 && { color: `#${hex(r)}${hex(g)}${hex(b)}${hex(a)}` }),
+		...(data.color.a > 0 && { color: rgbaHex(data.color) }),
 		...(data.text !== "" && { data: data.text }),
 		...(Object.keys(properties).length > 0 && { properties }),
 	};
 }
 
-const hasUserData = (data: UserData) =>
+export const hasUserData = (data: UserData) =>
 	data.text !== "" || data.color.a > 0 || data.properties.size > 0;
 
 /** The smallest tag containing the frame; the first of equals. */

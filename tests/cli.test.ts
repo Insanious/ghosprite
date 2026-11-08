@@ -154,6 +154,7 @@ describe("cli ops", () => {
 			"slice.delete",
 			"sprite.crop",
 			"sprite.trim",
+			"sprite.describe",
 		]);
 	});
 });
