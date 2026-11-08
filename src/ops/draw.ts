@@ -61,6 +61,8 @@ function toMask(spec: NonNullable<DrawInput["mask"]>): Mask {
 	);
 }
 
+const COLORLESS_INKS: readonly string[] = ["eraser", "blur", "jumble"];
+
 export function runDraw(workspace: Workspace, input: DrawInput, shape: Shape) {
 	const { sprite, layer } = resolveTarget(
 		workspace,
@@ -88,10 +90,10 @@ export function runDraw(workspace: Workspace, input: DrawInput, shape: Shape) {
 	let color = { r: 0, g: 0, b: 0, a: 0 };
 	if (input.color !== undefined) {
 		color = toRgba(input.color, "color");
-	} else if (input.ink !== "eraser" && !isImageBrush) {
+	} else if (!COLORLESS_INKS.includes(input.ink) && !isImageBrush) {
 		throw new OpError("invalid_input", "Missing colour", {
 			path: "color",
-			hint: "Pass a colour, or use the eraser ink or an image brush",
+			hint: "Pass a colour, or use the eraser, blur or jumble ink or an image brush",
 		});
 	}
 
@@ -100,6 +102,7 @@ export function runDraw(workspace: Workspace, input: DrawInput, shape: Shape) {
 		color,
 		ink: input.ink,
 		opacity: input.opacity,
+		seed: input.seed,
 		brush,
 		tiled: input.tiled,
 		mask: input.mask && toMask(input.mask),

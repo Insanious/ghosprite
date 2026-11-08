@@ -10,8 +10,9 @@ import {
 	algoSpline,
 } from "./algo.ts";
 import type { Brush } from "./brush.ts";
-import { applyInk, type InkName } from "./ink.ts";
+import { applyInk, type InkName, type Surroundings } from "./ink.ts";
 import { fillPolygon, type Point } from "./polygon.ts";
+import { createRandom } from "./random.ts";
 import { clipSpan, type Mask } from "./spans.ts";
 import { type Symmetry, symmetryCopies } from "./symmetry.ts";
 
@@ -31,6 +32,8 @@ export type StrokeOptions = {
 	tiled?: "x" | "y" | "both";
 	mask?: Mask;
 	symmetry?: Symmetry;
+	/** Seeds the jumble ink. */
+	seed?: number;
 };
 
 // Zero counts as positive: Aseprite's output at angle 0, where sin is exactly 0, shows it.
@@ -110,6 +113,19 @@ export function drawShape(
 	const before = image.data.slice();
 	const { color, ink, opacity, tiled, mask } = options;
 	const clip = { canvas, tiled, mask };
+	const random = createRandom(options.seed ?? 0);
+
+	const snapshotAt = (x: number, y: number): Rgba => {
+		const cx = Math.min(Math.max(x, 0), canvas.width - 1);
+		const cy = Math.min(Math.max(y, 0), canvas.height - 1);
+		const i = ((cy - target.y) * image.width + cx - target.x) * 4;
+		return {
+			r: before[i],
+			g: before[i + 1],
+			b: before[i + 2],
+			a: before[i + 3],
+		};
+	};
 
 	const paint = (x1: number, y: number, x2: number, source: Rgba) => {
 		for (let x = x1; x <= x2; x++) {
@@ -120,7 +136,11 @@ export function drawShape(
 				b: before[offset + 2],
 				a: before[offset + 3],
 			};
-			const out = applyInk(ink, backdrop, source, opacity);
+			const around: Surroundings = {
+				pixelAt: (dx, dy) => snapshotAt(x + dx, y + dy),
+				random,
+			};
+			const out = applyInk(ink, backdrop, source, opacity, around);
 			image.data[offset] = out.r;
 			image.data[offset + 1] = out.g;
 			image.data[offset + 2] = out.b;

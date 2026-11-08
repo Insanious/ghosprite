@@ -1,0 +1,157 @@
+{
+	"width": 12,
+	"height": 12,
+	"cases": {
+		"hard-edge": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": { "a": "#e03020", "b": "#2040e0" },
+					"rows": [
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "blur",
+					"points": [{ "x": 2, "y": 3 }, { "x": 9, "y": 8 }]
+				}
+			}
+		],
+		"half-opacity": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": { "a": "#e03020", "b": "#2040e0" },
+					"rows": [
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "blur",
+					"opacity": 128,
+					"points": [{ "x": 2, "y": 3 }, { "x": 9, "y": 8 }]
+				}
+			}
+		],
+		"soft-edge": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": { "a": "#20c040", "b": "#2040e080" },
+					"rows": [
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "blur",
+					"points": [{ "x": 3, "y": 2 }, { "x": 8, "y": 9 }]
+				}
+			}
+		],
+		"canvas-border": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": { "a": "#e03020", "b": "#2040e0" },
+					"rows": [
+						"abababababab",
+						"babababababa",
+						"abababababab",
+						"babababababa",
+						"abababababab",
+						"babababababa",
+						"abababababab",
+						"babababababa",
+						"abababababab",
+						"babababababa",
+						"abababababab",
+						"babababababa"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "blur",
+					"points": [
+						{ "x": 0, "y": 0 },
+						{ "x": 0, "y": 11 },
+						{ "x": 11, "y": 11 }
+					]
+				}
+			}
+		],
+		"size3-brush": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": { "a": "#e03020", "b": "#2040e0" },
+					"rows": [
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb",
+						"aaaaaabbbbbb"
+					]
+				}
+			},
+			{
+				"op": "draw.line",
+				"input": {
+					"ink": "blur",
+					"brush": { "type": "circle", "size": 3 },
+					"points": [{ "x": 3, "y": 5 }, { "x": 8, "y": 6 }]
+				}
+			}
+		]
+	}
+}

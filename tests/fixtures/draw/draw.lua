@@ -93,6 +93,10 @@ local function use_tool(tool, layer, input)
 end
 
 local function draw_line(layer, input)
+  if input.ink == "blur" then
+    use_tool("blur", layer, input)
+    return
+  end
   use_tool(input.ink == "eraser" and "eraser" or "pencil", layer, input)
 end
 

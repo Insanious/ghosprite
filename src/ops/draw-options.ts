@@ -15,7 +15,15 @@ export const rectSchema = z.object({
 });
 
 export const inkSchema = z
-	.enum(["simple", "alphaCompositing", "copy", "lockAlpha", "eraser"])
+	.enum([
+		"simple",
+		"alphaCompositing",
+		"copy",
+		"lockAlpha",
+		"eraser",
+		"blur",
+		"jumble",
+	])
 	.default("simple");
 
 const imageBrushSchema = z.strictObject({
@@ -80,7 +88,9 @@ export const drawFields = {
 	frame: z.number().int().min(0),
 	color: colorSchema
 		.optional()
-		.describe("Required unless the ink is eraser or the brush is an image"),
+		.describe(
+			"Required unless the ink is eraser, blur or jumble or the brush is an image",
+		),
 	ink: inkSchema,
 	opacity: z.number().int().min(0).max(255).default(255),
 	brush: brushSchema,
@@ -94,4 +104,10 @@ export const drawFields = {
 			"Limit drawing to a rect, a polygon, or rows where every non-space character is inside",
 		),
 	symmetry: symmetrySchema,
+	seed: z
+		.number()
+		.int()
+		.min(0)
+		.default(0)
+		.describe("Seeds the random choices of the jumble ink"),
 };
