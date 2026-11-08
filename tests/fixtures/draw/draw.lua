@@ -9,7 +9,8 @@
 --   draw.polygon -> contour, a filled polygon through the points
 --   draw.fill -> paint_bucket, with contiguous and tolerance
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
---   filter.invert, filter.replaceColor -> the InvertColor and ReplaceColor commands on the case's layer
+--   filter.invert, filter.replaceColor, filter.brightnessContrast, filter.hueSaturation -> the InvertColor,
+--     ReplaceColor, BrightnessContrast and HueSaturation commands on the case's layer
 --   filter.colorCurve -> the ColorCurve command, with the points as a Point table
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
@@ -182,6 +183,8 @@ local function run_filter(sprite, layer, command, input, params)
   app.command[command](params)
 end
 
+local HUE_SATURATION_MODES = { hslMul = "hsl", hslAdd = "hsl_add", hsvMul = "hsv", hsvAdd = "hsv_add" }
+
 local function apply_op(sprite, layer, call)
   local input = call.input
   if call.op == "cel.set" then
@@ -205,6 +208,16 @@ local function apply_op(sprite, layer, call)
     local curve = {}
     for _, point in ipairs(input.points) do curve[#curve + 1] = Point(point.x, point.y) end
     run_filter(sprite, layer, "ColorCurve", input, { curve = curve })
+  elseif call.op == "filter.brightnessContrast" then
+    run_filter(sprite, layer, "BrightnessContrast", input, { brightness = input.brightness or 0, contrast = input.contrast or 0 })
+  elseif call.op == "filter.hueSaturation" then
+    run_filter(sprite, layer, "HueSaturation", input, {
+      mode = HUE_SATURATION_MODES[input.mode or "hslMul"],
+      hue = input.hue or 0,
+      saturation = input.saturation or 0,
+      lightness = input.lightness or 0,
+      alpha = input.alpha or 0,
+    })
   else
     error("unsupported op " .. call.op)
   end

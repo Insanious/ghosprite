@@ -9,7 +9,9 @@ import { drawLine } from "./draw-line.ts";
 import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
 import { drawSpray } from "./draw-spray.ts";
+import { filterBrightnessContrast } from "./filter-brightness-contrast.ts";
 import { filterColorCurve } from "./filter-color-curve.ts";
+import { filterHueSaturation } from "./filter-hue-saturation.ts";
 import { filterInvert } from "./filter-invert.ts";
 import { filterReplaceColor } from "./filter-replace-color.ts";
 import { frameCreate } from "./frame-create.ts";
@@ -83,4 +85,6 @@ export const operations: Operation[] = [
 	filterInvert,
 	filterReplaceColor,
 	filterColorCurve,
+	filterBrightnessContrast,
+	filterHueSaturation,
 ];

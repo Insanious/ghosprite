@@ -1,0 +1,1331 @@
+{
+	"width": 8,
+	"height": 8,
+	"cases": {
+		"bc-default": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{ "op": "filter.brightnessContrast", "input": { "frames": [0] } }
+		],
+		"bc-bright-min": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "brightness": -100 }
+			}
+		],
+		"bc-bright-mid": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "brightness": 40 }
+			}
+		],
+		"bc-bright-max": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "brightness": 100 }
+			}
+		],
+		"bc-contrast-min": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "contrast": -100 }
+			}
+		],
+		"bc-contrast-mid": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "contrast": -35 }
+			}
+		],
+		"bc-contrast-max": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "contrast": 100 }
+			}
+		],
+		"bc-both": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "brightness": -20, "contrast": 60 }
+			}
+		],
+		"bc-alpha-only": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": { "frames": [0], "brightness": 50, "channels": ["a"] }
+			}
+		],
+		"bc-red-only": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": {
+					"frames": [0],
+					"brightness": 50,
+					"contrast": 30,
+					"channels": ["r"]
+				}
+			}
+		],
+		"bc-mask": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.brightnessContrast",
+				"input": {
+					"frames": [0],
+					"brightness": 50,
+					"mask": { "rect": { "x": 2, "y": 2, "width": 4, "height": 4 } }
+				}
+			}
+		],
+		"hs-hslMul-default": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hslMul" }
+			}
+		],
+		"hs-hslMul-all": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hslMul",
+					"hue": 70,
+					"saturation": -30,
+					"lightness": 25,
+					"alpha": -40
+				}
+			}
+		],
+		"hs-hslMul-min": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hslMul",
+					"hue": -180,
+					"saturation": -100,
+					"lightness": -100,
+					"alpha": -100
+				}
+			}
+		],
+		"hs-hslMul-max": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hslMul",
+					"hue": 180,
+					"saturation": 100,
+					"lightness": 100,
+					"alpha": 100
+				}
+			}
+		],
+		"hs-hslMul-hue-neg": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hslMul", "hue": -75 }
+			}
+		],
+		"hs-hslAdd-default": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hslAdd" }
+			}
+		],
+		"hs-hslAdd-all": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hslAdd",
+					"hue": 70,
+					"saturation": -30,
+					"lightness": 25,
+					"alpha": -40
+				}
+			}
+		],
+		"hs-hslAdd-min": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hslAdd",
+					"hue": -180,
+					"saturation": -100,
+					"lightness": -100,
+					"alpha": -100
+				}
+			}
+		],
+		"hs-hslAdd-max": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hslAdd",
+					"hue": 180,
+					"saturation": 100,
+					"lightness": 100,
+					"alpha": 100
+				}
+			}
+		],
+		"hs-hslAdd-hue-neg": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hslAdd", "hue": -75 }
+			}
+		],
+		"hs-hsvMul-default": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hsvMul" }
+			}
+		],
+		"hs-hsvMul-all": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hsvMul",
+					"hue": 70,
+					"saturation": -30,
+					"lightness": 25,
+					"alpha": -40
+				}
+			}
+		],
+		"hs-hsvMul-min": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hsvMul",
+					"hue": -180,
+					"saturation": -100,
+					"lightness": -100,
+					"alpha": -100
+				}
+			}
+		],
+		"hs-hsvMul-max": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hsvMul",
+					"hue": 180,
+					"saturation": 100,
+					"lightness": 100,
+					"alpha": 100
+				}
+			}
+		],
+		"hs-hsvMul-hue-neg": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hsvMul", "hue": -75 }
+			}
+		],
+		"hs-hsvAdd-default": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hsvAdd" }
+			}
+		],
+		"hs-hsvAdd-all": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hsvAdd",
+					"hue": 70,
+					"saturation": -30,
+					"lightness": 25,
+					"alpha": -40
+				}
+			}
+		],
+		"hs-hsvAdd-min": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hsvAdd",
+					"hue": -180,
+					"saturation": -100,
+					"lightness": -100,
+					"alpha": -100
+				}
+			}
+		],
+		"hs-hsvAdd-max": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"mode": "hsvAdd",
+					"hue": 180,
+					"saturation": 100,
+					"lightness": 100,
+					"alpha": 100
+				}
+			}
+		],
+		"hs-hsvAdd-hue-neg": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "mode": "hsvAdd", "hue": -75 }
+			}
+		],
+		"hs-alpha-up": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{ "op": "filter.hueSaturation", "input": { "frames": [0], "alpha": 60 } }
+		],
+		"hs-alpha-only": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": { "frames": [0], "hue": 90, "alpha": -50, "channels": ["a"] }
+			}
+		],
+		"hs-rgb-only": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"hue": 90,
+					"alpha": -50,
+					"channels": ["r", "g", "b"]
+				}
+			}
+		],
+		"hs-green-only": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"hue": 90,
+					"saturation": 20,
+					"channels": ["g"]
+				}
+			}
+		],
+		"hs-mask": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"R": "#e03020",
+						"G": "#20c040",
+						"B": "#3050e0",
+						"Y": "#e0c040",
+						"H": "#e0302080",
+						"X": "#40a0c040",
+						"K": "#101010",
+						"W": "#ffffff",
+						"M": "#808080",
+						"P": "#b060a0",
+						".": "#00000000"
+					},
+					"rows": [
+						"RRGGBBYY",
+						"RKGGPPHH",
+						"GGBBKKXX",
+						"WWRRMM..",
+						"YYGGBBHH",
+						"PPKKMMXX",
+						"HHXXRRGG",
+						"BBGG..WW"
+					]
+				}
+			},
+			{
+				"op": "filter.hueSaturation",
+				"input": {
+					"frames": [0],
+					"hue": 120,
+					"mask": { "rect": { "x": 2, "y": 2, "width": 4, "height": 4 } }
+				}
+			}
+		]
+	}
+}
