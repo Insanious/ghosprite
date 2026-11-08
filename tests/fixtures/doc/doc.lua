@@ -112,6 +112,16 @@ OPS["frame.delete"] = function(sprite, input)
   sprite:deleteFrame(input.frame + 1)
 end
 
+OPS["sprite.rotate"] = function(sprite, input)
+  app.sprite = sprite
+  app.command.Rotate { target = "canvas", angle = input.angle == 270 and -90 or input.angle }
+end
+
+OPS["sprite.flip"] = function(sprite, input)
+  app.sprite = sprite
+  app.command.Flip { target = "canvas", orientation = input.direction }
+end
+
 local function apply(sprite, call)
   local run = OPS[call.op]
   if not run then error("unsupported op " .. call.op) end

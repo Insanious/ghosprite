@@ -1,0 +1,18 @@
+{
+	"base": "base",
+	"cases": {
+		"rotate-90": [{ "op": "sprite.rotate", "input": { "angle": 90 } }],
+		"rotate-180": [{ "op": "sprite.rotate", "input": { "angle": 180 } }],
+		"rotate-270": [{ "op": "sprite.rotate", "input": { "angle": 270 } }],
+		"flip-horizontal": [
+			{ "op": "sprite.flip", "input": { "direction": "horizontal" } }
+		],
+		"flip-vertical": [
+			{ "op": "sprite.flip", "input": { "direction": "vertical" } }
+		],
+		"rotate-90-flip-horizontal": [
+			{ "op": "sprite.rotate", "input": { "angle": 90 } },
+			{ "op": "sprite.flip", "input": { "direction": "horizontal" } }
+		]
+	}
+}
