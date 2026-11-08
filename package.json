@@ -5,7 +5,8 @@
 	"type": "module",
 	"packageManager": "bun@1.4.4",
 	"scripts": {
-		"check": "sh scripts/check.sh"
+		"check": "sh scripts/check.sh",
+		"goldens": "sh scripts/goldens.sh"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.6.2",

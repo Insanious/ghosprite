@@ -1,4 +1,4 @@
--- Regenerate a drawing golden from the repo root, once per group:
+-- Regenerate drawing goldens with `bun run goldens [group...]`, which runs:
 -- ~/Programming/aseprite/build/bin/aseprite -b --script-param cases=line --script tests/fixtures/draw/draw.lua
 --
 -- Reads tests/fixtures/draw/<group>.json and writes tests/fixtures/draw/<group>.aseprite:
