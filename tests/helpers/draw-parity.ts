@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import type { Image } from "../../src/core/image.ts";
+import { createImage, type Image } from "../../src/core/image.ts";
 import type { CelData } from "../../src/core/sprite.ts";
+import { createUserData } from "../../src/core/user-data.ts";
 import { operations } from "../../src/ops/index.ts";
 import { createRegistry } from "../../src/ops/registry.ts";
 import { Workspace } from "../../src/workspace.ts";
@@ -11,10 +12,32 @@ type Case = { op: string; input: Record<string, unknown> }[];
 type CaseFile = {
 	width: number;
 	height: number;
+	record?: string;
 	cases: Record<string, Case>;
 };
 
 const registry = createRegistry(operations);
+
+/** The selection as the golden records it: opaque white on each selected pixel. */
+function selectionCel(
+	workspace: Workspace,
+	spriteId: string,
+	selectionId: string,
+): CelData | undefined {
+	const { bounds, bits } = workspace.getSelection(spriteId, selectionId);
+	if (bounds.width === 0 || bounds.height === 0) return undefined;
+	const image = createImage(bounds.width, bounds.height, "rgba");
+	bits.forEach((bit, i) => {
+		if (bit) image.data.set([255, 255, 255, 255], i * 4);
+	});
+	return {
+		image,
+		x: bounds.x,
+		y: bounds.y,
+		opacity: 255,
+		userData: createUserData(),
+	};
+}
 
 function runCase(file: CaseFile, calls: Case): CelData | undefined {
 	const workspace = new Workspace();
@@ -33,6 +56,7 @@ function runCase(file: CaseFile, calls: Case): CelData | undefined {
 			frame: 0,
 		});
 	}
+	if (file.record) return selectionCel(workspace, spriteId, file.record);
 	const layer = workspace.getLayer(spriteId, layerId);
 	if (layer.kind !== "image") throw new Error("Expected an image layer");
 	return layer.cels.get(0)?.data;

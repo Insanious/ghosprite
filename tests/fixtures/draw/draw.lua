@@ -16,6 +16,9 @@
 --   filter.convolution, filter.despeckle -> the ConvolutionMatrix (fromResource) and Despeckle commands
 -- A call's tiled and mask inputs set the tiled mode and the selection around it:
 --   rect -> Selection(Rectangle), polygon -> the lasso tool, rows -> one 1x1 rectangle per inside pixel
+-- selection.create/combine/delete keep a per-case table of Selections keyed "selection-1", ...; the
+--   shapes are built as for mask, plus the elliptical_marquee tool and MaskAll, and copied into the table.
+--   A group's "record" id replaces the case layer's cel with that selection as white pixels.
 -- A call's symmetry is set as document preferences around the tool call.
 -- The eraser ink is the eraser tool. A colour is "#rrggbb[aa]" or {r, g, b, a}.
 
@@ -138,14 +141,22 @@ end
 
 local TILED = { x = 1, y = 2, both = 3 }
 
-local function select_mask(sprite, mask)
+local function copy_selection(selection)
+  local copy = Selection()
+  copy:add(selection)
+  return copy
+end
+
+local function select_mask(sprite, mask, selections)
   if mask.rect then
     local r = mask.rect
     sprite.selection = Selection(Rectangle(r.x, r.y, r.width, r.height))
   elseif mask.polygon then
     local points = {}
     for i, p in ipairs(mask.polygon) do points[i] = Point(p.x, p.y) end
-    app.useTool { tool = "lasso", points = points }
+    app.useTool { tool = "lasso", selection = SelectionMode.REPLACE, points = points }
+  elseif mask.selectionId then
+    sprite.selection = copy_selection(selections[mask.selectionId])
   else
     local selection = Selection()
     for y, row in ipairs(mask.rows) do
@@ -155,6 +166,58 @@ local function select_mask(sprite, mask)
     end
     sprite.selection = selection
   end
+end
+
+-- selection.create and selection.combine shapes: a mask, plus the ellipse and all shapes.
+local function shape_selection(sprite, shape, selections)
+  if shape.ellipse then
+    local e = shape.ellipse
+    app.useTool {
+      tool = "elliptical_marquee",
+      selection = SelectionMode.REPLACE,
+      points = { Point(e.x, e.y), Point(e.x + e.width - 1, e.y + e.height - 1) },
+    }
+  elseif shape.all then
+    app.command.MaskAll()
+  else
+    select_mask(sprite, shape, selections)
+  end
+  return copy_selection(sprite.selection)
+end
+
+local function select_op(sprite, call, selections)
+  local input = call.input
+  if call.op == "selection.create" then
+    selections.count = selections.count + 1
+    selections["selection-" .. selections.count] = shape_selection(sprite, input.shape, selections)
+  elseif call.op == "selection.combine" then
+    local shape = shape_selection(sprite, input.shape, selections)
+    local target = selections[input.selectionId]
+    if input.mode == "add" then
+      target:add(shape)
+    elseif input.mode == "subtract" then
+      target:subtract(shape)
+    else
+      target:intersect(shape)
+    end
+  else
+    selections[input.selectionId] = nil
+  end
+end
+
+-- Replaces the case layer's cel with the selection: opaque white on each selected pixel.
+local function record_selection(sprite, layer, selection)
+  if layer:cel(1) then sprite:deleteCel(layer, 1) end
+  if selection.isEmpty then return end
+  local b = selection.bounds
+  local image = Image(b.width, b.height, ColorMode.RGB)
+  local white = app.pixelColor.rgba(255, 255, 255, 255)
+  for y = 0, b.height - 1 do
+    for x = 0, b.width - 1 do
+      if selection:contains(b.x + x, b.y + y) then image:putPixel(x, y, white) end
+    end
+  end
+  sprite:newCel(layer, 1, image, Point(b.x, b.y))
 end
 
 local function reset_state(sprite)
@@ -231,11 +294,15 @@ local function apply_op(sprite, layer, call)
   end
 end
 
-local function apply(sprite, layer, call)
+local function apply(sprite, layer, call, selections)
   local input = call.input
   if input.tiled then app.preferences.document(sprite).tiled.mode = TILED[input.tiled] end
-  if input.mask then select_mask(sprite, input.mask) end
-  apply_op(sprite, layer, call)
+  if input.mask then select_mask(sprite, input.mask, selections) end
+  if call.op:find("^selection%.") then
+    select_op(sprite, call, selections)
+  else
+    apply_op(sprite, layer, call)
+  end
   reset_state(sprite)
 end
 
@@ -249,7 +316,9 @@ local default_layer = sprite.layers[1]
 for _, name in ipairs(names) do
   local layer = sprite:newLayer()
   layer.name = name
-  for _, call in ipairs(spec.cases[name]) do apply(sprite, layer, call) end
+  local selections = { count = 0 }
+  for _, call in ipairs(spec.cases[name]) do apply(sprite, layer, call, selections) end
+  if spec.record then record_selection(sprite, layer, selections[spec.record]) end
 end
 
 sprite:deleteLayer(default_layer)
