@@ -11,6 +11,8 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.6.2",
 		"@types/bun": "1.4.4",
+		"@types/omggif": "1.0.5",
+		"omggif": "1.0.10",
 		"typescript": "7.0.2",
 		"wasm-webp": "0.1.0"
 	},
