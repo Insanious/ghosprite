@@ -1,7 +1,7 @@
 // Ported from Aseprite's src/doc/brush.cpp (MIT): regenerate,
 // regenerateMaskBitmap and resetBounds.
 
-import { bytesPerPixel, type Image } from "../image.ts";
+import type { Image } from "../image.ts";
 import { algoEllipsefill, algoLineContinuous } from "./algo.ts";
 import { fillPolygon } from "./polygon.ts";
 
@@ -96,15 +96,9 @@ function squareCorners(size: number, baseSize: number, angle: number) {
 
 export function imageBrush(image: Image): Brush {
 	const { width, height, data } = image;
-	const bpp = bytesPerPixel(image.mode);
 	const mask = new Uint8Array(width * height);
 	for (let i = 0; i < mask.length; i++) {
-		for (let k = 0; k < bpp; k++) {
-			if (data[i * bpp + k] !== 0) {
-				mask[i] = 1;
-				break;
-			}
-		}
+		if (data[i * 4 + 3] !== 0) mask[i] = 1;
 	}
 	return {
 		width,

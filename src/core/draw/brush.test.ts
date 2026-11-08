@@ -124,9 +124,9 @@ describe("imageBrush", () => {
 		});
 	});
 
-	test("a pixel is inside unless all four bytes are 0", () => {
+	test("a pixel is inside exactly when its alpha is non-zero", () => {
 		const image = createImage(3, 1, "rgba");
-		image.data.set([0, 0, 0, 0, 10, 20, 30, 0, 0, 0, 0, 255]);
+		image.data.set([10, 20, 30, 0, 0, 0, 0, 1, 0, 0, 0, 255]);
 		const brush = imageBrush(image);
 		expect([...brush.mask]).toEqual([0, 1, 1]);
 		expect(brush.image).toBe(image);

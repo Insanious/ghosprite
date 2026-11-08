@@ -383,6 +383,47 @@
 					"rows": ["rg.", ".rg", "g.r"]
 				}
 			}
+		],
+		"zero-alpha-colour-skipped": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.image",
+				"input": {
+					"x": 5,
+					"y": 6,
+					"legend": {
+						"r": "#e03020",
+						"z": "#ff000000"
+					},
+					"rows": ["rzr", "zrz", "rzz"]
+				}
+			}
 		]
 	}
 }
