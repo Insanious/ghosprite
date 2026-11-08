@@ -26,6 +26,8 @@ import { layerMergeDown } from "./layer-merge-down.ts";
 import { paletteLoad, paletteSave, paletteSet } from "./palette.ts";
 import { paletteQuantize } from "./palette-quantize.ts";
 import { regionMove } from "./region-move.ts";
+import { regionRotate } from "./region-rotate.ts";
+import { regionScale } from "./region-scale.ts";
 import type { Operation } from "./registry.ts";
 import { selectionCombine } from "./selection-combine.ts";
 import { selectionCreate } from "./selection-create.ts";
@@ -94,6 +96,8 @@ export const operations: Operation[] = [
 	selectionInvert,
 	selectionModify,
 	regionMove,
+	regionRotate,
+	regionScale,
 	spriteMapToPalette,
 	paletteSet,
 	paletteLoad,

@@ -258,3 +258,172 @@ describe("region.move", () => {
 		).toEqual({ x: 1, y: 1, width: 1, height: 1 });
 	});
 });
+
+function transform(
+	op: "region.rotate" | "region.scale",
+	session: Session,
+	ids: { spriteId: string; layerId: string },
+	selectionId: string,
+	extra: object,
+) {
+	session.run(op, { ...ids, frames: [0], selectionId, ...extra });
+}
+
+function stored(session: Session, spriteId: string, selectionId: string) {
+	const { bounds, bits } = session.workspace.getSelection(
+		spriteId,
+		selectionId,
+	);
+	return { bounds, bits: [...bits] };
+}
+
+describe("region.rotate", () => {
+	for (const [name, width] of [
+		["2x1", 2],
+		["3x1", 3],
+	] as const) {
+		test(`four quarter turns restore a ${name} selection`, () => {
+			const { session, spriteId, layerId } = setup();
+			const ids = { spriteId, layerId };
+			rect(session, ids, 0, [1, 2, 1, 1], "#ff0000");
+			rect(session, ids, 0, [2, 2, 1, 1], "#0000ff");
+			const selectionId = select(session, spriteId, {
+				x: 1,
+				y: 2,
+				rows: ["1".repeat(width)],
+			});
+			const before = [
+				...renderFrame(session.workspace.getSprite(spriteId), 0).data,
+			];
+			const selected = stored(session, spriteId, selectionId);
+			for (let turn = 0; turn < 4; turn++) {
+				transform("region.rotate", session, ids, selectionId, { angle: 90 });
+			}
+			expect([
+				...renderFrame(session.workspace.getSprite(spriteId), 0).data,
+			]).toEqual(before);
+			expect(stored(session, spriteId, selectionId)).toEqual(selected);
+		});
+	}
+
+	test("180 equals a horizontal and a vertical flip", () => {
+		const { session, spriteId, layerId } = setup();
+		const ids = { spriteId, layerId };
+		rect(session, ids, 0, [1, 1, 1, 1], "#ff0000");
+		rect(session, ids, 0, [3, 1, 1, 1], "#0000ff");
+		const selectionId = select(session, spriteId, {
+			x: 1,
+			y: 1,
+			rows: ["111", "101"],
+		});
+		transform("region.rotate", session, ids, selectionId, { angle: -180 });
+		expect(at(session, spriteId, layerId, 3, 2)).toEqual(RED);
+		expect(at(session, spriteId, layerId, 1, 2)).toEqual(BLUE);
+		expect(at(session, spriteId, layerId, 1, 1)).toEqual(CLEAR);
+		expect(stored(session, spriteId, selectionId)).toEqual({
+			bounds: { x: 1, y: 1, width: 3, height: 2 },
+			bits: [1, 0, 1, 1, 1, 1],
+		});
+	});
+
+	test("90 on a 3x1 selection lands centred", () => {
+		const { session, spriteId, layerId } = setup();
+		const ids = { spriteId, layerId };
+		rect(session, ids, 0, [1, 2, 1, 1], "#ff0000");
+		rect(session, ids, 0, [3, 2, 1, 1], "#0000ff");
+		const selectionId = select(session, spriteId, {
+			x: 1,
+			y: 2,
+			rows: ["111"],
+		});
+		transform("region.rotate", session, ids, selectionId, { angle: 90 });
+		expect(at(session, spriteId, layerId, 2, 1)).toEqual(RED);
+		expect(at(session, spriteId, layerId, 2, 3)).toEqual(BLUE);
+		expect(stored(session, spriteId, selectionId).bounds).toEqual({
+			x: 2,
+			y: 1,
+			width: 1,
+			height: 3,
+		});
+	});
+
+	test("45 on a 1x1 selection keeps one pixel in place", () => {
+		const { session, spriteId, layerId } = setup();
+		const ids = { spriteId, layerId };
+		rect(session, ids, 0, [2, 2, 1, 1], "#ff0000");
+		const selectionId = select(session, spriteId, { x: 2, y: 2, rows: ["1"] });
+		transform("region.rotate", session, ids, selectionId, { angle: 45 });
+		expect(at(session, spriteId, layerId, 2, 2)).toEqual(RED);
+		const { bounds, bits } = stored(session, spriteId, selectionId);
+		expect(bounds).toEqual({ x: 2, y: 2, width: 1, height: 1 });
+		expect(bits).toEqual([1]);
+	});
+
+	test("360 changes nothing", () => {
+		const { session, spriteId, layerId } = setup();
+		const ids = { spriteId, layerId };
+		rect(session, ids, 0, [1, 1, 2, 1], "#ff0000");
+		const selectionId = select(session, spriteId, {
+			x: 1,
+			y: 1,
+			rows: ["11"],
+		});
+		const before = [
+			...renderFrame(session.workspace.getSprite(spriteId), 0).data,
+		];
+		const selected = stored(session, spriteId, selectionId);
+		transform("region.rotate", session, ids, selectionId, { angle: 360 });
+		expect([
+			...renderFrame(session.workspace.getSprite(spriteId), 0).data,
+		]).toEqual(before);
+		expect(stored(session, spriteId, selectionId)).toEqual(selected);
+	});
+});
+
+describe("region.scale", () => {
+	test("scaling 2x3 to 4x6 doubles each pixel", () => {
+		const { session, spriteId, layerId } = setup();
+		const ids = { spriteId, layerId };
+		rect(session, ids, 0, [0, 0, 1, 3], "#ff0000");
+		rect(session, ids, 0, [1, 0, 1, 3], "#0000ff");
+		const selectionId = select(session, spriteId, {
+			x: 0,
+			y: 0,
+			rows: ["11", "11", "11"],
+		});
+		transform("region.scale", session, ids, selectionId, {
+			width: 4,
+			height: 6,
+		});
+		for (let y = 0; y < 6; y++) {
+			expect(at(session, spriteId, layerId, 1, y)).toEqual(RED);
+			expect(at(session, spriteId, layerId, 2, y)).toEqual(BLUE);
+		}
+		expect(stored(session, spriteId, selectionId)).toEqual({
+			bounds: { x: 0, y: 0, width: 4, height: 6 },
+			bits: new Array(24).fill(1),
+		});
+	});
+
+	test("scaling to 1x1 keeps the top-left pixel", () => {
+		const { session, spriteId, layerId } = setup();
+		const ids = { spriteId, layerId };
+		rect(session, ids, 0, [1, 1, 1, 1], "#ff0000");
+		rect(session, ids, 0, [2, 1, 1, 1], "#0000ff");
+		const selectionId = select(session, spriteId, {
+			x: 1,
+			y: 1,
+			rows: ["11"],
+		});
+		transform("region.scale", session, ids, selectionId, {
+			width: 1,
+			height: 1,
+		});
+		expect(at(session, spriteId, layerId, 1, 1)).toEqual(RED);
+		expect(at(session, spriteId, layerId, 2, 1)).toEqual(CLEAR);
+		expect(stored(session, spriteId, selectionId)).toEqual({
+			bounds: { x: 1, y: 1, width: 1, height: 1 },
+			bits: [1],
+		});
+	});
+});

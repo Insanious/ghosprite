@@ -1,6 +1,7 @@
 import type { CelCanvas } from "./cel-edit.ts";
 import type { Mask } from "./draw/spans.ts";
 import {
+	bytesPerPixel,
 	createImage,
 	type Image,
 	isEmptyRect,
@@ -77,6 +78,63 @@ export function liftRegion(canvas: CelCanvas, mask: Mask, fill: Rgba): Image {
 		canvas.image.data.set(fillBytes, canvasAt);
 	});
 	return floating;
+}
+
+/** Rounds away trigonometric noise so exact edges floor and ceil as they should. */
+function snap(value: number): number {
+	return Math.round(value * 1e9) / 1e9;
+}
+
+/**
+ * Turns an image clockwise by `degrees` about the centre of `bounds`, sampling nearest-neighbour.
+ * The result covers the turned corners, and pixels that map outside the source stay empty.
+ */
+export function turnImage(
+	image: Image,
+	bounds: Rect,
+	degrees: number,
+): { image: Image; bounds: Rect } {
+	const radians = (degrees * Math.PI) / 180;
+	const cos = Math.cos(radians);
+	const sin = Math.sin(radians);
+	const cx = bounds.x + bounds.width / 2;
+	const cy = bounds.y + bounds.height / 2;
+
+	const xs: number[] = [];
+	const ys: number[] = [];
+	for (const dx of [-bounds.width / 2, bounds.width / 2]) {
+		for (const dy of [-bounds.height / 2, bounds.height / 2]) {
+			xs.push(cx + dx * cos - dy * sin);
+			ys.push(cy + dx * sin + dy * cos);
+		}
+	}
+	const left = Math.floor(snap(Math.min(...xs)));
+	const top = Math.floor(snap(Math.min(...ys)));
+	const right = Math.ceil(snap(Math.max(...xs)));
+	const bottom = Math.ceil(snap(Math.max(...ys)));
+	const turned = createImage(right - left, bottom - top, image.mode);
+
+	const size = bytesPerPixel(image.mode);
+	for (let row = 0; row < turned.height; row++) {
+		for (let col = 0; col < turned.width; col++) {
+			const dx = left + col + 0.5 - cx;
+			const dy = top + row + 0.5 - cy;
+			const sx = Math.floor(snap(cx + dx * cos + dy * sin)) - bounds.x;
+			const sy = Math.floor(snap(cy - dx * sin + dy * cos)) - bounds.y;
+			if (sx < 0 || sy < 0 || sx >= image.width || sy >= image.height) {
+				continue;
+			}
+			const from = (sy * image.width + sx) * size;
+			turned.data.set(
+				image.data.subarray(from, from + size),
+				(row * turned.width + col) * size,
+			);
+		}
+	}
+	return {
+		image: turned,
+		bounds: { x: left, y: top, width: turned.width, height: turned.height },
+	};
 }
 
 /**
