@@ -89,7 +89,7 @@ export function cropSprite(
 	sprite.height = rect.height;
 }
 
-function pixelAt(image: Image, x: number, y: number): number {
+export function pixelAt(image: Image, x: number, y: number): number {
 	const i = (y * image.width + x) * 4;
 	const d = image.data;
 	return (
