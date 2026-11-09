@@ -225,33 +225,6 @@ describe("cel.set", () => {
 		});
 	});
 
-	test("moving an existing cel reports the pixels that changed", () => {
-		const { workspace, spriteId, layer, sprite } = setup();
-		setCel(sprite, layer, 0, {
-			image: createImage(2, 2, "rgba"),
-			x: 0,
-			y: 0,
-			opacity: 255,
-			userData: createUserData(),
-		});
-		const result = run(workspace, {
-			spriteId,
-			layerId: layer.id,
-			frame: 0,
-			x: 2,
-			y: 2,
-			legend,
-			rows: ["RR", "RR"],
-		});
-		expect(result.changed).toEqual([
-			{
-				layerId: layer.id,
-				frame: 0,
-				rect: { x: 2, y: 2, width: 2, height: 2 },
-			},
-		]);
-	});
-
 	test("a transparent right column is trimmed", () => {
 		const { workspace, spriteId, layer } = setup();
 		run(workspace, {

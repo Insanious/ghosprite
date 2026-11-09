@@ -126,6 +126,18 @@ describe("commitCel", () => {
 		]);
 	});
 
+	test("moving opaque pixels reports the old and the new position", () => {
+		const { sprite, layer } = setup();
+		putCel(sprite, layer, [0], 1, 1, 0, 0, [[0, 0]]);
+		const moved = edit(1, 1, 2, 2);
+		setPixel(moved.image, 0, 0, [9, 8, 7, 255]);
+		const result = commitCel(sprite, layer, 0, moved);
+		expect(result.rect).toEqual({ x: 0, y: 0, width: 3, height: 3 });
+		const data = layer.cels.get(0)?.data;
+		expect(data).toMatchObject({ x: 2, y: 2 });
+		expect(Array.from(data?.image.data ?? [])).toEqual([9, 8, 7, 255]);
+	});
+
 	test("an unchanged commit reports an empty rect", () => {
 		const { sprite, layer } = setup();
 		putCel(sprite, layer, [0], 2, 2, 1, 1, [[0, 0]]);
