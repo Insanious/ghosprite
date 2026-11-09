@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { createImage, type Image, setPixel } from "../core/image.ts";
+import {
+	createImage,
+	getPixel,
+	type Image,
+	type Rgba,
+	setPixel,
+} from "../core/image.ts";
 import type { Palette } from "../core/palette.ts";
 import { OpError } from "../errors.ts";
 import { colorSchema, toRgba } from "./color.ts";
@@ -25,6 +31,110 @@ export const rowsWidthSchema = z
 	);
 
 const TRANSPARENT_CHARS = new Set([".", " "]);
+
+const ALPHABET = [
+	..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+	...Array.from({ length: 0x7e - 0x21 + 1 }, (_, i) =>
+		String.fromCharCode(0x21 + i),
+	).filter((char) => !/[A-Za-z0-9."\\]/.test(char)),
+];
+
+const hexByte = (n: number) => n.toString(16).padStart(2, "0");
+
+/** `#rrggbb` when opaque, else `#rrggbbaa`. */
+function legendHex({ r, g, b, a }: Rgba): string {
+	return `#${hexByte(r)}${hexByte(g)}${hexByte(b)}${a === 255 ? "" : hexByte(a)}`;
+}
+
+/** The inverse of `imageFromRows`: legend and rows that rebuild the image, with trailing transparent pixels trimmed (an all-transparent row keeps one). Characters in `legend` are reused for matching colours; errors point at `<path>.legend.K`. */
+export function rowsFromImage(
+	image: Image,
+	palette: Palette,
+	legend: z.infer<typeof legendSchema> = {},
+	path = "",
+): { legend: Record<string, string>; rows: string[] } {
+	const prefix = path === "" ? "" : `${path}.`;
+	const colorKey = ({ r, g, b, a }: Rgba) => `${r},${g},${b},${a}`;
+	const charByColor = new Map<string, string>();
+	for (const [char, color] of Object.entries(legend)) {
+		const rgba = toRgba(color, `${prefix}legend.${char}`, palette);
+		const key = colorKey(rgba);
+		if (rgba.a > 0 && !charByColor.has(key)) charByColor.set(key, char);
+	}
+	const isVisible = (char: string) => {
+		const color = legend[char];
+		return (
+			color !== undefined &&
+			toRgba(color, `${prefix}legend.${char}`, palette).a > 0
+		);
+	};
+	let transparentChar = [".", " "].find((char) => !isVisible(char));
+
+	const pixels: (Rgba | undefined)[] = [];
+	const distinct = new Map<string, Rgba>();
+	for (let i = 0; i < image.width * image.height; i++) {
+		const [r = 0, g = 0, b = 0, a = 0] = getPixel(
+			image,
+			i % image.width,
+			Math.floor(i / image.width),
+		);
+		if (a === 0) {
+			pixels.push(undefined);
+		} else {
+			const color = { r, g, b, a };
+			pixels.push(color);
+			distinct.set(colorKey(color), color);
+		}
+	}
+
+	const free = ALPHABET.filter((char) => !(char in legend));
+	const needsChar = [...distinct.keys()].filter((key) => !charByColor.has(key));
+	const transparentNeedsChar =
+		transparentChar === undefined && pixels.includes(undefined);
+	if (needsChar.length + (transparentNeedsChar ? 1 : 0) > free.length) {
+		throw new OpError(
+			"out_of_range",
+			`The image has ${distinct.size} distinct colours and needs ${needsChar.length + (transparentNeedsChar ? 1 : 0)} new characters, but only ${free.length} are free`,
+			{
+				path,
+				hint: "Read a smaller rect, or reduce colours first with palette.quantize and sprite.mapToPalette",
+			},
+		);
+	}
+
+	const outLegend: Record<string, string> = {};
+	const charFor = (color: Rgba | undefined): string => {
+		if (color === undefined) {
+			if (transparentChar === undefined) {
+				transparentChar = free.shift() as string;
+			}
+			if (transparentChar !== "." && transparentChar !== " ") {
+				outLegend[transparentChar] = "#00000000";
+			}
+			return transparentChar;
+		}
+		const key = colorKey(color);
+		let char = charByColor.get(key);
+		if (char === undefined) {
+			char = free.shift() as string;
+			charByColor.set(key, char);
+		}
+		outLegend[char] = legendHex(color);
+		return char;
+	};
+
+	const rows: string[] = [];
+	for (let y = 0; y < image.height; y++) {
+		const row = pixels
+			.slice(y * image.width, (y + 1) * image.width)
+			.map(charFor);
+		const transparentRow = row.map((char) => char === transparentChar);
+		let end = row.length;
+		while (end > 1 && transparentRow[end - 1]) end--;
+		rows.push(row.slice(0, end).join(""));
+	}
+	return { legend: outLegend, rows };
+}
 
 /** Splits rows into code points and resolves their width: `width`, or else the longest row. Errors point at `<path>.rows.N`. */
 export function splitRows(
