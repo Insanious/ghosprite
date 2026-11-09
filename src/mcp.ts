@@ -11,6 +11,8 @@ import { callTool, describeTools, replaceImages } from "./tools.ts";
 const INSTRUCTIONS =
 	"Ids are explicit: creating ops return them, and later calls pass them back. Frames are 0-based. " +
 	"Pixel art is authored as rows of legend characters: cel_set replaces a cel with them, and draw_image paints them at x, y over what is there. " +
+	"Author a figure as short blocks of rows, one per part such as head, torso and legs, each painted with draw_image at its own x, y: short rows are easier to count, a selected part moves with region_move, the `symmetry` draw option mirrors a front-facing part, cel_get reads a cel back as rows to edit, and draw_pixels touches single pixels. " +
+	"Combine tools for what none does alone: for a shape at an angle, draw it axis-aligned, select it and turn it with region_rotate; for a soft edge, stack shrinking filled shapes in a translucent colour, which builds up where they overlap. " +
 	"Most ops take `render` to return a picture of their result. sprite_describe shows the structure. " +
 	"session_* tools handle batches, undo and checkpoints. Tool names use _ where ops use . (session_apply takes dotted op names).";
 

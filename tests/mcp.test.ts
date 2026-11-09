@@ -38,6 +38,8 @@ describe("mcp server", () => {
 		const mentioned = client.getInstructions()?.match(/\b[a-z]+_[a-zA-Z]+\b/g);
 		expect(mentioned).toContain("cel_set");
 		expect(mentioned).toContain("draw_image");
+		expect(mentioned).toContain("region_rotate");
+		expect(mentioned).toContain("region_move");
 		for (const name of mentioned ?? []) expect(names).toContain(name);
 	});
 

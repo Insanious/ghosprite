@@ -6,7 +6,7 @@ import { defineOp } from "./registry.ts";
 export const drawEllipse = defineOp({
 	name: "draw.ellipse",
 	description:
-		"Draw an ellipse inscribed in a rectangle, outlined or filled, with a brush and ink. The brush is stamped on every pixel of the ellipse, so a bigger brush grows it.",
+		"Draw an ellipse inscribed in a rectangle, outlined or filled, with a brush and ink. The brush is stamped on every pixel of the ellipse, so a bigger brush grows it. For a tilted ellipse, draw it here, select it and turn it with region.rotate.",
 	input: z.object({
 		...drawFields,
 		rect: rectSchema,
