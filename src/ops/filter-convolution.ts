@@ -12,6 +12,7 @@ const names = convolutionMatrices.map((matrix) => matrix.name) as [
 
 export const filterConvolution = defineOp({
 	name: "filter.convolution",
+	sprite: "edits",
 	description:
 		"Apply one of Aseprite's stock convolution matrices (blur, sharpen, edge detection, emboss, ...) to a layer's cels. Transparent neighbours are ignored. Targets the channels the matrix defines by default, usually red, green, blue and alpha.",
 	input: z.object({

@@ -9,6 +9,7 @@ import { createRegistry, defineOp } from "./registry.ts";
 
 const touch = defineOp({
 	name: "test.touch",
+	sprite: "edits",
 	description: "Reports the given frames as changed.",
 	input: z.object({
 		spriteId: z.string(),
@@ -25,14 +26,34 @@ const touch = defineOp({
 
 const bare = defineOp({
 	name: "test.bare",
+	sprite: "edits",
 	description: "Has no render option.",
-	input: z.object({}),
+	input: z.object({ spriteId: z.string() }),
 	renderOption: false,
 	run: () => ({}),
 });
 
+const creates = defineOp({
+	name: "test.creates",
+	sprite: "creates",
+	description: "Adds a 3x1 sprite.",
+	input: z.object({}),
+	run: (workspace) => ({
+		spriteId: workspace.addSprite(
+			createSprite({
+				width: 3,
+				height: 1,
+				mode: "rgba",
+				palettes: [{ startFrame: 0, colors: [] }],
+				frameDurations: [100],
+			}),
+		),
+	}),
+});
+
 const explode = defineOp({
 	name: "test.explode",
+	sprite: "creates",
 	description: "Throws a plain Error.",
 	input: z.object({}),
 	renderOption: false,
@@ -41,14 +62,7 @@ const explode = defineOp({
 	},
 });
 
-const spriteless = defineOp({
-	name: "test.spriteless",
-	description: "Mutates and returns no spriteId.",
-	input: z.object({}),
-	run: () => ({}),
-});
-
-const registry = createRegistry([touch, bare, explode, spriteless]);
+const registry = createRegistry([touch, bare, explode, creates]);
 
 function setup() {
 	const workspace = new Workspace();
@@ -97,11 +111,21 @@ describe("callOp", () => {
 	});
 
 	test("the result defaults to no changes and no warnings", () => {
-		const { workspace } = setup();
-		expect(registry.callOp(workspace, "test.bare", {})).toEqual({
+		const { workspace, spriteId } = setup();
+		expect(registry.callOp(workspace, "test.bare", { spriteId })).toEqual({
 			changed: [],
 			warnings: [],
 		});
+	});
+
+	test("a render on an op that creates a sprite draws the created sprite", () => {
+		const { workspace } = setup();
+		const result = registry.callOp(workspace, "test.creates", {
+			render: { scale: 1 },
+		});
+		const png = result.render?.[0]?.png;
+		if (!png) throw new Error("no render");
+		expect(decodePng(png, inflateSync).width).toBe(3);
 	});
 
 	test("render: {} returns PNGs for exactly the changed frames", () => {
@@ -169,14 +193,6 @@ describe("callOp", () => {
 			code: "out_of_range",
 			path: "render.scale",
 		});
-	});
-
-	test("a render option on an op with no spriteId is an internal error", () => {
-		const { workspace } = setup();
-		const error = thrown(() =>
-			registry.callOp(workspace, "test.spriteless", { render: {} }),
-		);
-		expect(error.toJSON()).toMatchObject({ code: "internal", path: "render" });
 	});
 
 	test("a plain Error from an op becomes an internal OpError", () => {

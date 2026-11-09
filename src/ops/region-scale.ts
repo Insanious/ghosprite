@@ -5,6 +5,7 @@ import { defineOp } from "./registry.ts";
 
 export const regionScale = defineOp({
 	name: "region.scale",
+	sprite: "edits",
 	description:
 		"Scale the pixels inside a stored selection on one layer so the selection's bounds become width by height, keeping the top-left corner, over any set of frames, and scale the selection with them. Lifted pixels become `fill`; scaled pixels replace what is under them, transparent ones included. Nearest-neighbour. Not checked against Aseprite, which cannot script this headlessly.",
 	input: z.object({

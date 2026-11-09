@@ -7,6 +7,7 @@ import { defineOp } from "./registry.ts";
 
 export const filterReplaceColor = defineOp({
 	name: "filter.replaceColor",
+	sprite: "edits",
 	description:
 		"Replace one colour with another on a layer's cels, like Aseprite's Replace Color. A pixel matches when every targeted channel is within the tolerance of `from`; targeted channels then take `to`'s values. Targets red, green, blue and alpha by default.",
 	input: z.object({

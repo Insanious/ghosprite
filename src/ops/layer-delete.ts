@@ -5,6 +5,7 @@ import { defineOp } from "./registry.ts";
 
 export const layerDelete = defineOp({
 	name: "layer.delete",
+	sprite: "edits",
 	description: "Remove a layer, or a group with all its children.",
 	input: z.object({
 		spriteId: z.string(),

@@ -8,6 +8,7 @@ import { defineOp } from "./registry.ts";
 
 export const filterOutline = defineOp({
 	name: "filter.outline",
+	sprite: "edits",
 	description:
 		"Draw an outline around the content of a layer's cels, like Aseprite's Outline. With place 'outside', transparent pixels next to content take `color`, so the cel can grow; with 'inside', content pixels next to transparent ones do. A pixel is transparent when its alpha is 0 or it equals `bgColor`. `matrix` picks which neighbours count. Targets red, green, blue and alpha by default. `tiled` wraps neighbours at the canvas edges; otherwise the edge pixels repeat.",
 	input: z.object({

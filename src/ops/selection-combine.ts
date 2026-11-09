@@ -5,6 +5,7 @@ import { defineOp } from "./registry.ts";
 
 export const selectionCombine = defineOp({
 	name: "selection.combine",
+	sprite: "edits",
 	description:
 		"Add a shape to a selection, subtract it, or intersect with it, changing the selection in place.",
 	input: z.object({

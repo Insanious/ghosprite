@@ -7,6 +7,7 @@ const percent = z.number().int().min(-100).max(100).default(0);
 
 export const filterHueSaturation = defineOp({
 	name: "filter.hueSaturation",
+	sprite: "edits",
 	description:
 		"Shift hue and adjust saturation, lightness and alpha on a layer's cels, like Aseprite's Hue/Saturation. In the Mul modes saturation, lightness and alpha scale the existing value by a percentage; in the Add modes saturation and lightness add to it. In the HSV modes lightness is the value. Targets red, green, blue and alpha by default; pixels that end up fully transparent become 0,0,0,0.",
 	input: z.object({

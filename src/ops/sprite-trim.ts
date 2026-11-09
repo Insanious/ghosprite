@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const spriteTrim = defineOp({
 	name: "sprite.trim",
+	sprite: "edits",
 	description:
 		"Crop the canvas to the union of every frame's content bounds, as rendered. Does nothing if no frame has content.",
 	input: z.object({ spriteId: z.string() }),

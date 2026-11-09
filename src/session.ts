@@ -36,7 +36,7 @@ export class Session {
 	private readonly names = new Map<string, string>();
 
 	run(op: string, input: unknown): MutationResult {
-		if (this.registry.isReadOnly(op)) {
+		if (this.registry.spriteUse(op) === "reads") {
 			return this.registry.callOp(this.workspace, op, input);
 		}
 		const { results, checkpointId } = this.transact([{ op, input }], undefined);
@@ -189,7 +189,7 @@ export class Session {
 		try {
 			for (; index < calls.length; index++) {
 				const call = calls[index] as Call;
-				if (this.registry.isReadOnly(call.op)) {
+				if (this.registry.spriteUse(call.op) === "reads") {
 					results.push(
 						this.registry.callOp(this.workspace, call.op, call.input),
 					);

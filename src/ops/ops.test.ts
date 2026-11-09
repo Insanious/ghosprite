@@ -9,6 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
+import { z } from "zod";
 import { buildFile, layerChunk } from "../../tests/helpers/ase-build.ts";
 import { decodePng } from "../core/png.ts";
 import { findLayer, walkRenderOrder } from "../core/sprite.ts";
@@ -40,6 +41,18 @@ function failure(fn: () => unknown): OpError {
 	}
 	throw new Error("expected an OpError");
 }
+
+describe("every op", () => {
+	test("declares a sprite use that matches its schema", () => {
+		for (const op of operations) {
+			if (op.sprite === "creates") {
+				expect(op.schema.shape).not.toHaveProperty("spriteId");
+			} else {
+				expect(op.schema.shape.spriteId).toBeInstanceOf(z.ZodString);
+			}
+		}
+	});
+});
 
 describe("sprite.create", () => {
 	test("defaults give one 100 ms frame", () => {

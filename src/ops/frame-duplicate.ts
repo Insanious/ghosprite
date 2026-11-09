@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const frameDuplicate = defineOp({
 	name: "frame.duplicate",
+	sprite: "edits",
 	description:
 		"Insert a copy of a frame right after it. Cels on continuous layers are linked to the source, the rest are copied. Returns the new frame's index as `frame`.",
 	input: z.object({

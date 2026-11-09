@@ -10,6 +10,7 @@ import { defineOp } from "./registry.ts";
 
 export const frameCreate = defineOp({
 	name: "frame.create",
+	sprite: "edits",
 	description:
 		"Insert an empty frame at `at` (default: after the last frame). Returns its index as `frame`. A sprite with a background layer needs `background`, the colour of the new frame's background cel.",
 	input: z.object({

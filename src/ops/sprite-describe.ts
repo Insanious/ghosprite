@@ -101,11 +101,11 @@ function layerJson(layer: Layer): Json {
 
 export const spriteDescribe = defineOp({
 	name: "sprite.describe",
+	sprite: "reads",
 	description:
 		"Describe a whole sprite as JSON: size, mode, frames, the layer tree with cel bounds, tags, slices, palettes and user data. Returns bounds, not pixels; use cel.get for pixels. Changes nothing.",
 	input: z.object({ spriteId: z.string() }),
 	renderOption: false,
-	readOnly: true,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
 		return {

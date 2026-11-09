@@ -10,6 +10,7 @@ const pointSchema = z.object({
 
 export const filterColorCurve = defineOp({
 	name: "filter.colorCurve",
+	sprite: "edits",
 	description:
 		"Remap channel values through a curve, like Aseprite's Color Curve. The curve is linear between the points; values left of the first point take its y and values right of the last take its y. Targets red, green and blue by default.",
 	input: z.object({

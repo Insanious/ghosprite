@@ -11,6 +11,7 @@ import {
 
 export const drawImage = defineOp({
 	name: "draw.image",
+	sprite: "edits",
 	description:
 		"Paint rows of legend characters with their top-left corner at x, y in sprite space, over the pixels already there. Transparent pixels in the rows leave the cel unchanged. Use cel.set to replace a whole cel instead. The result's cel is the cel's bounds after transparent edges are trimmed; changed covers only the pixels that changed.",
 	input: z.object(drawFields).omit({ color: true, brush: true }).extend({

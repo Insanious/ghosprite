@@ -20,6 +20,7 @@ function countLayers(sprite: Sprite, kind: "image" | "group"): number {
 
 export const layerCreate = defineOp({
 	name: "layer.create",
+	sprite: "edits",
 	description:
 		"Add an image layer or a group. It goes on top of its parent's children by default (the root, or the group given as parentId), or directly above or below another layer with above or below. Returns its layerId.",
 	input: z.object({

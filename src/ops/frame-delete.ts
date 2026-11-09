@@ -7,6 +7,7 @@ import { defineOp } from "./registry.ts";
 
 export const frameDelete = defineOp({
 	name: "frame.delete",
+	sprite: "edits",
 	description:
 		"Remove a frame; later frames shift down. Returns the deleted index as `frame`.",
 	input: z.object({

@@ -7,6 +7,7 @@ import { defineOp } from "./registry.ts";
 
 export const celDelete = defineOp({
 	name: "cel.delete",
+	sprite: "edits",
 	description:
 		"Remove the cel at a frame. Cels linked to it keep their data. Does nothing where there is no cel.",
 	input: z.object({

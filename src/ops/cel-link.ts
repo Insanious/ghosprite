@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const celLink = defineOp({
 	name: "cel.link",
+	sprite: "edits",
 	description:
 		"Link the cels at the listed frames of an image layer. The lowest listed frame with a cel is the source, and every higher listed frame gets a cel sharing its pixels, replacing any cel there.",
 	input: z.object({

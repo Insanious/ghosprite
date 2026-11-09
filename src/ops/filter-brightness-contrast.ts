@@ -5,6 +5,7 @@ import { defineOp } from "./registry.ts";
 
 export const filterBrightnessContrast = defineOp({
 	name: "filter.brightnessContrast",
+	sprite: "edits",
 	description:
 		"Adjust brightness and contrast on a layer's cels, like Aseprite's Brightness/Contrast. Targets red, green, blue and alpha by default; alpha itself is never changed.",
 	input: z.object({

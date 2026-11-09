@@ -11,6 +11,7 @@ const MAX_BOX_PIXELS = 4096 * 4096;
 
 export const drawPixels = defineOp({
 	name: "draw.pixels",
+	sprite: "edits",
 	description:
 		"Paint single pixels grouped by colour, over the pixels already there. Use it for scattered details where draw.image rows would be mostly transparent. Each point is one pixel in sprite space; points off the canvas are clipped, and a point listed twice is an error. The result's cel is the cel's bounds after transparent edges are trimmed; changed covers only the pixels that changed.",
 	input: z

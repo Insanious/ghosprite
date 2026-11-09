@@ -53,6 +53,7 @@ function framesToExport(
 
 export const spriteExport = defineOp({
 	name: "sprite.export",
+	sprite: "reads",
 	description:
 		"Export a sprite as a .png (one frame), or an animated .gif or .webp (every frame or a tag's frames, with their durations), chosen by the extension of path, overwriting any file there. Changes nothing in the sprite.",
 	input: z.object({
@@ -71,7 +72,6 @@ export const spriteExport = defineOp({
 		scale: z.number().int().min(1).max(64).default(1),
 	}),
 	renderOption: false,
-	readOnly: true,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
 		const extension = extname(input.path).toLowerCase();

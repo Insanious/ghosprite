@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const filterDespeckle = defineOp({
 	name: "filter.despeckle",
+	sprite: "edits",
 	description:
 		"Median filter on a layer's cels, like Aseprite's Despeckle: each pixel takes the median of each targeted channel over a width x height neighbourhood. Targets red, green and blue by default.",
 	input: z.object({

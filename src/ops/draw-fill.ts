@@ -7,6 +7,7 @@ import { defineOp } from "./registry.ts";
 
 export const drawFill = defineOp({
 	name: "draw.fill",
+	sprite: "edits",
 	description:
 		"Flood-fill the area around a point with a colour and ink, like a paint bucket. The brush is not used. A mask walls the fill in.",
 	input: z.object({

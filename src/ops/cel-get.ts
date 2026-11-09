@@ -14,6 +14,7 @@ const TRANSPARENT = { r: 0, g: 0, b: 0, a: 0 };
 
 export const celGet = defineOp({
 	name: "cel.get",
+	sprite: "reads",
 	description:
 		"Read pixels back as rows of legend characters, plus x, y, width, height of the area read. With layerId, reads that layer's cel as stored (ignoring opacity, blend mode and visibility) and returns its opacity; with no rect it reads the whole cel. Without layerId, reads the composited frame of the visible layers, the whole canvas if there is no rect. A rect reaching past the cel or canvas reads transparent there. Pass a legend to keep your own characters: matching colours reuse them, and new colours get characters the legend doesn't use. Trailing transparent is trimmed from each row. The output works with cel.set and draw.image. Reads at most 16384 pixels.",
 	input: z.object({
@@ -24,7 +25,6 @@ export const celGet = defineOp({
 		legend: legendSchema.optional(),
 	}),
 	renderOption: false,
-	readOnly: true,
 	run(workspace, input) {
 		let source: { image: Image; x: number; y: number };
 		let opacity: number | undefined;

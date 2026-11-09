@@ -7,6 +7,7 @@ import { defineOp } from "./registry.ts";
 
 export const layerMove = defineOp({
 	name: "layer.move",
+	sprite: "edits",
 	description:
 		"Move a layer, or a group with its children, within its parent or into another group. It goes on top of the root by default, on top of `parentId`, or directly `above`/`below` another layer.",
 	input: z.object({

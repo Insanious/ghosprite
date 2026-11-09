@@ -5,6 +5,7 @@ import { defineOp } from "./registry.ts";
 
 export const selectionInvert = defineOp({
 	name: "selection.invert",
+	sprite: "edits",
 	description:
 		"Invert a selection within the canvas, in place. An empty selection becomes the whole canvas.",
 	input: z.object({ spriteId: z.string(), selectionId: z.string() }),

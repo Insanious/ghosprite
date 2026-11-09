@@ -8,6 +8,7 @@ import { defineOp } from "./registry.ts";
 
 export const spriteLoad = defineOp({
 	name: "sprite.load",
+	sprite: "creates",
 	description:
 		"Load an .aseprite file into a new sprite. Returns its spriteId and warnings about data that was dropped.",
 	input: z.object({ path: z.string() }),

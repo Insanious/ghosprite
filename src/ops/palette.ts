@@ -48,6 +48,7 @@ function setPalette(sprite: Sprite, frame: number, colors: Rgba[]) {
 
 export const paletteSet = defineOp({
 	name: "palette.set",
+	sprite: "edits",
 	description:
 		"Set the palette that starts at a frame, adding one if none starts there. It applies from that frame until the next palette. Palettes that start at other frames are kept. In an RGBA sprite a palette changes no pixels.",
 	input: z.object({
@@ -71,6 +72,7 @@ export const paletteSet = defineOp({
 
 export const paletteLoad = defineOp({
 	name: "palette.load",
+	sprite: "edits",
 	description:
 		"Read a .gpl, .hex or .pal palette file and set its colours as palette.set does. The format comes from the file extension.",
 	input: z.object({
@@ -105,6 +107,7 @@ export const paletteLoad = defineOp({
 
 export const paletteSave = defineOp({
 	name: "palette.save",
+	sprite: "reads",
 	description:
 		"Write the palette in effect at a frame to a .gpl, .hex or .pal file, overwriting any file at path. The format comes from the file extension. Changes nothing in the sprite.",
 	input: z.object({
@@ -113,7 +116,6 @@ export const paletteSave = defineOp({
 		frame: z.number().int().min(0).default(0),
 	}),
 	renderOption: false,
-	readOnly: true,
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
 		checkFrame(sprite, input.frame);

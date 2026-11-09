@@ -7,6 +7,7 @@ import { defineOp } from "./registry.ts";
 
 export const layerMergeDown = defineOp({
 	name: "layer.mergeDown",
+	sprite: "edits",
 	description:
 		"Merge an image layer into the image layer directly below it, which keeps its own id and name, and remove it.",
 	input: z.object({

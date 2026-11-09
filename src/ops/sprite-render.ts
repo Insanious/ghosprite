@@ -9,6 +9,7 @@ import {
 
 export const spriteRender = defineOp({
 	name: "sprite.render",
+	sprite: "reads",
 	description:
 		"Render frames of a sprite as PNGs, optionally upscaled with a pixel grid. Changes nothing.",
 	input: withGridRule(
@@ -19,7 +20,6 @@ export const spriteRender = defineOp({
 		}),
 	),
 	renderOption: false,
-	readOnly: true,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
 		const frames =

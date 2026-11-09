@@ -7,6 +7,7 @@ import { defineOp } from "./registry.ts";
 
 export const paletteQuantize = defineOp({
 	name: "palette.quantize",
+	sprite: "edits",
 	description:
 		"Replace the colours of the palette in effect at frame 0 with up to maxColors colours taken from the rendered pixels of every frame. Unless the sprite is a single background layer, index 0 is transparent black and the rest take maxColors - 1. The palette can end up shorter than maxColors. In an RGBA sprite a palette changes no pixels.",
 	input: z.object({

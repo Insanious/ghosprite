@@ -4,6 +4,7 @@ import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import {
 	type RenderedFrame,
+	type RenderOption,
 	renderOptionSchema,
 	renderPngs,
 } from "./render.ts";
@@ -17,24 +18,39 @@ export type MutationResult = {
 	render?: RenderedFrame[];
 };
 
-export type OpOutput = Partial<MutationResult> & Record<string, unknown>;
+export type OpOutput = Partial<MutationResult> & {
+	selectionId?: string;
+} & Record<string, unknown>;
 
-export type OpDefinition<S extends z.ZodObject> = {
+export type SpriteUse = "edits" | "reads" | "creates";
+
+type OpBase<S extends z.ZodObject> = {
 	name: string;
 	description: string;
 	input: S;
 	/** Set to false when the input schema already carries the render fields. */
 	renderOption?: boolean;
-	/** Set on operations that never change a sprite, so sessions skip history for them. */
-	readOnly?: boolean;
-	run: (workspace: Workspace, input: z.infer<S>) => OpOutput;
+};
+
+type UsesSprite<S extends z.ZodObject<{ spriteId: z.ZodString }>> =
+	OpBase<S> & {
+		sprite: "edits" | "reads";
+		run: (workspace: Workspace, input: z.infer<S>) => OpOutput;
+	};
+
+type Creates<S extends z.ZodObject> = OpBase<S> & {
+	sprite: "creates";
+	run: (
+		workspace: Workspace,
+		input: z.infer<S>,
+	) => OpOutput & { spriteId: string };
 };
 
 export type Operation = {
 	name: string;
 	description: string;
 	schema: z.ZodObject;
-	readOnly?: boolean;
+	sprite: SpriteUse;
 	call: (workspace: Workspace, rawInput: unknown) => MutationResult;
 };
 
@@ -52,72 +68,94 @@ export function parseInput<S extends z.ZodType>(
 	return parsed.data;
 }
 
+/** Ops that opt out of the render option carry their own render fields, so `render` is only read when `withRender` is set. */
+function parseOpInput<S extends z.ZodObject>(
+	schema: S,
+	rawInput: unknown,
+): z.output<S> & { render?: RenderOption } {
+	return parseInput(schema, rawInput) as z.output<S> & {
+		render?: RenderOption;
+	};
+}
+
+export function defineOp<S extends z.ZodObject<{ spriteId: z.ZodString }>>(
+	definition: UsesSprite<S>,
+): Operation;
 export function defineOp<S extends z.ZodObject>(
-	definition: OpDefinition<S>,
+	definition: Creates<S>,
+): Operation;
+export function defineOp(
+	definition:
+		| UsesSprite<z.ZodObject<{ spriteId: z.ZodString }>>
+		| Creates<z.ZodObject>,
 ): Operation {
 	const withRender = definition.renderOption !== false;
-	const schema = withRender
-		? definition.input.extend({ render: renderOptionSchema.optional() })
-		: definition.input;
+	const renderField = { render: renderOptionSchema.optional() };
 
+	function finish(
+		workspace: Workspace,
+		render: RenderOption | undefined,
+		output: OpOutput,
+		spriteId: string,
+	): MutationResult {
+		const result = {
+			...output,
+			changed: output.changed ?? [],
+			warnings: output.warnings ?? [],
+		};
+		if (withRender && render) {
+			const frames = render.frames ?? changedFrames(result.changed) ?? [0];
+			const highlightId = render.selectionId ?? output.selectionId;
+			result.render = renderPngs(
+				workspace.getSprite(spriteId),
+				render,
+				frames,
+				"render.",
+				highlightId
+					? workspace.getSelection(spriteId, highlightId, "render.selectionId")
+					: undefined,
+			);
+		}
+		return result;
+	}
+
+	if (definition.sprite === "creates") {
+		const schema = withRender
+			? definition.input.extend(renderField)
+			: definition.input;
+		return {
+			name: definition.name,
+			description: definition.description,
+			schema,
+			sprite: "creates",
+			call(workspace, rawInput) {
+				const input = parseOpInput(schema, rawInput);
+				const output = definition.run(workspace, input);
+				return finish(workspace, input.render, output, output.spriteId);
+			},
+		};
+	}
+
+	const sprite = definition.sprite;
+	const schema = withRender
+		? definition.input.extend(renderField)
+		: definition.input;
 	return {
 		name: definition.name,
 		description: definition.description,
 		schema,
-		readOnly: definition.readOnly,
+		sprite,
 		call(workspace, rawInput) {
-			const input = parseInput(schema, rawInput) as z.infer<S> & {
-				render?: z.infer<typeof renderOptionSchema>;
-			};
-			const inputSpriteId = (input as { spriteId?: unknown }).spriteId;
-			if (
-				withRender &&
-				input.render?.selectionId &&
-				inputSpriteId !== undefined
-			) {
+			const input = parseOpInput(schema, rawInput);
+			if (withRender && input.render?.selectionId) {
 				workspace.getSelection(
-					String(inputSpriteId),
+					input.spriteId,
 					input.render.selectionId,
 					"render.selectionId",
 				);
 			}
 			const output = definition.run(workspace, input);
-			const result = {
-				...output,
-				changed: output.changed ?? [],
-				warnings: output.warnings ?? [],
-			};
-			if (withRender && input.render) {
-				const spriteId = inputSpriteId ?? output.spriteId;
-				if (spriteId === undefined) {
-					throw new OpError(
-						"internal",
-						`Operation "${definition.name}" has no spriteId to render`,
-						{ path: "render" },
-					);
-				}
-				const frames = input.render.frames ??
-					changedFrames(result.changed) ?? [0];
-				const highlightId =
-					input.render.selectionId ??
-					(typeof output.selectionId === "string"
-						? output.selectionId
-						: undefined);
-				result.render = renderPngs(
-					workspace.getSprite(String(spriteId)),
-					input.render,
-					frames,
-					"render.",
-					highlightId
-						? workspace.getSelection(
-								String(spriteId),
-								highlightId,
-								"render.selectionId",
-							)
-						: undefined,
-				);
-			}
-			return result;
+			return finish(workspace, input.render, output, input.spriteId);
 		},
 	};
 }
@@ -131,8 +169,8 @@ export function createRegistry(operations: Operation[]) {
 	const byName = new Map(operations.map((op) => [op.name, op]));
 
 	return {
-		isReadOnly(name: string): boolean {
-			return byName.get(name)?.readOnly === true;
+		spriteUse(name: string): SpriteUse | undefined {
+			return byName.get(name)?.sprite;
 		},
 
 		callOp(workspace: Workspace, name: string, input: unknown): MutationResult {

@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const drawRect = defineOp({
 	name: "draw.rect",
+	sprite: "edits",
 	description:
 		"Draw a rectangle, outlined or filled, with a brush and ink. The brush is stamped on every pixel of the rectangle, so a bigger brush grows it.",
 	input: z.object({

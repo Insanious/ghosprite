@@ -4,6 +4,7 @@ import { defineOp } from "./registry.ts";
 
 export const selectionCreate = defineOp({
 	name: "selection.create",
+	sprite: "edits",
 	description:
 		"Store a selection under a new id. Use it as `mask: { selectionId }` on draw and filter ops. `all` selects the whole canvas.",
 	input: z.object({ spriteId: z.string(), shape: selectionShapeSchema }),

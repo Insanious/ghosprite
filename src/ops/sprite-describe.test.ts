@@ -39,7 +39,7 @@ function load(file: string) {
 
 describe("sprite.describe", () => {
 	test("is read-only", () => {
-		expect(registry.isReadOnly("sprite.describe")).toBe(true);
+		expect(registry.spriteUse("sprite.describe")).toBe("reads");
 	});
 
 	test("lists nested groups as a tree", () => {

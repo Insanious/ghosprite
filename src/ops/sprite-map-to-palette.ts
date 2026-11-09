@@ -16,6 +16,7 @@ const MATRIX_SIZES = { bayer2x2: 2, bayer4x4: 4, bayer8x8: 8 };
 
 export const spriteMapToPalette = defineOp({
 	name: "sprite.mapToPalette",
+	sprite: "edits",
 	description:
 		"Replace every pixel of every cel with a colour of the palette in effect at its frame, as Aseprite does when it converts an RGBA sprite to indexed and back. The sprite stays RGBA. A palette entry of #00000000 stands for transparency, and every cel becomes fully opaque. Dithering: none, ordered (Aseprite's ordered dithering) old (its older ordered dithering) or errorDiffusion (Floyd-Steinberg).",
 	input: z.object({

@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const drawSpray = defineOp({
 	name: "draw.spray",
+	sprite: "edits",
 	description:
 		"Scatter the brush at random positions within a radius of each point. The same seed gives the same result.",
 	input: z.object({

@@ -10,6 +10,7 @@ import { defineOp } from "./registry.ts";
 
 export const tagCreate = defineOp({
 	name: "tag.create",
+	sprite: "edits",
 	description:
 		"Add an animation tag over frames from..to (inclusive, 0-based). Tags may overlap.",
 	input: z.object({

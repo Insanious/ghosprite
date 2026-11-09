@@ -4,6 +4,7 @@ import { defineOp } from "./registry.ts";
 
 export const spriteCreate = defineOp({
 	name: "sprite.create",
+	sprite: "creates",
 	description:
 		"Create an empty RGBA sprite with no layers. Returns its spriteId.",
 	input: z.object({

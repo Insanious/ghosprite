@@ -8,6 +8,7 @@ import { defineOp } from "./registry.ts";
 
 export const spriteFlatten = defineOp({
 	name: "sprite.flatten",
+	sprite: "edits",
 	description:
 		"Replace all layers with one holding the rendered frames: the background layer if the sprite has one, otherwise a new layer named Flattened. Returns its layerId, or nothing if the sprite has no layers.",
 	input: z.object({ spriteId: z.string() }),

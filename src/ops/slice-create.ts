@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const sliceCreate = defineOp({
 	name: "slice.create",
+	sprite: "edits",
 	description:
 		"Add a slice with one key at frame 0. center is a 9-slice centre relative to bounds.",
 	input: z.object({

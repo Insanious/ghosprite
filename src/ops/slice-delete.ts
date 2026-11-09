@@ -4,6 +4,7 @@ import { defineOp } from "./registry.ts";
 
 export const sliceDelete = defineOp({
 	name: "slice.delete",
+	sprite: "edits",
 	description: "Remove the slice with this name.",
 	input: z.object({ spriteId: z.string(), name: z.string() }),
 	run(workspace, input) {

@@ -23,6 +23,7 @@ function quarterTurn(image: Image, bounds: Rect, angle: RotateAngle) {
 
 export const regionRotate = defineOp({
 	name: "region.rotate",
+	sprite: "edits",
 	description:
 		"Rotate the pixels inside a stored selection on one layer clockwise by `angle` degrees about the centre of the selection's bounds, over any set of frames, and rotate the selection with them. Lifted pixels become `fill`; rotated pixels replace what is under them, transparent ones included. Multiples of 90 are exact; other angles are nearest-neighbour, not RotSprite. Not checked against Aseprite, which cannot script this headlessly.",
 	input: z.object({

@@ -5,6 +5,7 @@ import { defineOp } from "./registry.ts";
 
 export const spriteResize = defineOp({
 	name: "sprite.resize",
+	sprite: "edits",
 	description:
 		"Scale the sprite to a new size with nearest-neighbour sampling. Cels, slices and selections scale with it.",
 	input: z.object({

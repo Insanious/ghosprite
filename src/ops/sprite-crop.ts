@@ -11,6 +11,7 @@ import { defineOp } from "./registry.ts";
 
 export const spriteCrop = defineOp({
 	name: "sprite.crop",
+	sprite: "edits",
 	description:
 		"Make `rect`, given in the current canvas space, the new canvas. It can shrink and grow the canvas. Cels on ordinary layers move by the rect's origin and are never cut. A background layer is cropped to the new canvas, and new area is filled with `background`, which is required when the sprite has a background layer and `rect` reaches past the canvas. Slices move with the cels.",
 	input: z.object({

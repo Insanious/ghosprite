@@ -8,6 +8,7 @@ import { renderPng } from "./render-output.ts";
 
 export const spriteContactSheet = defineOp({
 	name: "sprite.contactSheet",
+	sprite: "reads",
 	description:
 		"Render frames of a sprite into one PNG, laid out in a grid, and return each frame's rect in it. Uses every frame unless frames or tag is given. Changes nothing.",
 	input: withGridRule(
@@ -35,7 +36,6 @@ export const spriteContactSheet = defineOp({
 			}),
 	),
 	renderOption: false,
-	readOnly: true,
 	run: (workspace, input) => {
 		const sprite = workspace.getSprite(input.spriteId);
 		let frames = input.frames;

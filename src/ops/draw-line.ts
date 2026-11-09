@@ -6,6 +6,7 @@ import { defineOp } from "./registry.ts";
 
 export const drawLine = defineOp({
 	name: "draw.line",
+	sprite: "edits",
 	description:
 		"Draw a line, or a polyline through several points, with a brush and ink. A single point stamps the brush once.",
 	input: z.object({

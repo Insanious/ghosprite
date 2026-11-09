@@ -5,6 +5,7 @@ import { defineOp } from "./registry.ts";
 
 export const selectionModify = defineOp({
 	name: "selection.modify",
+	sprite: "edits",
 	description:
 		"Expand a selection, contract it or reduce it to its border by quantity pixels, in place. The result is clipped to the canvas.",
 	input: z.object({
