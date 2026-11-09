@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { celCanvas, commitCel } from "../core/cel-edit.ts";
-import { createBrush, imageBrush } from "../core/draw/brush.ts";
+import { type Brush, createBrush, imageBrush } from "../core/draw/brush.ts";
 import {
 	maskFromBits,
 	maskFromPolygon,
@@ -8,8 +8,8 @@ import {
 } from "../core/draw/mask.ts";
 import type { Mask } from "../core/draw/spans.ts";
 import { drawShape, type Shape, type SprayShape } from "../core/draw/stroke.ts";
-import { isEmptyRect } from "../core/image.ts";
-import { paletteAt } from "../core/palette.ts";
+import { type Image, isEmptyRect } from "../core/image.ts";
+import { type Palette, paletteAt } from "../core/palette.ts";
 import type { ImageLayer, Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
@@ -82,6 +82,7 @@ export function runDraw(
 	input: DrawInput,
 	shape: Shape | SprayShape,
 	brushPath = "brush",
+	brushFromPalette?: (palette: Palette) => Image,
 ) {
 	const { sprite, layer } = resolveTarget(
 		workspace,
@@ -101,13 +102,18 @@ export function runDraw(
 	}
 
 	const spec = input.brush;
-	const isImageBrush = "rows" in spec;
+	const isImageBrush = brushFromPalette !== undefined || "rows" in spec;
 	const palette = paletteAt(sprite.palettes, input.frame);
-	const brush = isImageBrush
-		? imageBrush(
-				imageFromRows(spec.legend, spec.rows, palette, brushPath, spec.width),
-			)
-		: createBrush(spec);
+	let brush: Brush;
+	if (brushFromPalette) {
+		brush = imageBrush(brushFromPalette(palette));
+	} else if ("rows" in spec) {
+		brush = imageBrush(
+			imageFromRows(spec.legend, spec.rows, palette, brushPath, spec.width),
+		);
+	} else {
+		brush = createBrush(spec);
+	}
 
 	let color = { r: 0, g: 0, b: 0, a: 0 };
 	if (input.color !== undefined) {

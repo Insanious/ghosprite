@@ -8,6 +8,7 @@ import { drawEllipse } from "./draw-ellipse.ts";
 import { drawFill } from "./draw-fill.ts";
 import { drawImage } from "./draw-image.ts";
 import { drawLine } from "./draw-line.ts";
+import { drawPixels } from "./draw-pixels.ts";
 import { drawPolygon } from "./draw-polygon.ts";
 import { drawRect } from "./draw-rect.ts";
 import { drawSpray } from "./draw-spray.ts";
@@ -75,6 +76,7 @@ export const operations: Operation[] = [
 	frameDelete,
 	drawLine,
 	drawImage,
+	drawPixels,
 	drawBezier,
 	drawPolygon,
 	drawRect,

@@ -8,7 +8,7 @@ import {
 } from "../core/image.ts";
 import type { Palette } from "../core/palette.ts";
 import { OpError } from "../errors.ts";
-import { colorSchema, toRgba } from "./color.ts";
+import { type ColorInput, colorSchema, toRgba } from "./color.ts";
 
 export const legendSchema = z
 	.record(z.string().regex(/^.$/su), colorSchema)
@@ -162,6 +162,30 @@ export function splitRows(
 		cells,
 		width: width ?? Math.max(...cells.map((row) => row.length)),
 	};
+}
+
+/** Builds a transparent RGBA image of `width` x `height` with each group's points set to its colour, the points relative to `origin`. Errors point at `<path>.G.color`. */
+export function imageFromPixels(
+	groups: { color: ColorInput; points: { x: number; y: number }[] }[],
+	origin: { x: number; y: number },
+	width: number,
+	height: number,
+	palette: Palette,
+	path: string,
+): Image {
+	const image = createImage(width, height, "rgba");
+	groups.forEach((group, index) => {
+		const color = toRgba(group.color, `${path}.${index}.color`, palette);
+		for (const point of group.points) {
+			setPixel(image, point.x - origin.x, point.y - origin.y, [
+				color.r,
+				color.g,
+				color.b,
+				color.a,
+			]);
+		}
+	});
+	return image;
 }
 
 /** Builds an RGBA image from rows of legend characters. Errors point at `<path>.rows.N` and `<path>.legend.K`. */
