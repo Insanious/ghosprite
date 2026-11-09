@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
+import { getPixel } from "./core/image.ts";
 import { decodePng } from "./core/png.ts";
 import { OpError } from "./errors.ts";
 import { Session } from "./session.ts";
@@ -94,6 +95,23 @@ describe("sprite.diff", () => {
 		expect(result.frames[0]?.changedPixels).toBe(1);
 		const image = decode(result.frames[0]?.png as Uint8Array);
 		expect(image.width).toBe(3 * 4 * 2 + 2);
+	});
+
+	test("background fills each panel and the gaps stay transparent", () => {
+		const { session, spriteId } = setup(4);
+		const result = callTool(session, "sprite.diff", {
+			spriteId,
+			from: "start",
+			background: "#203040",
+		}) as { frames: { png: Uint8Array }[] };
+		const image = decode(result.frames[0]?.png as Uint8Array);
+		expect(image.width).toBe(14);
+		for (const x of [3, 8, 13]) {
+			expect(getPixel(image, x, 3)).toEqual([0x20, 0x30, 0x40, 255]);
+		}
+		for (const x of [4, 9]) {
+			expect(getPixel(image, x, 3)[3]).toBe(0);
+		}
 	});
 
 	test("a resize pads each panel to the larger size", () => {

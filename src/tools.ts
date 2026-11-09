@@ -14,6 +14,7 @@ import {
 	checkPixelLimit,
 	renderOptionFields,
 	withGridRule,
+	withRenderBackground,
 } from "./ops/render.ts";
 import type { Session } from "./session.ts";
 
@@ -148,7 +149,11 @@ export const sessionTools: Tool[] = [
 						renderSide(after, frame),
 					);
 					const panels = [diff.before, diff.after, diff.changes].map((image) =>
-						upscale(image, input.scale, input.grid),
+						upscale(
+							withRenderBackground(image, input.background, input.scale),
+							input.scale,
+							input.grid,
+						),
 					);
 					return {
 						frame,

@@ -11,6 +11,7 @@ import {
 	checkRenderable,
 	renderOptionFields,
 	withGridRule,
+	withRenderBackground,
 } from "./render.ts";
 
 export const spriteContactSheet = defineOp({
@@ -79,7 +80,15 @@ export const spriteContactSheet = defineOp({
 		);
 
 		const images = frames.map((frame) =>
-			upscale(renderFrame(sprite, frame), input.scale, input.grid),
+			upscale(
+				withRenderBackground(
+					renderFrame(sprite, frame),
+					input.background,
+					input.scale,
+				),
+				input.scale,
+				input.grid,
+			),
 		);
 		const sheet = tileImages(images, columns, input.gap);
 		return {
