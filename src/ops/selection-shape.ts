@@ -11,8 +11,7 @@ import {
 	maskFromWand,
 	trimMask,
 } from "../core/selection.ts";
-import { OpError } from "../errors.ts";
-import { resolveTarget } from "../target.ts";
+import { checkPoint, resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { toMask } from "./draw.ts";
@@ -67,6 +66,7 @@ function canvasMask(workspace: Workspace, spriteId: string): Mask {
 function celOf(
 	workspace: Workspace,
 	spriteId: string,
+	kind: "wand" | "color" | "content",
 	cel: { layerId: string; frame: number },
 ) {
 	const { sprite, layer } = resolveTarget(
@@ -74,6 +74,7 @@ function celOf(
 		spriteId,
 		cel.layerId,
 		cel.frame,
+		`shape.${kind}.`,
 	);
 	return { sprite, data: layer.cels.get(cel.frame)?.data };
 }
@@ -83,15 +84,8 @@ function wandMask(
 	spriteId: string,
 	wand: z.output<typeof wandSchema>,
 ): Mask {
-	const { sprite, data } = celOf(workspace, spriteId, wand);
-	const { x, y } = wand.point;
-	if (x < 0 || y < 0 || x >= sprite.width || y >= sprite.height) {
-		throw new OpError(
-			"out_of_range",
-			`Point (${x}, ${y}) is outside the ${sprite.width}x${sprite.height} canvas`,
-			{ path: "shape.wand.point" },
-		);
-	}
+	const { sprite, data } = celOf(workspace, spriteId, "wand", wand);
+	checkPoint(sprite, wand.point, "shape.wand.point");
 	if (!data) return emptyMask();
 	return maskFromWand(
 		data.image,
@@ -108,7 +102,7 @@ function colorRangeMask(
 	spriteId: string,
 	spec: z.output<typeof colorRangeSchema>,
 ): Mask {
-	const { sprite, data } = celOf(workspace, spriteId, spec);
+	const { sprite, data } = celOf(workspace, spriteId, "color", spec);
 	const color = toRgba(
 		spec.color,
 		"shape.color.color",
@@ -123,7 +117,7 @@ function contentMask(
 	spriteId: string,
 	spec: z.output<typeof contentSchema>,
 ): Mask {
-	const { data } = celOf(workspace, spriteId, spec);
+	const { data } = celOf(workspace, spriteId, "content", spec);
 	return data ? maskFromContent(data.image, data) : emptyMask();
 }
 

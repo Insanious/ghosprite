@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OpError } from "../errors.ts";
+import { checkPoint } from "../target.ts";
 import { runDraw } from "./draw.ts";
 import { drawFields, pointSchema } from "./draw-options.ts";
 import { defineOp } from "./registry.ts";
@@ -25,14 +25,7 @@ export const drawFill = defineOp({
 	}),
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
-		const { x, y } = input.point;
-		if (x < 0 || y < 0 || x >= sprite.width || y >= sprite.height) {
-			throw new OpError(
-				"out_of_range",
-				`Point (${x}, ${y}) is outside the ${sprite.width}x${sprite.height} canvas`,
-				{ path: "point" },
-			);
-		}
+		checkPoint(sprite, input.point, "point");
 		return runDraw(workspace, input, {
 			kind: "fill",
 			point: input.point,

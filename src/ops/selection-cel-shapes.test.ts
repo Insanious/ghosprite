@@ -64,7 +64,7 @@ describe("content selection", () => {
 });
 
 describe("cel shape errors", () => {
-	test("a group layer fails at layerId", () => {
+	test("a group layer fails at shape.content.layerId", () => {
 		const { session, spriteId } = setup();
 		const { layerId: group } = session.run("layer.create", {
 			spriteId,
@@ -74,17 +74,28 @@ describe("cel shape errors", () => {
 		const error = failure(() =>
 			select(session, spriteId, { content: { layerId: group, frame: 0 } }),
 		);
-		expect(error.path).toBe("layerId");
+		expect(error.path).toBe("shape.content.layerId");
 	});
 
-	test("a frame out of range fails at frame", () => {
+	test("a missing layer fails at shape.wand.layerId", () => {
+		const { session, spriteId } = setup();
+		const error = failure(() =>
+			select(session, spriteId, {
+				wand: { layerId: "nope", frame: 0, point: { x: 0, y: 0 } },
+			}),
+		);
+		expect(error.code).toBe("not_found");
+		expect(error.path).toBe("shape.wand.layerId");
+	});
+
+	test("a frame out of range fails at shape.color.frame", () => {
 		const { session, spriteId, layerId } = setup();
 		const error = failure(() =>
 			select(session, spriteId, {
 				color: { layerId, frame: 5, color: "#ffffff" },
 			}),
 		);
-		expect(error.path).toBe("frame");
+		expect(error.path).toBe("shape.color.frame");
 	});
 
 	test("a wand point outside the canvas fails at shape.wand.point", () => {
