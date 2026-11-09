@@ -3,6 +3,7 @@ import { paletteAt } from "../core/palette.ts";
 import { insertTag, TAG_DIRECTIONS } from "../core/tag.ts";
 import { createUserData } from "../core/user-data.ts";
 import { OpError } from "../errors.ts";
+import { checkFrame } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { assertNameFree } from "./named.ts";
 import { defineOp } from "./registry.ts";
@@ -29,14 +30,7 @@ export const tagCreate = defineOp({
 				hint: "from must be less than or equal to to",
 			});
 		}
-		const lastFrame = sprite.frameDurations.length - 1;
-		if (input.to > lastFrame) {
-			throw new OpError(
-				"out_of_range",
-				`Frame ${input.to} is past the last frame (${lastFrame})`,
-				{ path: "to" },
-			);
-		}
+		checkFrame(sprite, input.to, "to");
 		const userData = createUserData();
 		userData.color = toRgba(
 			input.color,

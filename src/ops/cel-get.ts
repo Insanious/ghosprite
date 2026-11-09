@@ -4,9 +4,8 @@ import { createImage, type Image } from "../core/image.ts";
 import { paletteAt } from "../core/palette.ts";
 import { renderFrame } from "../core/render.ts";
 import { OpError } from "../errors.ts";
-import { resolveTarget } from "../target.ts";
+import { checkFrame, resolveTarget } from "../target.ts";
 import { rectSchema } from "./draw-options.ts";
-import { checkExistingFrame } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 import { legendSchema, rowsFromImage } from "./rows.ts";
 
@@ -32,7 +31,7 @@ export const celGet = defineOp({
 		let area = input.rect;
 		const sprite = workspace.getSprite(input.spriteId);
 		if (input.layerId === undefined) {
-			checkExistingFrame(sprite, input.frame);
+			checkFrame(sprite, input.frame);
 			source = { image: renderFrame(sprite, input.frame), x: 0, y: 0 };
 			area ??= { x: 0, y: 0, width: sprite.width, height: sprite.height };
 		} else {

@@ -12,10 +12,9 @@ import {
 } from "../core/palette-file.ts";
 import type { Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
-import { requireRgba } from "../target.ts";
+import { checkFrame, requireRgba } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { readFile, writeFile } from "./file.ts";
-import { checkExistingFrame } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 
 export const MAX_COLORS = 256;
@@ -59,7 +58,7 @@ export const paletteSet = defineOp({
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
 		requireRgba(sprite);
-		checkExistingFrame(sprite, input.frame);
+		checkFrame(sprite, input.frame);
 		const current = paletteAt(sprite.palettes, input.frame);
 		setPalette(
 			sprite,
@@ -82,7 +81,7 @@ export const paletteLoad = defineOp({
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
 		requireRgba(sprite);
-		checkExistingFrame(sprite, input.frame);
+		checkFrame(sprite, input.frame);
 		const format = formatOf(input.path);
 		const text = new TextDecoder().decode(readFile(input.path));
 		let colors: Rgba[];
@@ -117,7 +116,7 @@ export const paletteSave = defineOp({
 	readOnly: true,
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
-		checkExistingFrame(sprite, input.frame);
+		checkFrame(sprite, input.frame);
 		const format = formatOf(input.path);
 		const { colors } = paletteAt(sprite.palettes, input.frame);
 		writeFile(input.path, format.write(colors), "path");

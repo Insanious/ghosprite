@@ -58,7 +58,7 @@ describe("tag.create and tag.delete", () => {
 		expect(error.path).toBe("name");
 	});
 
-	test("rejects from after to and to past the last frame", () => {
+	test("rejects from after to and to outside the frames", () => {
 		const { workspace, spriteId } = setup();
 		const backwards = failure(() =>
 			registry.callOp(workspace, "tag.create", {
@@ -78,6 +78,7 @@ describe("tag.create and tag.delete", () => {
 			}),
 		);
 		expect([past.code, past.path]).toEqual(["out_of_range", "to"]);
+		expect(past.message).toBe("Frame 1 is outside 0..0");
 	});
 
 	test("delete rejects an unknown name and a shared name", () => {

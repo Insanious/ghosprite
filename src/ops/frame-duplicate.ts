@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { duplicateFrame } from "../core/frames.ts";
-import { checkExistingFrame, wholeCanvas } from "./frame-changed.ts";
+import { checkFrame } from "../target.ts";
+import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 
 export const frameDuplicate = defineOp({
@@ -13,7 +14,7 @@ export const frameDuplicate = defineOp({
 	}),
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
-		checkExistingFrame(sprite, input.frame);
+		checkFrame(sprite, input.frame);
 		duplicateFrame(sprite, input.frame);
 		return {
 			frame: input.frame + 1,

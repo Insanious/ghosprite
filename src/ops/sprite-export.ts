@@ -9,8 +9,8 @@ import type { Sprite } from "../core/sprite.ts";
 import { upscale } from "../core/upscale.ts";
 import { encodeAnimatedWebp, encodeWebp } from "../core/webp.ts";
 import { OpError } from "../errors.ts";
+import { checkFrame } from "../target.ts";
 import { writeFile } from "./file.ts";
-import { checkExistingFrame } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 import { checkPixelLimit } from "./render.ts";
 
@@ -30,7 +30,7 @@ function framesToExport(
 			throw invalid("tag needs a .gif or .webp path", "tag");
 		}
 		const frame = input.frame ?? 0;
-		checkExistingFrame(sprite, frame);
+		checkFrame(sprite, frame);
 		return [frame];
 	}
 	if (input.frame !== undefined) {

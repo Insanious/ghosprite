@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { deleteFrame } from "../core/frames.ts";
 import { OpError } from "../errors.ts";
-import { checkExistingFrame, wholeCanvas } from "./frame-changed.ts";
+import { checkFrame } from "../target.ts";
+import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 
 export const frameDelete = defineOp({
@@ -14,7 +15,7 @@ export const frameDelete = defineOp({
 	}),
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
-		checkExistingFrame(sprite, input.frame);
+		checkFrame(sprite, input.frame);
 		if (sprite.frameDurations.length === 1) {
 			throw new OpError("out_of_range", "A sprite needs at least one frame", {
 				path: "frame",
