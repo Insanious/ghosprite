@@ -1,0 +1,606 @@
+{
+	"width": 16,
+	"height": 16,
+	"cases": {
+		"sparse-two-colours": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": 1,
+									"y": 2
+								},
+								{
+									"x": 6,
+									"y": 3
+								},
+								{
+									"x": 9,
+									"y": 9
+								}
+							]
+						},
+						{
+							"color": "#30c050",
+							"points": [
+								{
+									"x": 3,
+									"y": 7
+								},
+								{
+									"x": 12,
+									"y": 5
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"single-point": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": 7,
+									"y": 8
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"off-canvas": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": -3,
+									"y": 4
+								},
+								{
+									"x": -1,
+									"y": 10
+								},
+								{
+									"x": 2,
+									"y": 17
+								},
+								{
+									"x": 5,
+									"y": 18
+								}
+							]
+						},
+						{
+							"color": "#30c050",
+							"points": [
+								{
+									"x": 4,
+									"y": 6
+								},
+								{
+									"x": 3,
+									"y": 15
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"symmetry-horizontal-even": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"symmetry": {
+						"mode": "horizontal"
+					},
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": 2,
+									"y": 3
+								},
+								{
+									"x": 4,
+									"y": 5
+								}
+							]
+						},
+						{
+							"color": "#30c050",
+							"points": [
+								{
+									"x": 5,
+									"y": 8
+								},
+								{
+									"x": 3,
+									"y": 6
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"symmetry-both-axis": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"symmetry": {
+						"mode": "both",
+						"x": 7,
+						"y": 9
+					},
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": 3,
+									"y": 4
+								},
+								{
+									"x": 5,
+									"y": 6
+								}
+							]
+						},
+						{
+							"color": "#30c050",
+							"points": [
+								{
+									"x": 4,
+									"y": 5
+								},
+								{
+									"x": 5,
+									"y": 4
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"mask-rect": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"mask": {
+						"rect": {
+							"x": 5,
+							"y": 4,
+							"width": 4,
+							"height": 3
+						}
+					},
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": 3,
+									"y": 3
+								},
+								{
+									"x": 6,
+									"y": 5
+								},
+								{
+									"x": 8,
+									"y": 6
+								},
+								{
+									"x": 10,
+									"y": 9
+								}
+							]
+						},
+						{
+							"color": "#30c050",
+							"points": [
+								{
+									"x": 5,
+									"y": 4
+								},
+								{
+									"x": 7,
+									"y": 4
+								},
+								{
+									"x": 9,
+									"y": 5
+								},
+								{
+									"x": 4,
+									"y": 8
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"alpha-compositing-opacity-128": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"ink": "alphaCompositing",
+					"opacity": 128,
+					"pixels": [
+						{
+							"color": "#e0302080",
+							"points": [
+								{
+									"x": 4,
+									"y": 4
+								},
+								{
+									"x": 5,
+									"y": 5
+								},
+								{
+									"x": 9,
+									"y": 7
+								}
+							]
+						},
+						{
+							"color": "#30c050",
+							"points": [
+								{
+									"x": 6,
+									"y": 4
+								},
+								{
+									"x": 7,
+									"y": 8
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"eraser": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"ink": "eraser",
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": 4,
+									"y": 4
+								},
+								{
+									"x": 5,
+									"y": 5
+								},
+								{
+									"x": 9,
+									"y": 7
+								}
+							]
+						},
+						{
+							"color": "#e0302080",
+							"points": [
+								{
+									"x": 6,
+									"y": 4
+								},
+								{
+									"x": 7,
+									"y": 8
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"zero-alpha-colour-skipped": [
+			{
+				"op": "cel.set",
+				"input": {
+					"legend": {
+						"a": "#30509f",
+						"b": "#60a0d0"
+					},
+					"rows": [
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab",
+						"aabbaabbaabbaabb",
+						"abbaabbaabbaabba",
+						"bbaabbaabbaabbaa",
+						"baabbaabbaabbaab"
+					]
+				}
+			},
+			{
+				"op": "draw.pixels",
+				"input": {
+					"pixels": [
+						{
+							"color": "#e03020",
+							"points": [
+								{
+									"x": 4,
+									"y": 4
+								},
+								{
+									"x": 6,
+									"y": 5
+								}
+							]
+						},
+						{
+							"color": "#ff000000",
+							"points": [
+								{
+									"x": 5,
+									"y": 4
+								},
+								{
+									"x": 6,
+									"y": 6
+								},
+								{
+									"x": 8,
+									"y": 8
+								}
+							]
+						}
+					]
+				}
+			}
+		]
+	}
+}

@@ -7,6 +7,7 @@
 --   cel.set   -> sprite:newCel with an image built from the legend
 --   draw.line -> pencil, with freehandAlgorithm=1 when pixelPerfect
 --   draw.image -> pencil, stamping the rows as an image brush once, centred at floor(size / 2) from x, y
+--   draw.pixels -> builds the bounding-box image of the points and stamps it once, like draw.image
 --   draw.polygon -> contour, a filled polygon through the points
 --   draw.fill -> paint_bucket, with contiguous and tolerance
 --   draw.rect, draw.ellipse -> (filled_)rectangle, (filled_)ellipse between the rect's corners
@@ -58,10 +59,29 @@ local function image_from_rows(legend, rows)
   return image
 end
 
+-- The bounding-box image of the points, transparent except at the points, and the box's corner.
+local function image_from_pixels(pixels)
+  local x0, y0, x1, y1 = math.huge, math.huge, -math.huge, -math.huge
+  for _, group in ipairs(pixels) do
+    for _, p in ipairs(group.points) do
+      x0, y0, x1, y1 = math.min(x0, p.x), math.min(y0, p.y), math.max(x1, p.x), math.max(y1, p.y)
+    end
+  end
+  local image = Image(x1 - x0 + 1, y1 - y0 + 1, ColorMode.RGB)
+  for _, group in ipairs(pixels) do
+    local c = color(group.color)
+    for _, p in ipairs(group.points) do
+      image:putPixel(p.x - x0, p.y - y0, app.pixelColor.rgba(c.red, c.green, c.blue, c.alpha))
+    end
+  end
+  return image, x0, y0
+end
+
 local SHAPES = { circle = BrushType.CIRCLE, square = BrushType.SQUARE, line = BrushType.LINE }
 
 local function brush(value)
   if value == nil then return Brush { type = BrushType.CIRCLE, size = 1 } end
+  if value.image then return Brush { image = value.image } end
   if value.rows then return Brush { image = image_from_rows(value.legend, value.rows) } end
   return Brush {
     type = SHAPES[value.type or "circle"],
@@ -296,6 +316,15 @@ local function apply_op(sprite, layer, call)
       symmetry = input.symmetry,
       brush = { legend = input.legend, rows = input.rows },
       points = { { x = input.x + #input.rows[1] // 2, y = input.y + #input.rows // 2 } },
+    })
+  elseif call.op == "draw.pixels" then
+    local image, x0, y0 = image_from_pixels(input.pixels)
+    draw_line(layer, {
+      ink = input.ink,
+      opacity = input.opacity,
+      symmetry = input.symmetry,
+      brush = { image = image },
+      points = { { x = x0 + image.width // 2, y = y0 + image.height // 2 } },
     })
   elseif call.op == "draw.polygon" then
     draw_polygon(layer, input)
