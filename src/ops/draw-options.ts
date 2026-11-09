@@ -1,18 +1,7 @@
 import { z } from "zod";
 import { colorSchema } from "./color.ts";
+import { pointSchema, rectSchema } from "./geometry.ts";
 import { legendSchema, rowsSchema, rowsWidthSchema } from "./rows.ts";
-
-export const pointSchema = z.object({
-	x: z.number().int(),
-	y: z.number().int(),
-});
-
-export const rectSchema = z.object({
-	x: z.number().int(),
-	y: z.number().int(),
-	width: z.number().int().min(1),
-	height: z.number().int().min(1),
-});
 
 export const inkSchema = z
 	.enum([

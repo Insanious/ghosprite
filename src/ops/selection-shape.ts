@@ -15,7 +15,8 @@ import { checkPoint, resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { toMask } from "./draw.ts";
-import { maskSchema, pointSchema, rectSchema } from "./draw-options.ts";
+import { maskSchema } from "./draw-options.ts";
+import { pointSchema, rectSchema } from "./geometry.ts";
 
 const celFields = {
 	layerId: z.string(),

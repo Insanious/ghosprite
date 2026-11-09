@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { checkPoint } from "../target.ts";
 import { runDraw } from "./draw.ts";
-import { drawFields, pointSchema } from "./draw-options.ts";
+import { drawFields } from "./draw-options.ts";
+import { pointSchema } from "./geometry.ts";
 import { defineOp } from "./registry.ts";
 
 export const drawFill = defineOp({

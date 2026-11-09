@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { runDraw } from "./draw.ts";
-import { drawFields, rectSchema } from "./draw-options.ts";
+import { drawFields } from "./draw-options.ts";
+import { rectSchema } from "./geometry.ts";
 import { defineOp } from "./registry.ts";
 
 export const drawRect = defineOp({

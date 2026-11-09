@@ -5,8 +5,8 @@ import { findBackground } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { requireRgba } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";
-import { rectSchema } from "./draw-options.ts";
 import { wholeCanvas } from "./frame-changed.ts";
+import { rectSchema } from "./geometry.ts";
 import { defineOp } from "./registry.ts";
 
 export const spriteCrop = defineOp({

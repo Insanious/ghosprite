@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createUserData } from "../core/user-data.ts";
-import { pointSchema, rectSchema } from "./draw-options.ts";
+import { pointSchema, rectSchema } from "./geometry.ts";
 import { assertNameFree } from "./named.ts";
 import { defineOp } from "./registry.ts";
 

@@ -5,7 +5,7 @@ import { paletteAt } from "../core/palette.ts";
 import { renderFrame } from "../core/render.ts";
 import { OpError } from "../errors.ts";
 import { checkFrame, resolveTarget } from "../target.ts";
-import { rectSchema } from "./draw-options.ts";
+import { rectSchema } from "./geometry.ts";
 import { defineOp } from "./registry.ts";
 import { legendSchema, rowsFromImage } from "./rows.ts";
 
