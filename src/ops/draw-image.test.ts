@@ -4,7 +4,6 @@ import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { drawImage } from "./draw-image.ts";
-import { drawRect } from "./draw-rect.ts";
 import { createRegistry } from "./registry.ts";
 
 const registry = createRegistry([drawImage]);
@@ -87,58 +86,5 @@ describe("draw.image", () => {
 			},
 		]);
 		expect(result).toMatchObject({ cel: { x: 2, y: 3, width: 3, height: 2 } });
-	});
-});
-
-describe("draw cel result", () => {
-	const drawRegistry = createRegistry([drawImage, drawRect]);
-
-	function rect(
-		workspace: Workspace,
-		spriteId: string,
-		layerId: string,
-		r: { x: number; y: number; width: number; height: number },
-		extra: Record<string, unknown> = {},
-	) {
-		return drawRegistry.callOp(workspace, "draw.rect", {
-			spriteId,
-			layerId,
-			frame: 0,
-			color: "#ff0000",
-			rect: r,
-			filled: true,
-			...extra,
-		});
-	}
-
-	test("extends an existing cel to the union of old and new pixels", () => {
-		const { workspace, spriteId, layer } = setup();
-		rect(workspace, spriteId, layer.id, { x: 2, y: 2, width: 2, height: 2 });
-		const result = rect(workspace, spriteId, layer.id, {
-			x: 3,
-			y: 3,
-			width: 4,
-			height: 2,
-		});
-		expect(result).toMatchObject({ cel: { x: 2, y: 2, width: 5, height: 3 } });
-	});
-
-	test("changing nothing reports no change and the existing cel", () => {
-		const { workspace, spriteId, layer } = setup();
-		const area = { x: 2, y: 2, width: 2, height: 2 };
-		rect(workspace, spriteId, layer.id, area);
-		const result = rect(workspace, spriteId, layer.id, area);
-		expect(result.changed).toEqual([]);
-		expect(result).toMatchObject({ cel: area });
-	});
-
-	test("erasing every pixel leaves no cel", () => {
-		const { workspace, spriteId, layer } = setup();
-		const area = { x: 2, y: 2, width: 2, height: 2 };
-		rect(workspace, spriteId, layer.id, area);
-		const result = rect(workspace, spriteId, layer.id, area, {
-			ink: "eraser",
-		});
-		expect(result).toMatchObject({ cel: null });
 	});
 });

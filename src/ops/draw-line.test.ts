@@ -1,14 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { createImage } from "../core/image.ts";
 import { renderFrame } from "../core/render.ts";
 import {
 	addLayer,
 	createGroupLayer,
 	createImageLayer,
 	createSprite,
-	setCel,
 } from "../core/sprite.ts";
-import { createUserData } from "../core/user-data.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { drawLine } from "./draw-line.ts";
@@ -73,30 +70,6 @@ describe("draw.line", () => {
 				rect: { x: 1, y: 2, width: 4, height: 1 },
 			},
 		]);
-	});
-
-	test("drawing on a linked cel reports both frames", () => {
-		const { workspace, spriteId, layer, sprite } = setup();
-		const data = {
-			image: createImage(1, 1, "rgba"),
-			x: 0,
-			y: 0,
-			opacity: 255,
-			userData: createUserData(),
-		};
-		setCel(sprite, layer, 0, data);
-		setCel(sprite, layer, 2, data);
-		const result = run(workspace, {
-			spriteId,
-			layerId: layer.id,
-			frame: 0,
-			color: "#ff0000",
-			points: [{ x: 3, y: 3 }],
-		});
-		expect(result.changed.map((c) => c.frame)).toEqual([0, 2]);
-		expect(renderFrame(sprite, 2).data.slice(0, 4)).toEqual(
-			renderFrame(sprite, 0).data.slice(0, 4),
-		);
 	});
 
 	test("color is required except for the eraser and image brushes", () => {

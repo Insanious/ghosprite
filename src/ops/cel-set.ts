@@ -1,9 +1,7 @@
 import { z } from "zod";
-import { commitCel } from "../core/cel-edit.ts";
-import { isEmptyRect, unionRects } from "../core/image.ts";
 import { paletteAt } from "../core/palette.ts";
-import { celCanvasRect } from "../core/sprite.ts";
 import { resolveTarget } from "../target.ts";
+import { editCel } from "./cel-edit.ts";
 import { defineOp } from "./registry.ts";
 import {
 	imageFromRows,
@@ -42,22 +40,11 @@ export const celSet = defineOp({
 			input.width,
 		);
 
-		const commit = commitCel(sprite, layer, input.frame, {
-			image,
-			x: input.x,
-			y: input.y,
-		});
-		let rect = commit.rect;
-		const cel = layer.cels.get(input.frame);
-		if (cel && cel.data.opacity !== input.opacity) {
-			cel.data.opacity = input.opacity;
-			rect = unionRects(rect, celCanvasRect(sprite, cel.data));
-		}
-		return {
-			changed: isEmptyRect(rect)
-				? []
-				: commit.frames.map((frame) => ({ layerId: layer.id, frame, rect })),
-			cel: commit.cel ?? null,
-		};
+		return editCel(
+			{ sprite, layer },
+			input.frame,
+			() => ({ image, x: input.x, y: input.y }),
+			input.opacity,
+		);
 	},
 });

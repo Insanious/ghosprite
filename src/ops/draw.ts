@@ -1,5 +1,4 @@
 import type { z } from "zod";
-import { celCanvas, commitCel } from "../core/cel-edit.ts";
 import { type Brush, createBrush, imageBrush } from "../core/draw/brush.ts";
 import {
 	maskFromBits,
@@ -8,11 +7,12 @@ import {
 } from "../core/draw/mask.ts";
 import type { Mask } from "../core/draw/spans.ts";
 import { drawShape, type Shape, type SprayShape } from "../core/draw/stroke.ts";
-import { type Image, isEmptyRect } from "../core/image.ts";
+import type { Image } from "../core/image.ts";
 import { type Palette, paletteAt } from "../core/palette.ts";
 import { OpError } from "../errors.ts";
 import { resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
+import { editCel } from "./cel-edit.ts";
 import { toRgba } from "./color.ts";
 import type { drawFields, maskSchema } from "./draw-options.ts";
 import { imageFromRows, splitRows } from "./rows.ts";
@@ -98,8 +98,7 @@ export function runDraw(
 		});
 	}
 
-	const canvas = celCanvas(sprite, layer, input.frame);
-	drawShape(canvas, sprite, shape, {
+	const options = {
 		color,
 		ink: input.ink,
 		opacity: input.opacity,
@@ -117,16 +116,9 @@ export function runDraw(
 					? undefined
 					: (input.symmetry.y ?? sprite.height / 2),
 		},
-	});
-	const commit = commitCel(sprite, layer, input.frame, canvas);
-	return {
-		changed: isEmptyRect(commit.rect)
-			? []
-			: commit.frames.map((frame) => ({
-					layerId: layer.id,
-					frame,
-					rect: commit.rect,
-				})),
-		cel: commit.cel ?? null,
 	};
+	return editCel({ sprite, layer }, input.frame, (canvas) => {
+		drawShape(canvas, sprite, shape, options);
+		return canvas;
+	});
 }
