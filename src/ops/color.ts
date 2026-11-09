@@ -5,14 +5,15 @@ import { OpError } from "../errors.ts";
 
 const byte = z.number().int().min(0).max(255);
 
+export const literalColorSchema = z.union([
+	z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, {
+		error: "Expected #rrggbb or #rrggbbaa",
+	}),
+	z.object({ r: byte, g: byte, b: byte, a: byte.default(255) }),
+]);
+
 export const colorSchema = z
-	.union([
-		z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/, {
-			error: "Expected #rrggbb or #rrggbbaa",
-		}),
-		z.object({ r: byte, g: byte, b: byte, a: byte.default(255) }),
-		z.object({ index: byte }),
-	])
+	.union([...literalColorSchema.options, z.object({ index: byte })])
 	.describe(
 		"#rrggbb, #rrggbbaa, {r, g, b, a} or {index}. An index picks that entry of the palette in effect at the frame the operation works on (frame 0 when it has none), so it fails if the palette is shorter.",
 	);
