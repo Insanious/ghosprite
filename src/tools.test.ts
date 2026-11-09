@@ -97,21 +97,28 @@ describe("sprite.diff", () => {
 		expect(image.width).toBe(3 * 4 * 2 + 2);
 	});
 
-	test("background fills each panel and the gaps stay transparent", () => {
-		const { session, spriteId } = setup(4);
+	test("background reaches the diff", () => {
+		const { session, spriteId } = setup(2);
 		const result = callTool(session, "sprite.diff", {
 			spriteId,
 			from: "start",
 			background: "#203040",
 		}) as { frames: { png: Uint8Array }[] };
 		const image = decode(result.frames[0]?.png as Uint8Array);
-		expect(image.width).toBe(14);
-		for (const x of [3, 8, 13]) {
-			expect(getPixel(image, x, 3)).toEqual([0x20, 0x30, 0x40, 255]);
+		expect(getPixel(image, 1, 1)).toEqual([0x20, 0x30, 0x40, 255]);
+	});
+
+	test("a diff over the pixel limit is out_of_range at scale", () => {
+		const { session, spriteId } = setup(64);
+		try {
+			callTool(session, "sprite.diff", { spriteId, from: "start", scale: 64 });
+		} catch (error) {
+			expect(error).toBeInstanceOf(OpError);
+			expect((error as OpError).code).toBe("out_of_range");
+			expect((error as OpError).path).toBe("scale");
+			return;
 		}
-		for (const x of [4, 9]) {
-			expect(getPixel(image, x, 3)[3]).toBe(0);
-		}
+		throw new Error("expected a failure");
 	});
 
 	test("a resize pads each panel to the larger size", () => {

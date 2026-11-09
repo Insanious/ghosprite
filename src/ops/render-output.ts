@@ -36,7 +36,7 @@ export function checkPixelLimit(width: number, height: number, path: string) {
 	}
 }
 
-export function withRenderBackground(
+function withRenderBackground(
 	image: Image,
 	background: RenderBackground | undefined,
 	scale: number,

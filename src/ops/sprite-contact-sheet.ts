@@ -1,14 +1,10 @@
-import { deflateSync } from "node:zlib";
 import { z } from "zod";
-import { tileImages } from "../core/contact-sheet.ts";
-import { encodePng } from "../core/png.ts";
 import { renderFrame } from "../core/render.ts";
-import { upscale } from "../core/upscale.ts";
 import { OpError } from "../errors.ts";
 import { checkFrames } from "../target.ts";
 import { defineOp } from "./registry.ts";
 import { renderOptionFields, withGridRule } from "./render.ts";
-import { checkPixelLimit, withRenderBackground } from "./render-output.ts";
+import { renderPng } from "./render-output.ts";
 
 export const spriteContactSheet = defineOp({
 	name: "sprite.contactSheet",
@@ -65,31 +61,15 @@ export const spriteContactSheet = defineOp({
 			input.columns ?? Math.ceil(Math.sqrt(frames.length)),
 			frames.length,
 		);
-		const rows = Math.ceil(frames.length / columns);
-		const gridPixels = input.grid ? 1 : 0;
-		const cellWidth = sprite.width * input.scale + gridPixels;
-		const cellHeight = sprite.height * input.scale + gridPixels;
-		checkPixelLimit(
-			columns * cellWidth + (columns - 1) * input.gap,
-			rows * cellHeight + (rows - 1) * input.gap,
+		const { png, rects } = renderPng(
+			frames.map((frame) => renderFrame(sprite, frame)),
+			input,
+			{ columns, gap: input.gap },
 			"scale",
 		);
-
-		const images = frames.map((frame) =>
-			upscale(
-				withRenderBackground(
-					renderFrame(sprite, frame),
-					input.background,
-					input.scale,
-				),
-				input.scale,
-				input.grid,
-			),
-		);
-		const sheet = tileImages(images, columns, input.gap);
 		return {
-			png: encodePng(sheet.image, deflateSync),
-			frames: frames.map((frame, i) => ({ frame, rect: sheet.rects[i] })),
+			png,
+			frames: frames.map((frame, i) => ({ frame, rect: rects[i] })),
 		};
 	},
 });

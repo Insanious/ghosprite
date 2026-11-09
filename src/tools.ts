@@ -1,17 +1,13 @@
 import { writeFileSync } from "node:fs";
-import { deflateSync } from "node:zlib";
 import { z } from "zod";
-import { tileImages } from "./core/contact-sheet.ts";
 import { diffFrames } from "./core/diff.ts";
 import { createImage } from "./core/image.ts";
-import { encodePng } from "./core/png.ts";
 import { renderFrame } from "./core/render.ts";
 import type { Sprite } from "./core/sprite.ts";
-import { upscale } from "./core/upscale.ts";
 import { OpError } from "./errors.ts";
 import { parseInput } from "./ops/registry.ts";
 import { renderOptionFields, withGridRule } from "./ops/render.ts";
-import { checkPixelLimit, withRenderBackground } from "./ops/render-output.ts";
+import { renderPng } from "./ops/render-output.ts";
 import type { Session } from "./session.ts";
 
 export type Tool = {
@@ -130,30 +126,20 @@ export const sessionTools: Tool[] = [
 					{ path: "frames" },
 				);
 			}
-			const gridPixels = input.grid ? 1 : 0;
-			const gap = 1;
-			checkPixelLimit(
-				3 * (Math.max(before.width, after.width) * input.scale + gridPixels) +
-					2 * gap,
-				Math.max(before.height, after.height) * input.scale + gridPixels,
-				"scale",
-			);
 			return {
 				frames: frames.map((frame) => {
 					const diff = diffFrames(
 						renderSide(before, frame),
 						renderSide(after, frame),
 					);
-					const panels = [diff.before, diff.after, diff.changes].map((image) =>
-						upscale(
-							withRenderBackground(image, input.background, input.scale),
-							input.scale,
-							input.grid,
-						),
-					);
 					return {
 						frame,
-						png: encodePng(tileImages(panels, 3, gap).image, deflateSync),
+						png: renderPng(
+							[diff.before, diff.after, diff.changes],
+							input,
+							{ columns: 3, gap: 1 },
+							"scale",
+						).png,
 						changedPixels: diff.changedPixels,
 						bounds: diff.bounds,
 					};

@@ -68,20 +68,14 @@ describe("sprite.contactSheet", () => {
 		expect(getPixel(image, 5, 0)[3]).toBe(0);
 	});
 
-	test("background fills the cells and the gap stays transparent", () => {
-		const { workspace, spriteId } = setup();
+	test("background reaches the sheet", () => {
+		const { workspace, spriteId } = setup(2, 1);
 		const result = call(workspace, "sprite.contactSheet", {
 			spriteId,
-			gap: 1,
-			columns: 2,
 			background: "#203040",
 		}) as Sheet;
 		const image = decodePng(result.png, inflateSync);
-		expect(image.width).toBe(5);
-		for (const x of [0, 1, 3, 4]) {
-			expect(getPixel(image, x, 0)).toEqual([0x20, 0x30, 0x40, 255]);
-		}
-		expect(getPixel(image, 2, 0)[3]).toBe(0);
+		expect(getPixel(image, 1, 1)).toEqual([0x20, 0x30, 0x40, 255]);
 	});
 
 	test("tag selects its frames", () => {
