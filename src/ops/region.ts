@@ -17,9 +17,9 @@ import {
 } from "../core/selection.ts";
 import type { CelData } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";
-import { resolveTarget } from "./draw.ts";
 import { checkFrames, filterFields } from "./filter.ts";
 import type { ChangedRect } from "./registry.ts";
 

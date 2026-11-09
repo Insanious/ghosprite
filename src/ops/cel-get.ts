@@ -4,7 +4,7 @@ import { createImage, type Image } from "../core/image.ts";
 import { paletteAt } from "../core/palette.ts";
 import { renderFrame } from "../core/render.ts";
 import { OpError } from "../errors.ts";
-import { resolveTarget } from "./draw.ts";
+import { resolveTarget } from "../target.ts";
 import { rectSchema } from "./draw-options.ts";
 import { checkExistingFrame } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";

@@ -12,11 +12,11 @@ import {
 } from "../core/palette-file.ts";
 import type { Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { requireRgba } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { readFile, writeFile } from "./file.ts";
 import { checkExistingFrame } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 export const MAX_COLORS = 256;
 

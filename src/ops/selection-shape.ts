@@ -12,9 +12,10 @@ import {
 	trimMask,
 } from "../core/selection.ts";
 import { OpError } from "../errors.ts";
+import { resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";
-import { resolveTarget, toMask } from "./draw.ts";
+import { toMask } from "./draw.ts";
 import { maskSchema, pointSchema, rectSchema } from "./draw-options.ts";
 
 const celFields = {

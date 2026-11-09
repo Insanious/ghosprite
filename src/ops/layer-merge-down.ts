@@ -2,8 +2,8 @@ import { z } from "zod";
 import { mergeLayerDown } from "../core/merge.ts";
 import { findParent } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { requireRgba } from "../target.ts";
 import { defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 export const layerMergeDown = defineOp({
 	name: "layer.mergeDown",

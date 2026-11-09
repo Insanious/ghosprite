@@ -9,8 +9,8 @@ import {
 	framesSharingData,
 	imageLayers,
 } from "../core/sprite.ts";
+import { requireRgba } from "../target.ts";
 import { type ChangedRect, defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 const MATRIX_SIZES = { bayer2x2: 2, bayer4x4: 4, bayer8x8: 8 };
 

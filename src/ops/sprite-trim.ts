@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { cropSprite, trimmedBounds } from "../core/crop.ts";
+import { requireRgba } from "../target.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 export const spriteTrim = defineOp({
 	name: "sprite.trim",

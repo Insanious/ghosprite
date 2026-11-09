@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { unlinkCel } from "../core/sprite.ts";
-import { resolveTarget } from "./draw.ts";
+import { resolveTarget } from "../target.ts";
 import { defineOp } from "./registry.ts";
 
 export const celUnlink = defineOp({

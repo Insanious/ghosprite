@@ -3,11 +3,11 @@ import { cropSprite } from "../core/crop.ts";
 import { paletteAt } from "../core/palette.ts";
 import { findBackground } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { requireRgba } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { rectSchema } from "./draw-options.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 export const spriteCrop = defineOp({
 	name: "sprite.crop",

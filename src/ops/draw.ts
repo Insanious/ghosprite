@@ -10,41 +10,14 @@ import type { Mask } from "../core/draw/spans.ts";
 import { drawShape, type Shape, type SprayShape } from "../core/draw/stroke.ts";
 import { type Image, isEmptyRect } from "../core/image.ts";
 import { type Palette, paletteAt } from "../core/palette.ts";
-import type { ImageLayer, Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { toRgba } from "./color.ts";
 import type { drawFields, maskSchema } from "./draw-options.ts";
-import { requireRgba } from "./require-rgba.ts";
 import { imageFromRows, splitRows } from "./rows.ts";
 
 type DrawInput = z.output<z.ZodObject<typeof drawFields>>;
-
-/** The image layer and sprite an edit targets, rejecting groups, missing frames and non-RGBA sprites. */
-export function resolveTarget(
-	workspace: Workspace,
-	spriteId: string,
-	layerId: string,
-	frame: number,
-): { sprite: Sprite; layer: ImageLayer } {
-	const sprite = workspace.getSprite(spriteId);
-	const layer = workspace.getLayer(spriteId, layerId);
-	if (layer.kind !== "image") {
-		throw new OpError("invalid_input", `Layer "${layer.id}" is a group`, {
-			path: "layerId",
-			hint: "Target an image layer",
-		});
-	}
-	if (frame >= sprite.frameDurations.length) {
-		throw new OpError(
-			"out_of_range",
-			`Frame ${frame} is outside 0..${sprite.frameDurations.length - 1}`,
-			{ path: "frame" },
-		);
-	}
-	requireRgba(sprite);
-	return { sprite, layer };
-}
 
 export function toMask(
 	workspace: Workspace,

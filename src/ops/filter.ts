@@ -11,8 +11,9 @@ import {
 } from "../core/image.ts";
 import type { CelData, Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
-import { resolveTarget, toMask } from "./draw.ts";
+import { toMask } from "./draw.ts";
 import { maskSchema } from "./draw-options.ts";
 import type { ChangedRect } from "./registry.ts";
 

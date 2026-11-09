@@ -2,7 +2,7 @@ import { z } from "zod";
 import { isEmptyRect } from "../core/image.ts";
 import { celCanvasRect } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
-import { resolveTarget } from "./draw.ts";
+import { resolveTarget } from "../target.ts";
 import { defineOp } from "./registry.ts";
 
 export const celDelete = defineOp({

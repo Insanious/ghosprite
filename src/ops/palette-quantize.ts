@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { paletteAt } from "../core/palette.ts";
 import { quantizeSprite } from "../core/quantize-sprite.ts";
+import { requireRgba } from "../target.ts";
 import { MAX_COLORS } from "./palette.ts";
 import { defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 export const paletteQuantize = defineOp({
 	name: "palette.quantize",

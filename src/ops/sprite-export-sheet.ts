@@ -5,9 +5,9 @@ import { encodePng } from "../core/png.ts";
 import { layoutSheet } from "../core/sheet.ts";
 import { buildSheetJson } from "../core/sheet-json.ts";
 import { OpError } from "../errors.ts";
+import { requireRgba } from "../target.ts";
 import { writeFile } from "./file.ts";
 import { defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 const supportedToken =
 	/^\{(?:name|title|extension|tag|duration|(?:frame|tagframe)\d*)\}$/;

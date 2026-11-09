@@ -3,7 +3,7 @@ import { commitCel } from "../core/cel-edit.ts";
 import { isEmptyRect, unionRects } from "../core/image.ts";
 import { paletteAt } from "../core/palette.ts";
 import { celCanvasRect } from "../core/sprite.ts";
-import { resolveTarget } from "./draw.ts";
+import { resolveTarget } from "../target.ts";
 import { defineOp } from "./registry.ts";
 import {
 	imageFromRows,

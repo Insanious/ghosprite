@@ -2,9 +2,9 @@ import { z } from "zod";
 import { flattenSprite } from "../core/merge.ts";
 import { createImageLayer, findBackground } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { requireRgba } from "../target.ts";
 import { newLayerUuid } from "./layer-uuid.ts";
 import { defineOp } from "./registry.ts";
-import { requireRgba } from "./require-rgba.ts";
 
 export const spriteFlatten = defineOp({
 	name: "sprite.flatten",

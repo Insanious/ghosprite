@@ -56,13 +56,13 @@ export class Workspace {
 		return sprite;
 	}
 
-	getLayer(spriteId: string, layerId: string): Layer {
+	getLayer(spriteId: string, layerId: string, path = "layerId"): Layer {
 		const layer = findLayer(this.getSprite(spriteId), layerId);
 		if (!layer) {
 			throw new OpError(
 				"not_found",
 				`No layer with id "${layerId}" in ${spriteId}`,
-				{ path: "layerId" },
+				{ path },
 			);
 		}
 		return layer;
