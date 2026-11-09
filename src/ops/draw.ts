@@ -15,7 +15,7 @@ import type { Workspace } from "../workspace.ts";
 import { editCel } from "./cel-edit.ts";
 import { toRgba } from "./color.ts";
 import type { drawFields, maskSchema } from "./draw-options.ts";
-import { imageFromRows, splitRows } from "./rows.ts";
+import { BLANK_CHARS, imageFromRows, splitRows } from "./rows.ts";
 
 type DrawInput = z.output<z.ZodObject<typeof drawFields>>;
 
@@ -42,7 +42,7 @@ export function toMask(
 		cells.length,
 		cells.flatMap((row) =>
 			Array.from({ length: width }, (_, x) =>
-				x >= row.length || row[x] === " " || row[x] === "." ? 0 : 1,
+				x >= row.length || BLANK_CHARS.has(row[x] as string) ? 0 : 1,
 			),
 		),
 	);

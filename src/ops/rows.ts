@@ -30,7 +30,7 @@ export const rowsWidthSchema = z
 		"Width of the rows in pixels: a longer row is an error, shorter rows are padded, and it defaults to the longest row. Pass it to catch miscounted rows",
 	);
 
-const TRANSPARENT_CHARS = new Set([".", " "]);
+export const BLANK_CHARS: ReadonlySet<string> = new Set([".", " "]);
 
 const ALPHABET = [
 	..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
@@ -68,7 +68,7 @@ export function rowsFromImage(
 			toRgba(color, `${prefix}legend.${char}`, palette).a > 0
 		);
 	};
-	let transparentChar = [".", " "].find((char) => !isVisible(char));
+	let transparentChar = [...BLANK_CHARS].find((char) => !isVisible(char));
 
 	const pixels: (Rgba | undefined)[] = [];
 	const distinct = new Map<string, Rgba>();
@@ -108,7 +108,7 @@ export function rowsFromImage(
 			if (transparentChar === undefined) {
 				transparentChar = free.shift() as string;
 			}
-			if (transparentChar !== "." && transparentChar !== " ") {
+			if (!BLANK_CHARS.has(transparentChar)) {
 				outLegend[transparentChar] = "#00000000";
 			}
 			return transparentChar;
@@ -210,7 +210,7 @@ export function imageFromRows(
 			const color = colors.get(char);
 			if (color) {
 				setPixel(image, x, y, [color.r, color.g, color.b, color.a]);
-			} else if (!TRANSPARENT_CHARS.has(char)) {
+			} else if (!BLANK_CHARS.has(char)) {
 				throw new OpError(
 					"invalid_input",
 					`Character "${char}" is not in the legend`,
