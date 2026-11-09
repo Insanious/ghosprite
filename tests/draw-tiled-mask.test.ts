@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { getPixel } from "../src/core/image.ts";
 import { OpError } from "../src/errors.ts";
 import { operations } from "../src/ops/index.ts";
 import { createRegistry } from "../src/ops/registry.ts";
@@ -31,10 +32,37 @@ function setup() {
 }
 
 describe("draw masks", () => {
-	test("uneven mask rows are rejected at mask.rows.N", () => {
+	test("a short mask row is padded with outside", () => {
+		const registry = createRegistry(operations);
+		const workspace = new Workspace();
+		const { spriteId } = registry.callOp(workspace, "sprite.create", {
+			width: 8,
+			height: 8,
+		}) as unknown as { spriteId: string };
+		const { layerId } = registry.callOp(workspace, "layer.create", {
+			spriteId,
+		}) as unknown as { layerId: string };
+		registry.callOp(workspace, "draw.rect", {
+			spriteId,
+			layerId,
+			frame: 0,
+			color: "#000000",
+			rect: { x: 0, y: 0, width: 8, height: 8 },
+			filled: true,
+			mask: { x: 0, y: 0, rows: ["###", "##"] },
+		});
+		const layer = workspace.getLayer(spriteId, layerId);
+		if (layer.kind !== "image") throw new Error("Expected an image layer");
+		const image = layer.cels.get(0)?.data.image;
+		if (!image) throw new Error("Expected a cel");
+		expect(getPixel(image, 1, 1)[3]).toBe(255);
+		expect(getPixel(image, 2, 1)[3]).toBe(0);
+	});
+
+	test("a mask row longer than width is rejected at mask.rows.N", () => {
 		const draw = setup();
 		try {
-			draw({ x: 0, y: 0, rows: ["###", "##"] });
+			draw({ x: 0, y: 0, rows: ["##", "###"], width: 2 });
 			expect.unreachable();
 		} catch (error) {
 			expect(error).toBeInstanceOf(OpError);

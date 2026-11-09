@@ -52,29 +52,17 @@ export const maskSchema = z.union([
 	z.strictObject({ rect: rectSchema }),
 	z.strictObject({ polygon: z.array(pointSchema).min(3) }),
 	z.strictObject({ selectionId: z.string() }),
-	z
-		.strictObject({
-			x: z.number().int(),
-			y: z.number().int(),
-			rows: z
-				.array(z.string().min(1))
-				.min(1)
-				.describe(
-					'One string per row, equal length: "." and " " are outside, every other character is inside',
-				),
-		})
-		.superRefine((mask, ctx) => {
-			const width = Array.from(mask.rows[0]).length;
-			mask.rows.forEach((row, index) => {
-				if (Array.from(row).length !== width) {
-					ctx.addIssue({
-						code: "custom",
-						message: `Row has ${Array.from(row).length} characters, expected ${width}`,
-						path: ["rows", index],
-					});
-				}
-			});
-		}),
+	z.strictObject({
+		x: z.number().int(),
+		y: z.number().int(),
+		rows: z
+			.array(z.string().min(1))
+			.min(1)
+			.describe(
+				'One string per row: "." and " " are outside, every other character is inside, and short rows are padded with outside',
+			),
+		width: rowsWidthSchema,
+	}),
 ]);
 const axisSchema = z.number().multipleOf(0.5);
 

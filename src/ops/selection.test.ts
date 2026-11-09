@@ -64,6 +64,29 @@ describe("selection ops", () => {
 		});
 	});
 
+	test("ragged rows shape selects only the characters written", () => {
+		const { session, spriteId } = setup();
+		const result = run(session, "selection.create", {
+			spriteId,
+			shape: { x: 1, y: 1, rows: ["###", "#"] },
+		});
+		expect(result).toMatchObject({
+			bounds: { x: 1, y: 1, width: 3, height: 2 },
+			pixels: 4,
+		});
+	});
+
+	test("a rows shape row longer than width is invalid_input at shape.rows.N", () => {
+		const { session, spriteId } = setup();
+		const error = failure(() =>
+			run(session, "selection.create", {
+				spriteId,
+				shape: { x: 0, y: 0, rows: ["##", "###"], width: 2 },
+			}),
+		);
+		expect([error.code, error.path]).toEqual(["invalid_input", "shape.rows.1"]);
+	});
+
 	test("all selects the canvas and ellipse an inscribed ellipse", () => {
 		const { session, spriteId } = setup();
 		expect(

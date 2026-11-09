@@ -144,5 +144,5 @@ export function resolveShape(
 	if ("color" in shape) return colorRangeMask(workspace, spriteId, shape.color);
 	if ("content" in shape)
 		return contentMask(workspace, spriteId, shape.content);
-	return trimMask(toMask(workspace, spriteId, shape, "shape.selectionId"));
+	return trimMask(toMask(workspace, spriteId, shape, "shape"));
 }

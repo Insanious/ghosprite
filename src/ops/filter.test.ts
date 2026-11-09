@@ -111,6 +111,29 @@ describe("filter runner", () => {
 		expect(getPixel(image, 1, 0)).toEqual([255, 0, 0, 255]);
 	});
 
+	test("a ragged rows mask leaves the padded area unchanged", () => {
+		const { workspace, spriteId, layerId } = setup();
+		call(workspace, "cel.set", {
+			spriteId,
+			layerId,
+			frame: 0,
+			legend: { R: "#ff0000" },
+			rows: ["RR"],
+		});
+		call(workspace, "filter.invert", {
+			spriteId,
+			layerId,
+			frames: [0],
+			mask: { x: 0, y: 0, rows: ["#", "#"], width: 2 },
+		});
+		const layer = workspace.getLayer(spriteId, layerId);
+		if (layer.kind !== "image") throw new Error("Expected an image layer");
+		const image = layer.cels.get(0)?.data.image;
+		if (!image) throw new Error("Expected a cel");
+		expect(getPixel(image, 0, 0)).toEqual([0, 255, 255, 255]);
+		expect(getPixel(image, 1, 0)).toEqual([255, 0, 0, 255]);
+	});
+
 	test("a frame with no cel is skipped", () => {
 		const { workspace, spriteId, layerId } = setup();
 		call(workspace, "cel.set", {
