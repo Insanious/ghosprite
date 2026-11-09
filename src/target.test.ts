@@ -153,4 +153,12 @@ describe("resolveTargetFrames", () => {
 				.code,
 		).toBe("unsupported");
 	});
+
+	test("an out-of-range frame on an indexed sprite is out_of_range, not unsupported", () => {
+		const { workspace, spriteId, layerId } = setup("indexed");
+		expect(
+			failure(() => resolveTargetFrames(workspace, spriteId, layerId, [9]))
+				.code,
+		).toBe("out_of_range");
+	});
 });

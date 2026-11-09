@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { celCanvas, commitCel } from "../core/cel-edit.ts";
 import type { Mask } from "../core/draw/spans.ts";
 import { isEmptyRect, unionRects } from "../core/image.ts";
 import { paletteAt } from "../core/palette.ts";
@@ -15,10 +14,10 @@ import {
 	maskPixelCount,
 	trimMask,
 } from "../core/selection.ts";
-import type { CelData } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
+import { editCels } from "./cel-edit.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { filterFields } from "./filter.ts";
 import type { ChangedRect } from "./registry.ts";
@@ -70,30 +69,20 @@ export function runRegion(
 		: transformMask(selection, transform);
 	const moved = trimMask(placed);
 
-	const changed: ChangedRect[] = [];
+	let changed: ChangedRect[] = [];
 	if (!isEmptyRect(selection.bounds)) {
 		const area = unionRects(selection.bounds, placed.bounds);
-		const done = new Set<CelData>();
-		for (const frame of [...new Set(input.frames)].sort((a, b) => a - b)) {
-			const cel = layer.cels.get(frame);
-			if (!cel || done.has(cel.data)) continue;
-			done.add(cel.data);
-
+		changed = editCels({ sprite, layer }, input.frames, (cel, frame) => {
 			const fill =
 				input.fill === undefined
 					? { r: 0, g: 0, b: 0, a: 0 }
 					: toRgba(input.fill, "fill", paletteAt(sprite.palettes, frame));
-			const canvas = growCanvas(celCanvas(sprite, layer, frame), area);
+			const canvas = growCanvas(cel, area);
 			const floating = liftRegion(canvas, selection, fill);
 			const result = transform(floating, selection.bounds);
 			dropRegion(canvas, result.image, placed);
-
-			const commit = commitCel(sprite, layer, frame, canvas);
-			if (isEmptyRect(commit.rect)) continue;
-			for (const shared of commit.frames) {
-				changed.push({ layerId: layer.id, frame: shared, rect: commit.rect });
-			}
-		}
+			return canvas;
+		}).changed;
 	}
 
 	sprite.selections.set(input.selectionId, moved);

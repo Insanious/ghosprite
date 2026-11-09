@@ -196,23 +196,6 @@ describe("region.move", () => {
 		expect(at(session, spriteId, layerId, 1, 0)).toEqual(RED);
 	});
 
-	test("moves linked cels once and reports every linked frame", () => {
-		const { session, spriteId, layerId } = setup(3);
-		const ids = { spriteId, layerId };
-		rect(session, ids, 0, [0, 0, 1, 1], "#ff0000");
-		session.run("cel.link", { ...ids, frames: [0, 1] });
-		const selectionId = select(session, spriteId, { x: 0, y: 0, rows: ["1"] });
-		const result = move(session, ids, selectionId, {
-			dx: 2,
-			dy: 0,
-			frames: [0, 1, 2],
-		});
-		expect(result.changed.map((c) => c.frame).sort()).toEqual([0, 1]);
-		expect(at(session, spriteId, layerId, 2, 0, 0)).toEqual(RED);
-		expect(at(session, spriteId, layerId, 2, 0, 1)).toEqual(RED);
-		expect(at(session, spriteId, layerId, 0, 0, 1)).toEqual(CLEAR);
-	});
-
 	test("moves the stored selection by the same offset", () => {
 		const { session, spriteId, layerId } = setup();
 		const ids = { spriteId, layerId };

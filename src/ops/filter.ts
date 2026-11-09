@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type CelCanvas, celCanvas, commitCel } from "../core/cel-edit.ts";
+import type { CelCanvas } from "../core/cel-edit.ts";
 import type { Mask } from "../core/draw/spans.ts";
 import type { ChannelName, Channels, Filter } from "../core/filter/filter.ts";
 import {
@@ -9,12 +9,11 @@ import {
 	isEmptyRect,
 	type Rect,
 } from "../core/image.ts";
-import type { CelData } from "../core/sprite.ts";
 import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
+import { editCels } from "./cel-edit.ts";
 import { toMask } from "./draw.ts";
 import { maskSchema } from "./draw-options.ts";
-import type { ChangedRect } from "./registry.ts";
 
 const channelNames: [ChannelName, ...ChannelName[]] = ["r", "g", "b", "a"];
 
@@ -71,27 +70,16 @@ export function runFilter(
 	const canvasRect = { x: 0, y: 0, width: sprite.width, height: sprite.height };
 	const area = mask ? intersectRects(mask.bounds, canvasRect) : canvasRect;
 
-	const filtered = new Set<CelData>();
-	const changed: ChangedRect[] = [];
-	for (const frame of [...new Set(input.frames)].sort((a, b) => a - b)) {
-		const cel = layer.cels.get(frame);
-		if (!cel || filtered.has(cel.data) || isEmptyRect(area)) continue;
-		filtered.add(cel.data);
+	if (isEmptyRect(area)) return { changed: [] };
 
-		const canvas = celCanvas(sprite, layer, frame);
+	return editCels({ sprite, layer }, input.frames, (canvas) => {
 		const source = copyImage(canvas.image);
 		const imageArea = { ...area, x: area.x - canvas.x, y: area.y - canvas.y };
 		const imageCanvas = { ...canvasRect, x: -canvas.x, y: -canvas.y };
 		filter(source, canvas.image, imageArea, channels, imageCanvas);
 		if (mask) keepOutsideMask(source, canvas, mask, area);
-
-		const commit = commitCel(sprite, layer, frame, canvas);
-		if (isEmptyRect(commit.rect)) continue;
-		for (const shared of commit.frames) {
-			changed.push({ layerId: layer.id, frame: shared, rect: commit.rect });
-		}
-	}
-	return { changed };
+		return canvas;
+	});
 }
 
 function keepOutsideMask(
