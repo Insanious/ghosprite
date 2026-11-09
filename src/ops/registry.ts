@@ -3,7 +3,6 @@ import type { Rect } from "../core/image.ts";
 import { OpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import {
-	checkRenderable,
 	type RenderedFrame,
 	renderOptionSchema,
 	renderPngs,
@@ -71,20 +70,16 @@ export function defineOp<S extends z.ZodObject>(
 				render?: z.infer<typeof renderOptionSchema>;
 			};
 			const inputSpriteId = (input as { spriteId?: unknown }).spriteId;
-			if (withRender && input.render && inputSpriteId !== undefined) {
-				checkRenderable(
-					workspace.getSprite(String(inputSpriteId)),
-					input.render,
-					input.render.frames ?? [],
-					"render.",
+			if (
+				withRender &&
+				input.render?.selectionId &&
+				inputSpriteId !== undefined
+			) {
+				workspace.getSelection(
+					String(inputSpriteId),
+					input.render.selectionId,
+					"render.selectionId",
 				);
-				if (input.render.selectionId) {
-					workspace.getSelection(
-						String(inputSpriteId),
-						input.render.selectionId,
-						"render.selectionId",
-					);
-				}
 			}
 			const output = definition.run(workspace, input);
 			const result = {

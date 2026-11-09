@@ -10,12 +10,8 @@ import type { Sprite } from "./core/sprite.ts";
 import { upscale } from "./core/upscale.ts";
 import { OpError } from "./errors.ts";
 import { parseInput } from "./ops/registry.ts";
-import {
-	checkPixelLimit,
-	renderOptionFields,
-	withGridRule,
-	withRenderBackground,
-} from "./ops/render.ts";
+import { renderOptionFields, withGridRule } from "./ops/render.ts";
+import { checkPixelLimit, withRenderBackground } from "./ops/render-output.ts";
 import type { Session } from "./session.ts";
 
 export type Tool = {

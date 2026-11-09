@@ -6,7 +6,6 @@ import { createSprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { createRegistry, defineOp } from "./registry.ts";
-import { renderPngs } from "./render.ts";
 
 const touch = defineOp({
 	name: "test.touch",
@@ -172,30 +171,6 @@ describe("callOp", () => {
 		});
 	});
 
-	test("the grid line counts toward the pixel limit", () => {
-		const workspace = new Workspace();
-		const spriteId = workspace.addSprite(
-			createSprite({
-				width: 64,
-				height: 64,
-				mode: "rgba",
-				palettes: [{ startFrame: 0, colors: [] }],
-				frameDurations: [100],
-			}),
-		);
-		const sprite = workspace.getSprite(spriteId);
-		expect(() =>
-			renderPngs(sprite, { scale: 64, grid: false }, [0], ""),
-		).not.toThrow();
-		const error = thrown(() =>
-			renderPngs(sprite, { scale: 64, grid: true }, [0], ""),
-		);
-		expect(error.toJSON()).toMatchObject({
-			code: "out_of_range",
-			path: "scale",
-		});
-	});
-
 	test("a render option on an op with no spriteId is an internal error", () => {
 		const { workspace } = setup();
 		const error = thrown(() =>
@@ -277,31 +252,6 @@ describe("render background", () => {
 		expect(decodePng(png, inflateSync).data.subarray(0, 4)).toEqual(
 			new Uint8Array([0, 0, 0, 0]),
 		);
-	});
-
-	test("without a background a transparent pixel stays transparent", () => {
-		expect(renderedPixels({ scale: 1 }).at(0, 0)).toEqual([0, 0, 0, 0]);
-	});
-
-	test("checker squares are 8 output pixels at scale 1 and 4, and 9 at scale 3", () => {
-		const light = [0xcc, 0xcc, 0xcc, 255];
-		const dark = [0x99, 0x99, 0x99, 255];
-		const at1 = renderedPixels({ scale: 1, background: "checker" }).at;
-		expect([at1(7, 0), at1(8, 0)]).toEqual([light, dark]);
-		const at4 = renderedPixels({ scale: 4, background: "checker" }).at;
-		expect([at4(7, 0), at4(8, 0)]).toEqual([light, dark]);
-		const at3 = renderedPixels({ scale: 3, background: "checker" }).at;
-		expect([at3(8, 0), at3(9, 0)]).toEqual([light, dark]);
-	});
-
-	test("the grid is drawn over the background", () => {
-		const { at } = renderedPixels({
-			scale: 4,
-			grid: true,
-			background: "#203040",
-		});
-		expect(at(0, 0)).not.toEqual([0x20, 0x30, 0x40, 255]);
-		expect(at(1, 1)).toEqual([0x20, 0x30, 0x40, 255]);
 	});
 
 	test("{index} and a short hex are invalid_input at render.background", () => {

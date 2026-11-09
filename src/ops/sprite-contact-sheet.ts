@@ -5,14 +5,10 @@ import { encodePng } from "../core/png.ts";
 import { renderFrame } from "../core/render.ts";
 import { upscale } from "../core/upscale.ts";
 import { OpError } from "../errors.ts";
+import { checkFrames } from "../target.ts";
 import { defineOp } from "./registry.ts";
-import {
-	checkPixelLimit,
-	checkRenderable,
-	renderOptionFields,
-	withGridRule,
-	withRenderBackground,
-} from "./render.ts";
+import { renderOptionFields, withGridRule } from "./render.ts";
+import { checkPixelLimit, withRenderBackground } from "./render-output.ts";
 
 export const spriteContactSheet = defineOp({
 	name: "sprite.contactSheet",
@@ -63,7 +59,7 @@ export const spriteContactSheet = defineOp({
 		if (frames.length === 0) {
 			throw new OpError("invalid_input", "frames is empty", { path: "frames" });
 		}
-		checkRenderable(sprite, input, frames, "");
+		checkFrames(sprite, frames, "frames");
 
 		const columns = Math.min(
 			input.columns ?? Math.ceil(Math.sqrt(frames.length)),

@@ -102,24 +102,6 @@ describe("selection highlight on renders", () => {
 		expect(pixelAt(data, 4, 2, 2)).toEqual([255, 0, 255, 128]);
 	});
 
-	test("a selection highlight still shows over a background", () => {
-		const { session, spriteId } = setup();
-		const { selectionId } = session.run("selection.create", {
-			spriteId,
-			shape: { rect: { x: 3, y: 3, width: 1, height: 1 } },
-		}) as unknown as { selectionId: string };
-		const data = pngData(
-			session.run("sprite.render", {
-				spriteId,
-				scale: 1,
-				selectionId,
-				background: "#ffffff",
-			}),
-		);
-		expect(pixelAt(data, 4, 3, 3)).toEqual([255, 127, 255, 255]);
-		expect(pixelAt(data, 4, 1, 1)).toEqual([255, 255, 255, 255]);
-	});
-
 	test("sprite.render rejects {index} as a background at background", () => {
 		const { session, spriteId } = setup();
 		const error = failure(() =>

@@ -12,7 +12,7 @@ import { OpError } from "../errors.ts";
 import { checkFrame } from "../target.ts";
 import { writeFile } from "./file.ts";
 import { defineOp } from "./registry.ts";
-import { checkPixelLimit } from "./render.ts";
+import { checkPixelLimit } from "./render-output.ts";
 
 const FORMAT_HINT = "Use a path ending in .png, .gif or .webp";
 

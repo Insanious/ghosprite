@@ -179,6 +179,39 @@ describe("Session undo and redo", () => {
 		expect(error.path).toBe("spriteId");
 	});
 
+	test("a resize that grows past the render limit fails at render.scale and keeps the old size", () => {
+		const { session, spriteId } = setup();
+		const error = thrown(() =>
+			session.run("sprite.resize", {
+				spriteId,
+				width: 128,
+				height: 128,
+				render: { scale: 64 },
+			}),
+		);
+		expect(error.toJSON()).toMatchObject({
+			code: "out_of_range",
+			path: "render.scale",
+		});
+		const sprite = session.workspace.getSprite(spriteId);
+		expect([sprite.width, sprite.height]).toEqual([4, 4]);
+	});
+
+	test("a resize that shrinks under the render limit succeeds and returns its render", () => {
+		const session = new Session();
+		const { spriteId } = session.run("sprite.create", {
+			width: 128,
+			height: 128,
+		}) as unknown as Created;
+		const result = session.run("sprite.resize", {
+			spriteId,
+			width: 4,
+			height: 4,
+			render: { scale: 64 },
+		}) as unknown as { render: { png: Uint8Array }[] };
+		expect(result.render).toHaveLength(1);
+	});
+
 	test("linked cels stay linked across undo and redo", () => {
 		const { session, spriteId, layerId } = setup(2);
 		draw(session, spriteId, layerId, 0, "#ff0000");
