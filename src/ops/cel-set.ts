@@ -10,7 +10,7 @@ import { imageFromRows, legendSchema, rowsSchema } from "./rows.ts";
 export const celSet = defineOp({
 	name: "cel.set",
 	description:
-		"Replace a cel's image, position and opacity from rows of legend characters, creating the cel if needed. To paint rows over existing pixels instead of replacing the cel, use draw.image.",
+		"Replace a cel's image, position and opacity from rows of legend characters, creating the cel if needed. To paint rows over existing pixels instead of replacing the cel, use draw.image. The result's cel is the cel's bounds after transparent edges are trimmed; changed covers only the pixels that changed.",
 	input: z.object({
 		spriteId: z.string(),
 		layerId: z.string(),
@@ -49,6 +49,7 @@ export const celSet = defineOp({
 			changed: isEmptyRect(rect)
 				? []
 				: commit.frames.map((frame) => ({ layerId: layer.id, frame, rect })),
+			cel: commit.cel ?? null,
 		};
 	},
 });

@@ -22,6 +22,8 @@ export type CelCommit = {
 	frames: number[];
 	/** Pixels that changed, clipped to the canvas. Empty when none did. */
 	rect: Rect;
+	/** The committed cel's bounds in sprite space, not clipped. Absent when no cel is left. */
+	cel?: Rect;
 };
 
 function requireRgba(sprite: Sprite): void {
@@ -199,6 +201,7 @@ export function commitCel(
 		return { frames, rect: intersectRects(diff, canvasRect(sprite)) };
 	}
 
+	const cel = imageRect(next);
 	if (existing) {
 		Object.assign(existing.data, { image: next.image, x: next.x, y: next.y });
 		if (changed) delete existing.data.preciseBounds;
@@ -211,7 +214,7 @@ export function commitCel(
 			userData: createUserData(),
 		});
 	}
-	return { frames, rect: intersectRects(diff, canvasRect(sprite)) };
+	return { frames, rect: intersectRects(diff, canvasRect(sprite)), cel };
 }
 
 function emptyCanvas(): CelCanvas {

@@ -379,5 +379,99 @@ describe("cel.set", () => {
 				255, 0, 0, 255,
 			]);
 		}
+		expect(result).toMatchObject({ cel: { x: 0, y: 0, width: 1, height: 1 } });
+		expect(layer.cels.get(0)?.data).toBe(layer.cels.get(2)?.data);
+	});
+
+	describe("cel", () => {
+		const target = { frame: 0 };
+
+		test("is the whole new cel while changed is only the diff", () => {
+			const { workspace, spriteId, layer } = setup();
+			const input = { spriteId, layerId: layer.id, ...target, legend };
+			run(workspace, { ...input, rows: ["RRRR", "RRRR", "RRRR"] });
+			const result = run(workspace, {
+				...input,
+				rows: ["RRRR", "RRRR", "BBBB"],
+			});
+			expect(result.changed).toEqual([
+				{
+					layerId: layer.id,
+					frame: 0,
+					rect: { x: 0, y: 2, width: 4, height: 1 },
+				},
+			]);
+			expect(result).toMatchObject({
+				cel: { x: 0, y: 0, width: 4, height: 3 },
+			});
+		});
+
+		test("is the trimmed bounds when the rows have transparent margins", () => {
+			const { workspace, spriteId, layer } = setup();
+			const result = run(workspace, {
+				spriteId,
+				layerId: layer.id,
+				...target,
+				legend,
+				rows: ["....", ".R.R", "...."],
+			});
+			expect(result).toMatchObject({
+				cel: { x: 1, y: 1, width: 3, height: 1 },
+			});
+		});
+
+		test("keeps a negative x while changed is clipped to the canvas", () => {
+			const { workspace, spriteId, layer } = setup();
+			const result = run(workspace, {
+				spriteId,
+				layerId: layer.id,
+				...target,
+				x: -2,
+				y: 1,
+				legend,
+				rows: ["RRRR"],
+			});
+			expect(result).toMatchObject({
+				cel: { x: -2, y: 1, width: 4, height: 1 },
+			});
+			expect(result.changed).toEqual([
+				{
+					layerId: layer.id,
+					frame: 0,
+					rect: { x: 0, y: 1, width: 2, height: 1 },
+				},
+			]);
+		});
+
+		test("is null when transparent rows clear the cel", () => {
+			const { workspace, spriteId, layer } = setup();
+			const input = { spriteId, layerId: layer.id, ...target, legend };
+			run(workspace, { ...input, rows: ["R"] });
+			const result = run(workspace, { ...input, rows: ["."] });
+			expect(result).toMatchObject({ cel: null });
+			expect(layer.cels.has(0)).toBe(false);
+		});
+
+		test("is the whole canvas on a background layer", () => {
+			const { workspace, spriteId, sprite } = setup();
+			const background = createImageLayer({
+				id: workspace.nextId("layer"),
+				name: "BG",
+				flags: { background: true },
+			});
+			addLayer(sprite, background, sprite.root, 0);
+			const result = run(workspace, {
+				spriteId,
+				layerId: background.id,
+				...target,
+				x: 1,
+				y: 1,
+				legend,
+				rows: ["R"],
+			});
+			expect(result).toMatchObject({
+				cel: { x: 0, y: 0, width: 4, height: 4 },
+			});
+		});
 	});
 });

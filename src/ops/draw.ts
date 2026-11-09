@@ -140,5 +140,6 @@ export function runDraw(
 					frame,
 					rect: commit.rect,
 				})),
+		cel: commit.cel ?? null,
 	};
 }
