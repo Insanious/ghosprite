@@ -10,6 +10,7 @@ import { highlightMask } from "../core/selection.ts";
 import type { Sprite } from "../core/sprite.ts";
 import { upscale } from "../core/upscale.ts";
 import { OpError } from "../errors.ts";
+import { checkFrames } from "../target.ts";
 import { literalColorSchema, toRgba } from "./color.ts";
 
 const backgroundSchema = z.union([
@@ -82,16 +83,7 @@ export function checkRenderable(
 	frames: number[],
 	pathPrefix: string,
 ) {
-	const frameCount = sprite.frameDurations.length;
-	for (const frame of frames) {
-		if (frame >= frameCount) {
-			throw new OpError(
-				"out_of_range",
-				`Frame ${frame} is out of range, the sprite has ${frameCount} frames`,
-				{ path: `${pathPrefix}frames` },
-			);
-		}
-	}
+	checkFrames(sprite, frames, `${pathPrefix}frames`);
 	const gridPixels = option.grid ? 1 : 0;
 	checkPixelLimit(
 		sprite.width * option.scale + gridPixels,

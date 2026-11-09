@@ -170,6 +170,14 @@ describe("filter runner", () => {
 		expect(error.path).toBe("frames.1");
 	});
 
+	test("frames are checked before the sprite mode", () => {
+		const { workspace, spriteId, layerId } = setup("indexed");
+		const error = failure(() =>
+			call(workspace, "filter.invert", { spriteId, layerId, frames: [9] }),
+		);
+		expect(error.code).toBe("out_of_range");
+	});
+
 	test("an indexed sprite is rejected", () => {
 		const { workspace, spriteId, layerId } = setup("indexed");
 		const error = failure(() =>

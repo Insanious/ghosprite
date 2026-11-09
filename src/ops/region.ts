@@ -17,10 +17,10 @@ import {
 } from "../core/selection.ts";
 import type { CelData } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
-import { resolveTarget } from "../target.ts";
+import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";
-import { checkFrames, filterFields } from "./filter.ts";
+import { filterFields } from "./filter.ts";
 import type { ChangedRect } from "./registry.ts";
 
 export const regionFields = {
@@ -48,13 +48,12 @@ export function runRegion(
 	input: RegionInput,
 	transform: RegionTransform,
 ) {
-	const { sprite, layer } = resolveTarget(
+	const { sprite, layer } = resolveTargetFrames(
 		workspace,
 		input.spriteId,
 		input.layerId,
-		0,
+		input.frames,
 	);
-	checkFrames(sprite, input.frames);
 	if (layer.flags.background && input.fill === undefined) {
 		throw new OpError(
 			"unsupported",

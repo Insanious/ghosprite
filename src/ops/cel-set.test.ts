@@ -92,7 +92,7 @@ describe("cel.set", () => {
 		);
 		expect(error.toJSON()).toMatchObject({
 			code: "out_of_range",
-			path: "render.frames",
+			path: "render.frames.0",
 		});
 		expect(layer.cels.size).toBe(0);
 	});

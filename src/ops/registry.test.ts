@@ -135,7 +135,7 @@ describe("callOp", () => {
 		expect(result.render?.map((r) => r.frame)).toEqual([0, 2]);
 	});
 
-	test("a render frame past the end is out_of_range at render.frames", () => {
+	test("a render frame past the end is out_of_range at render.frames.0", () => {
 		const { workspace, spriteId } = setup();
 		const error = thrown(() =>
 			registry.callOp(workspace, "test.touch", {
@@ -145,7 +145,7 @@ describe("callOp", () => {
 		);
 		expect(error.toJSON()).toMatchObject({
 			code: "out_of_range",
-			path: "render.frames",
+			path: "render.frames.0",
 		});
 	});
 

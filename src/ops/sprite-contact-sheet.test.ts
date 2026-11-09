@@ -102,13 +102,13 @@ describe("sprite.contactSheet", () => {
 		expect(error.code).toBe("not_found");
 	});
 
-	test("a frame past the end is out_of_range at frames", () => {
+	test("a frame past the end is out_of_range at frames.0", () => {
 		const { workspace, spriteId } = setup();
 		const error = failure(() =>
 			call(workspace, "sprite.contactSheet", { spriteId, frames: [5] }),
 		);
 		expect(error.code).toBe("out_of_range");
-		expect(error.path).toBe("frames");
+		expect(error.path).toBe("frames.0");
 	});
 
 	test("frames and tag together are invalid_input", () => {

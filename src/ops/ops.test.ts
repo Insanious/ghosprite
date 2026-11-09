@@ -128,7 +128,7 @@ describe("sprite.render", () => {
 			call(workspace, "sprite.render", { spriteId, frames: [5] }),
 		);
 		expect(error.code).toBe("out_of_range");
-		expect(error.path).toBe("frames");
+		expect(error.path).toBe("frames.0");
 	});
 
 	test("renders every frame by default", () => {

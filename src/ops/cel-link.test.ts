@@ -143,7 +143,7 @@ describe("cel.link and cel.unlink", () => {
 		expect(error.path).toBe("layerId");
 	});
 
-	test("a frame past the end is rejected at frames", () => {
+	test("a frame past the end is rejected at frames.1", () => {
 		const { workspace, spriteId, layer } = setup();
 		const error = thrown(() =>
 			registry.callOp(workspace, "cel.link", {
@@ -152,7 +152,7 @@ describe("cel.link and cel.unlink", () => {
 				frames: [0, 3],
 			}),
 		);
-		expect(error.path).toBe("frames");
+		expect(error.path).toBe("frames.1");
 	});
 
 	test("fewer than 2 frames fails the schema", () => {
