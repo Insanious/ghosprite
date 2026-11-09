@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { colorSchema } from "./color.ts";
-import { pointSchema, rectSchema } from "./geometry.ts";
+import { maskSchema } from "./mask.ts";
 import { legendSchema, rowsSchema, rowsWidthSchema } from "./rows.ts";
 
 export const inkSchema = z
@@ -37,22 +37,6 @@ export const brushSchema = z
 
 export const tiledSchema = z.enum(["x", "y", "both"]).optional();
 
-export const maskSchema = z.union([
-	z.strictObject({ rect: rectSchema }),
-	z.strictObject({ polygon: z.array(pointSchema).min(3) }),
-	z.strictObject({ selectionId: z.string() }),
-	z.strictObject({
-		x: z.number().int(),
-		y: z.number().int(),
-		rows: z
-			.array(z.string().min(1))
-			.min(1)
-			.describe(
-				'One string per row: "." and " " are outside, every other character is inside, and short rows are padded with outside',
-			),
-		width: rowsWidthSchema,
-	}),
-]);
 const axisSchema = z.number().multipleOf(0.5);
 
 export const symmetrySchema = z

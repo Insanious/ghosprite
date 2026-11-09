@@ -12,8 +12,7 @@ import {
 import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { editCels } from "./cel-edit.ts";
-import { toMask } from "./draw.ts";
-import { maskSchema } from "./draw-options.ts";
+import { maskSchema, resolveMask } from "./mask.ts";
 
 const channelNames: [ChannelName, ...ChannelName[]] = ["r", "g", "b", "a"];
 
@@ -66,7 +65,8 @@ export function runFilter(
 		b: targeted.includes("b"),
 		a: targeted.includes("a") && !layer.flags.background,
 	};
-	const mask = input.mask && toMask(workspace, input.spriteId, input.mask);
+	const mask =
+		input.mask && resolveMask(workspace, input.spriteId, input.mask, "mask");
 	const canvasRect = { x: 0, y: 0, width: sprite.width, height: sprite.height };
 	const area = mask ? intersectRects(mask.bounds, canvasRect) : canvasRect;
 

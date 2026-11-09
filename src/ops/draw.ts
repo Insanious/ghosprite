@@ -1,11 +1,5 @@
 import type { z } from "zod";
 import { type Brush, createBrush, imageBrush } from "../core/draw/brush.ts";
-import {
-	maskFromBits,
-	maskFromPolygon,
-	maskFromRect,
-} from "../core/draw/mask.ts";
-import type { Mask } from "../core/draw/spans.ts";
 import { drawShape, type Shape, type SprayShape } from "../core/draw/stroke.ts";
 import type { Image } from "../core/image.ts";
 import { type Palette, paletteAt } from "../core/palette.ts";
@@ -14,39 +8,11 @@ import { resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { editCel } from "./cel-edit.ts";
 import { toRgba } from "./color.ts";
-import type { drawFields, maskSchema } from "./draw-options.ts";
-import { BLANK_CHARS, imageFromRows, splitRows } from "./rows.ts";
+import type { drawFields } from "./draw-options.ts";
+import { resolveMask } from "./mask.ts";
+import { imageFromRows } from "./rows.ts";
 
 type DrawInput = z.output<z.ZodObject<typeof drawFields>>;
-
-export function toMask(
-	workspace: Workspace,
-	spriteId: string,
-	spec: z.output<typeof maskSchema>,
-	path = "mask",
-): Mask {
-	if ("selectionId" in spec) {
-		return workspace.getSelection(
-			spriteId,
-			spec.selectionId,
-			`${path}.selectionId`,
-		);
-	}
-	if ("rect" in spec) return maskFromRect(spec.rect);
-	if ("polygon" in spec) return maskFromPolygon(spec.polygon);
-	const { cells, width } = splitRows(spec.rows, spec.width, path);
-	return maskFromBits(
-		spec.x,
-		spec.y,
-		width,
-		cells.length,
-		cells.flatMap((row) =>
-			Array.from({ length: width }, (_, x) =>
-				x >= row.length || BLANK_CHARS.has(row[x] as string) ? 0 : 1,
-			),
-		),
-	);
-}
 
 const COLORLESS_INKS: readonly string[] = ["eraser", "blur", "jumble"];
 
@@ -105,7 +71,8 @@ export function runDraw(
 		seed: input.seed,
 		brush,
 		tiled: input.tiled,
-		mask: input.mask && toMask(workspace, input.spriteId, input.mask),
+		mask:
+			input.mask && resolveMask(workspace, input.spriteId, input.mask, "mask"),
 		symmetry: input.symmetry && {
 			x:
 				input.symmetry.mode === "vertical"

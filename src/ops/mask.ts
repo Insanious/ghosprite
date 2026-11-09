@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { maskFromRect } from "../core/draw/mask.ts";
+import {
+	maskFromBits,
+	maskFromPolygon,
+	maskFromRect,
+} from "../core/draw/mask.ts";
 import type { Mask } from "../core/draw/spans.ts";
 import { paletteAt } from "../core/palette.ts";
 import {
@@ -14,9 +18,22 @@ import {
 import { checkPoint, resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";
-import { toMask } from "./draw.ts";
-import { maskSchema } from "./draw-options.ts";
 import { pointSchema, rectSchema } from "./geometry.ts";
+import { BLANK_CHARS, rowsSchema, rowsWidthSchema, splitRows } from "./rows.ts";
+
+export const maskSchema = z.union([
+	z.strictObject({ rect: rectSchema }),
+	z.strictObject({ polygon: z.array(pointSchema).min(3) }),
+	z.strictObject({ selectionId: z.string() }),
+	z.strictObject({
+		x: z.number().int(),
+		y: z.number().int(),
+		rows: rowsSchema.describe(
+			'One string per row: "." and " " are outside, every other character is inside, and short rows are padded with outside',
+		),
+		width: rowsWidthSchema,
+	}),
+]);
 
 const celFields = {
 	layerId: z.string(),
@@ -67,6 +84,7 @@ function canvasMask(workspace: Workspace, spriteId: string): Mask {
 function celOf(
 	workspace: Workspace,
 	spriteId: string,
+	path: string,
 	kind: "wand" | "color" | "content",
 	cel: { layerId: string; frame: number },
 ) {
@@ -75,7 +93,7 @@ function celOf(
 		spriteId,
 		cel.layerId,
 		cel.frame,
-		`shape.${kind}.`,
+		`${path}.${kind}.`,
 	);
 	return { sprite, data: layer.cels.get(cel.frame)?.data };
 }
@@ -84,9 +102,10 @@ function wandMask(
 	workspace: Workspace,
 	spriteId: string,
 	wand: z.output<typeof wandSchema>,
+	path: string,
 ): Mask {
-	const { sprite, data } = celOf(workspace, spriteId, "wand", wand);
-	checkPoint(sprite, wand.point, "shape.wand.point");
+	const { sprite, data } = celOf(workspace, spriteId, path, "wand", wand);
+	checkPoint(sprite, wand.point, `${path}.wand.point`);
 	if (!data) return emptyMask();
 	return maskFromWand(
 		data.image,
@@ -102,11 +121,12 @@ function colorRangeMask(
 	workspace: Workspace,
 	spriteId: string,
 	spec: z.output<typeof colorRangeSchema>,
+	path: string,
 ): Mask {
-	const { sprite, data } = celOf(workspace, spriteId, "color", spec);
+	const { sprite, data } = celOf(workspace, spriteId, path, "color", spec);
 	const color = toRgba(
 		spec.color,
-		"shape.color.color",
+		`${path}.color.color`,
 		paletteAt(sprite.palettes, spec.frame),
 	);
 	if (!data) return emptyMask();
@@ -117,28 +137,58 @@ function contentMask(
 	workspace: Workspace,
 	spriteId: string,
 	spec: z.output<typeof contentSchema>,
+	path: string,
 ): Mask {
-	const { data } = celOf(workspace, spriteId, "content", spec);
+	const { data } = celOf(workspace, spriteId, path, "content", spec);
 	return data ? maskFromContent(data.image, data) : emptyMask();
 }
 
-/** A new trimmed mask for the shape. */
-export function resolveShape(
+function rowsMask(
+	spec: { x: number; y: number; rows: string[]; width?: number },
+	path: string,
+): Mask {
+	const { cells, width } = splitRows(spec.rows, spec.width, path);
+	return maskFromBits(
+		spec.x,
+		spec.y,
+		width,
+		cells.length,
+		cells.flatMap((row) =>
+			Array.from({ length: width }, (_, x) =>
+				x >= row.length || BLANK_CHARS.has(row[x] as string) ? 0 : 1,
+			),
+		),
+	);
+}
+
+/** A new trimmed mask for the spec. `path` is the field the spec came from; errors point under it. */
+export function resolveMask(
 	workspace: Workspace,
 	spriteId: string,
-	shape: z.output<typeof selectionShapeSchema>,
+	spec: z.output<typeof selectionShapeSchema>,
+	path: string,
 ): Mask {
-	if ("ellipse" in shape) {
+	if ("ellipse" in spec) {
 		return combineMasks(
-			maskFromEllipse(shape.ellipse),
+			maskFromEllipse(spec.ellipse),
 			canvasMask(workspace, spriteId),
 			"intersect",
 		);
 	}
-	if ("all" in shape) return canvasMask(workspace, spriteId);
-	if ("wand" in shape) return wandMask(workspace, spriteId, shape.wand);
-	if ("color" in shape) return colorRangeMask(workspace, spriteId, shape.color);
-	if ("content" in shape)
-		return contentMask(workspace, spriteId, shape.content);
-	return trimMask(toMask(workspace, spriteId, shape, "shape"));
+	if ("all" in spec) return canvasMask(workspace, spriteId);
+	if ("wand" in spec) return wandMask(workspace, spriteId, spec.wand, path);
+	if ("color" in spec) {
+		return colorRangeMask(workspace, spriteId, spec.color, path);
+	}
+	if ("content" in spec) {
+		return contentMask(workspace, spriteId, spec.content, path);
+	}
+	if ("selectionId" in spec) {
+		return trimMask(
+			workspace.getSelection(spriteId, spec.selectionId, `${path}.selectionId`),
+		);
+	}
+	if ("rect" in spec) return trimMask(maskFromRect(spec.rect));
+	if ("polygon" in spec) return trimMask(maskFromPolygon(spec.polygon));
+	return trimMask(rowsMask(spec, path));
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { maskPixelCount } from "../core/selection.ts";
+import { resolveMask, selectionShapeSchema } from "./mask.ts";
 import { defineOp } from "./registry.ts";
-import { resolveShape, selectionShapeSchema } from "./selection-shape.ts";
 
 export const selectionCreate = defineOp({
 	name: "selection.create",
@@ -9,7 +9,7 @@ export const selectionCreate = defineOp({
 		"Store a selection under a new id. Use it as `mask: { selectionId }` on draw and filter ops. `all` selects the whole canvas.",
 	input: z.object({ spriteId: z.string(), shape: selectionShapeSchema }),
 	run(workspace, input) {
-		const mask = resolveShape(workspace, input.spriteId, input.shape);
+		const mask = resolveMask(workspace, input.spriteId, input.shape, "shape");
 		const selectionId = workspace.nextId("selection");
 		workspace.getSprite(input.spriteId).selections.set(selectionId, mask);
 		return { selectionId, bounds: mask.bounds, pixels: maskPixelCount(mask) };
