@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { setCel } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { getImageLayer } from "../target.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
 import { createRegistry } from "./registry.ts";
@@ -50,8 +51,7 @@ describe("cel.delete", () => {
 			rows: ["aa", "aa"],
 		});
 		const sprite = workspace.getSprite(spriteId);
-		const layer = workspace.getLayer(spriteId, layerId);
-		if (layer.kind !== "image") throw new Error("expected an image layer");
+		const layer = getImageLayer(workspace, spriteId, layerId);
 		const data = layer.cels.get(0)?.data;
 		if (!data) throw new Error("expected a cel");
 		setCel(sprite, layer, 1, data);

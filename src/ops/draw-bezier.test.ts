@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { getImageLayer } from "../target.ts";
 import { Workspace } from "../workspace.ts";
 import { drawBezier } from "./draw-bezier.ts";
 import { layerCreate } from "./layer-create.ts";
@@ -32,8 +33,7 @@ function paint(brush: Record<string, unknown>, points = curve): Set<string> {
 		brush,
 		points,
 	});
-	const layer = workspace.getLayer(spriteId, layerId);
-	if (layer.kind !== "image") throw new Error("Expected an image layer");
+	const layer = getImageLayer(workspace, spriteId, layerId);
 	const cel = layer.cels.get(0)?.data;
 	const pixels = new Set<string>();
 	if (!cel) return pixels;

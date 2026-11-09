@@ -7,6 +7,7 @@ import {
 	createSprite,
 } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
+import { getImageLayer } from "../target.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
 import { createRegistry } from "./registry.ts";
@@ -56,8 +57,7 @@ function celPixel(
 	layerId: string,
 	frame: number,
 ) {
-	const layer = workspace.getLayer(spriteId, layerId);
-	if (layer.kind !== "image") throw new Error("Expected an image layer");
+	const layer = getImageLayer(workspace, spriteId, layerId);
 	const data = layer.cels.get(frame)?.data;
 	return data && getPixel(data.image, 0, 0);
 }
@@ -103,8 +103,7 @@ describe("filter runner", () => {
 			frames: [0],
 			mask: { x: 0, y: 0, rows: ["#."] },
 		});
-		const layer = workspace.getLayer(spriteId, layerId);
-		if (layer.kind !== "image") throw new Error("Expected an image layer");
+		const layer = getImageLayer(workspace, spriteId, layerId);
 		const image = layer.cels.get(0)?.data.image;
 		if (!image) throw new Error("Expected a cel");
 		expect(getPixel(image, 0, 0)).toEqual([0, 255, 255, 255]);
@@ -126,8 +125,7 @@ describe("filter runner", () => {
 			frames: [0],
 			mask: { x: 0, y: 0, rows: ["#", "#"], width: 2 },
 		});
-		const layer = workspace.getLayer(spriteId, layerId);
-		if (layer.kind !== "image") throw new Error("Expected an image layer");
+		const layer = getImageLayer(workspace, spriteId, layerId);
 		const image = layer.cels.get(0)?.data.image;
 		if (!image) throw new Error("Expected a cel");
 		expect(getPixel(image, 0, 0)).toEqual([0, 255, 255, 255]);

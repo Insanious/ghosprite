@@ -3,6 +3,7 @@ import { getPixel } from "../core/image.ts";
 import { renderFrame } from "../core/render.ts";
 import { OpError } from "../errors.ts";
 import { Session } from "../session.ts";
+import { getImageLayer } from "../target.ts";
 
 const RED = [255, 0, 0, 255];
 const BLUE = [0, 0, 255, 255];
@@ -60,8 +61,7 @@ function select(
 }
 
 function cel(session: Session, spriteId: string, layerId: string, frame = 0) {
-	const layer = session.workspace.getLayer(spriteId, layerId);
-	if (layer.kind !== "image") throw new Error("Expected an image layer");
+	const layer = getImageLayer(session.workspace, spriteId, layerId);
 	return layer.cels.get(frame)?.data;
 }
 

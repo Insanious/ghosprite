@@ -3,6 +3,7 @@ import { getPixel } from "../src/core/image.ts";
 import { OpError } from "../src/errors.ts";
 import { operations } from "../src/ops/index.ts";
 import { createRegistry } from "../src/ops/registry.ts";
+import { getImageLayer } from "../src/target.ts";
 import { Workspace } from "../src/workspace.ts";
 import { drawParity } from "./helpers/draw-parity.ts";
 
@@ -51,8 +52,7 @@ describe("draw masks", () => {
 			filled: true,
 			mask: { x: 0, y: 0, rows: ["###", "##"] },
 		});
-		const layer = workspace.getLayer(spriteId, layerId);
-		if (layer.kind !== "image") throw new Error("Expected an image layer");
+		const layer = getImageLayer(workspace, spriteId, layerId);
 		const image = layer.cels.get(0)?.data.image;
 		if (!image) throw new Error("Expected a cel");
 		expect(getPixel(image, 1, 1)[3]).toBe(255);

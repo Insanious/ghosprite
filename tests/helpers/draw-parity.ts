@@ -5,6 +5,7 @@ import type { CelData } from "../../src/core/sprite.ts";
 import { createUserData } from "../../src/core/user-data.ts";
 import { operations } from "../../src/ops/index.ts";
 import { createRegistry } from "../../src/ops/registry.ts";
+import { getImageLayer } from "../../src/target.ts";
 import { Workspace } from "../../src/workspace.ts";
 import { imageLayer, readFixture } from "./ase-build.ts";
 
@@ -57,8 +58,7 @@ function runCase(file: CaseFile, calls: Case): CelData | undefined {
 		});
 	}
 	if (file.record) return selectionCel(workspace, spriteId, file.record);
-	const layer = workspace.getLayer(spriteId, layerId);
-	if (layer.kind !== "image") throw new Error("Expected an image layer");
+	const layer = getImageLayer(workspace, spriteId, layerId);
 	return layer.cels.get(0)?.data;
 }
 

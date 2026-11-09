@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { operations } from "../src/ops/index.ts";
 import { createRegistry } from "../src/ops/registry.ts";
+import { getImageLayer } from "../src/target.ts";
 import { Workspace } from "../src/workspace.ts";
 import { drawParity } from "./helpers/draw-parity.ts";
 
@@ -49,8 +50,7 @@ function paintAndJumble(seed: number) {
 }
 
 function cellColours(workspace: Workspace, spriteId: string, layerId: string) {
-	const layer = workspace.getLayer(spriteId, layerId);
-	if (layer.kind !== "image") throw new Error("Expected an image layer");
+	const layer = getImageLayer(workspace, spriteId, layerId);
 	const cel = layer.cels.get(0)?.data;
 	if (!cel) throw new Error("Expected a cel");
 	const colours: string[][] = [];

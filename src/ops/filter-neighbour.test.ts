@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { getPixel } from "../core/image.ts";
+import { getImageLayer } from "../target.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
 import { createRegistry } from "./registry.ts";
@@ -23,8 +24,7 @@ function setup(rows: string[]) {
 		rows,
 	});
 	const pixel = (x: number, y: number) => {
-		const layer = workspace.getLayer(spriteId, layerId);
-		if (layer.kind !== "image") throw new Error("Expected an image layer");
+		const layer = getImageLayer(workspace, spriteId, layerId);
 		const cel = layer.cels.get(0);
 		if (!cel) throw new Error("Expected a cel");
 		return getPixel(cel.data.image, x - cel.data.x, y - cel.data.y);

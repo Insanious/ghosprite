@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { getPixel } from "../src/core/image.ts";
 import { Session } from "../src/session.ts";
+import { getImageLayer } from "../src/target.ts";
 import { drawParity } from "./helpers/draw-parity.ts";
 
 drawParity("region-flip");
@@ -21,8 +22,7 @@ function setup() {
 }
 
 function cel(session: Session, spriteId: string, layerId: string) {
-	const layer = session.workspace.getLayer(spriteId, layerId);
-	if (layer.kind !== "image") throw new Error("Expected an image layer");
+	const layer = getImageLayer(session.workspace, spriteId, layerId);
 	return layer.cels.get(0)?.data;
 }
 

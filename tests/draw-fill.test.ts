@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { OpError } from "../src/errors.ts";
 import { operations } from "../src/ops/index.ts";
 import { createRegistry } from "../src/ops/registry.ts";
+import { getImageLayer } from "../src/target.ts";
 import { Workspace } from "../src/workspace.ts";
 import { drawParity } from "./helpers/draw-parity.ts";
 
@@ -21,8 +22,7 @@ describe("draw.fill eraser", () => {
 		const target = { spriteId, layerId, frame: 0, point: { x: 0, y: 0 } };
 		registry.callOp(workspace, "draw.fill", { ...target, color: "#ff0000" });
 		registry.callOp(workspace, "draw.fill", { ...target, ink: "eraser" });
-		const layer = workspace.getLayer(spriteId, layerId);
-		if (layer.kind !== "image") throw new Error("Expected an image layer");
+		const layer = getImageLayer(workspace, spriteId, layerId);
 		const data = layer.cels.get(0)?.data;
 		expect(data === undefined || data.image.data.every((v) => v === 0)).toBe(
 			true,
