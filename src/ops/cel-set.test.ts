@@ -114,7 +114,22 @@ describe("cel.set", () => {
 		});
 	});
 
-	test("rows of uneven length are rejected", () => {
+	test("rows of uneven length are padded with transparent", () => {
+		const { workspace, spriteId, layer } = setup();
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			legend,
+			rows: ["RR", "R"],
+		});
+		const image = layer.cels.get(0)?.data.image;
+		expect(Array.from(image?.data ?? [])).toEqual([
+			255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 0, 0, 0, 0,
+		]);
+	});
+
+	test("a row longer than width fails at its rows.N", () => {
 		const { workspace, spriteId, layer } = setup();
 		const error = thrown(() =>
 			run(workspace, {
@@ -122,7 +137,8 @@ describe("cel.set", () => {
 				layerId: layer.id,
 				frame: 0,
 				legend,
-				rows: ["RR", "R"],
+				rows: ["RR", "RRR"],
+				width: 2,
 			}),
 		);
 		expect(error.toJSON()).toMatchObject({

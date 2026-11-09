@@ -145,6 +145,36 @@ describe("draw.line", () => {
 		expect(error.path).toBe("brush.rows.1");
 	});
 
+	test("an image brush row longer than its width points at brush.rows.N", () => {
+		const { workspace, spriteId, layer } = setup();
+		const error = thrown(() =>
+			run(workspace, {
+				spriteId,
+				layerId: layer.id,
+				frame: 0,
+				points: [{ x: 0, y: 0 }],
+				brush: { legend: { R: "#ff0000" }, rows: ["R", "RRR"], width: 2 },
+			}),
+		);
+		expect(error.path).toBe("brush.rows.1");
+	});
+
+	test("an image brush with ragged rows is centred on the padded width", () => {
+		const { workspace, spriteId, layer, sprite } = setup();
+		run(workspace, {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			points: [{ x: 4, y: 4 }],
+			brush: { legend: { R: "#ff0000", G: "#00ff00" }, rows: ["R", "..G"] },
+		});
+		const pixels = renderFrame(sprite, 0).data;
+		const at = (x: number, y: number) =>
+			Array.from(pixels.slice((y * 8 + x) * 4, (y * 8 + x) * 4 + 4));
+		expect(at(3, 3)).toEqual([255, 0, 0, 255]);
+		expect(at(5, 4)).toEqual([0, 255, 0, 255]);
+	});
+
 	test("an image brush is drawn with its own colours", () => {
 		const { workspace, spriteId, layer, sprite } = setup();
 		run(workspace, {

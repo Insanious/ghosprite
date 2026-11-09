@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { colorSchema } from "./color.ts";
-import { legendSchema, rowsSchema } from "./rows.ts";
+import { legendSchema, rowsSchema, rowsWidthSchema } from "./rows.ts";
 
 export const pointSchema = z.object({
 	x: z.number().int(),
@@ -30,9 +30,10 @@ const imageBrushSchema = z
 	.strictObject({
 		legend: legendSchema,
 		rows: rowsSchema,
+		width: rowsWidthSchema,
 	})
 	.describe(
-		"An image brush that paints its own colours, with pixel (floor(width / 2), floor(height / 2)) of the rows on each point the shape draws; draw.image places rows by their top-left corner instead",
+		"An image brush that paints its own colours, with pixel (floor(width / 2), floor(height / 2)) of the rows, padded to the longest row or to width, on each point the shape draws; draw.image places rows by their top-left corner instead",
 	);
 
 const shapeBrushSchema = z.strictObject({

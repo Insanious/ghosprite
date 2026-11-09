@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { getPixel } from "../core/image.ts";
 import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
@@ -47,6 +48,24 @@ describe("draw.image", () => {
 			return;
 		}
 		throw new Error("Expected an OpError");
+	});
+
+	test("a short first row does not move the image off x, y", () => {
+		const { workspace, spriteId, layer } = setup();
+		registry.callOp(workspace, "draw.image", {
+			spriteId,
+			layerId: layer.id,
+			frame: 0,
+			x: 2,
+			y: 2,
+			legend: { R: "#ff0000", G: "#00ff00" },
+			rows: ["R", "..G"],
+		});
+		const image = layer.cels.get(0)?.data.image;
+		const cel = layer.cels.get(0)?.data;
+		expect(cel).toMatchObject({ x: 2, y: 2, image: { width: 3, height: 2 } });
+		expect(image && getPixel(image, 0, 0)).toEqual([255, 0, 0, 255]);
+		expect(image && getPixel(image, 2, 1)).toEqual([0, 255, 0, 255]);
 	});
 
 	test("on a layer without a cel it creates one and reports the rows' rect", () => {

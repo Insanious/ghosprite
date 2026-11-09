@@ -12,9 +12,47 @@ export const legendSchema = z
 export const rowsSchema = z
 	.array(z.string().min(1))
 	.min(1)
-	.describe("Equal-length strings with one legend character per pixel");
+	.describe(
+		"Strings with one legend character per pixel; shorter rows are padded on the right with transparent up to the longest row, or up to width",
+	);
+export const rowsWidthSchema = z
+	.number()
+	.int()
+	.min(1)
+	.optional()
+	.describe(
+		"Width of the rows in pixels: a longer row is an error, shorter rows are padded, and it defaults to the longest row. Pass it to catch miscounted rows",
+	);
 
 const TRANSPARENT_CHARS = new Set([".", " "]);
+
+/** Splits rows into code points and resolves their width: `width`, or else the longest row. Errors point at `<path>.rows.N`. */
+export function splitRows(
+	rowStrings: string[],
+	width: number | undefined,
+	path = "",
+): { cells: string[][]; width: number } {
+	const prefix = path === "" ? "" : `${path}.`;
+	const cells = rowStrings.map((row) => Array.from(row));
+	if (width !== undefined) {
+		cells.forEach((row, y) => {
+			if (row.length > width) {
+				throw new OpError(
+					"invalid_input",
+					`Row has ${row.length} characters, more than width ${width}`,
+					{
+						path: `${prefix}rows.${y}`,
+						hint: "Remove characters from the row, or raise width",
+					},
+				);
+			}
+		});
+	}
+	return {
+		cells,
+		width: width ?? Math.max(...cells.map((row) => row.length)),
+	};
+}
 
 /** Builds an RGBA image from rows of legend characters. Errors point at `<path>.rows.N` and `<path>.legend.K`. */
 export function imageFromRows(
@@ -22,6 +60,7 @@ export function imageFromRows(
 	rowStrings: string[],
 	palette: Palette,
 	path = "",
+	rowsWidth?: number,
 ): Image {
 	const prefix = path === "" ? "" : `${path}.`;
 	const colors = new Map(
@@ -30,17 +69,9 @@ export function imageFromRows(
 			toRgba(color, `${prefix}legend.${key}`, palette),
 		]),
 	);
-	const rows = rowStrings.map((row) => Array.from(row));
-	const width = rows[0]?.length ?? 0;
+	const { cells: rows, width } = splitRows(rowStrings, rowsWidth, path);
 	const image = createImage(width, rows.length, "rgba");
 	rows.forEach((row, y) => {
-		if (row.length !== width) {
-			throw new OpError(
-				"invalid_input",
-				`Row has ${row.length} characters, expected ${width}`,
-				{ path: `${prefix}rows.${y}` },
-			);
-		}
 		row.forEach((char, x) => {
 			const color = colors.get(char);
 			if (color) {

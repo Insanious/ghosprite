@@ -2,7 +2,12 @@ import { z } from "zod";
 import { runDraw } from "./draw.ts";
 import { drawFields } from "./draw-options.ts";
 import { defineOp } from "./registry.ts";
-import { legendSchema, rowsSchema } from "./rows.ts";
+import {
+	legendSchema,
+	rowsSchema,
+	rowsWidthSchema,
+	splitRows,
+} from "./rows.ts";
 
 export const drawImage = defineOp({
 	name: "draw.image",
@@ -13,9 +18,10 @@ export const drawImage = defineOp({
 		y: z.number().int(),
 		legend: legendSchema,
 		rows: rowsSchema,
+		width: rowsWidthSchema,
 	}),
 	run(workspace, input) {
-		const width = Array.from(input.rows[0]).length;
+		const { width } = splitRows(input.rows, input.width);
 		const height = input.rows.length;
 		const centre = {
 			x: input.x + Math.floor(width / 2),
@@ -23,7 +29,10 @@ export const drawImage = defineOp({
 		};
 		return runDraw(
 			workspace,
-			{ ...input, brush: { legend: input.legend, rows: input.rows } },
+			{
+				...input,
+				brush: { legend: input.legend, rows: input.rows, width: input.width },
+			},
 			{ kind: "dots", points: [centre] },
 			"",
 		);

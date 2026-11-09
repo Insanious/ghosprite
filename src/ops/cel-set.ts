@@ -5,7 +5,12 @@ import { paletteAt } from "../core/palette.ts";
 import { celCanvasRect } from "../core/sprite.ts";
 import { resolveTarget } from "./draw.ts";
 import { defineOp } from "./registry.ts";
-import { imageFromRows, legendSchema, rowsSchema } from "./rows.ts";
+import {
+	imageFromRows,
+	legendSchema,
+	rowsSchema,
+	rowsWidthSchema,
+} from "./rows.ts";
 
 export const celSet = defineOp({
 	name: "cel.set",
@@ -20,6 +25,7 @@ export const celSet = defineOp({
 		opacity: z.number().int().min(0).max(255).default(255),
 		legend: legendSchema,
 		rows: rowsSchema,
+		width: rowsWidthSchema,
 	}),
 	run(workspace, input) {
 		const { sprite, layer } = resolveTarget(
@@ -32,6 +38,8 @@ export const celSet = defineOp({
 			input.legend,
 			input.rows,
 			paletteAt(sprite.palettes, input.frame),
+			"",
+			input.width,
 		);
 
 		const commit = commitCel(sprite, layer, input.frame, {
