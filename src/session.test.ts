@@ -230,6 +230,54 @@ describe("Session undo and redo", () => {
 		expect(thrown(() => session.redo()).code).toBe("out_of_range");
 	});
 
+	test("undoing a sprite.load removes the loaded sprite and redo brings it back", () => {
+		const session = new Session();
+		const { spriteId } = session.run("sprite.load", {
+			path: "tests/fixtures/sprites/groups3abc.aseprite",
+		}) as unknown as Created;
+		session.undo();
+		expect(session.workspace.spriteIds()).toEqual([]);
+		session.redo();
+		expect(session.workspace.spriteIds()).toEqual([spriteId]);
+	});
+
+	test("an invalid op after a draw rolls the draw back and reports ops.1", () => {
+		const { session, spriteId, layerId } = setup();
+		const blank = render(session, spriteId);
+		const error = thrown(() =>
+			session.apply([
+				{
+					op: "draw.rect",
+					input: {
+						spriteId,
+						layerId,
+						frame: 0,
+						rect: { x: 0, y: 0, width: 1, height: 1 },
+						filled: true,
+						color: "#ff0000",
+					},
+				},
+				{ op: "draw.rect", input: { spriteId: 1 } },
+			]),
+		);
+		expect(error.code).toBe("invalid_input");
+		expect(error.path).toBe("ops.1.spriteId");
+		expect(render(session, spriteId)).toBe(blank);
+	});
+
+	test("a batch of only reads ops makes no step", () => {
+		const { session, spriteId } = setup();
+		const before = session.journal().length;
+		const current = session.checkpoint("before-reads").checkpointId;
+		const { results, checkpointId } = session.apply([
+			{ op: "sprite.render", input: { spriteId } },
+			{ op: "sprite.describe", input: { spriteId } },
+		]);
+		expect(results).toHaveLength(2);
+		expect(checkpointId).toBe(current);
+		expect(session.journal()).toHaveLength(before);
+	});
+
 	test("a read-only op makes no step", () => {
 		const { session, spriteId, layerId } = setup();
 		const blank = render(session, spriteId);

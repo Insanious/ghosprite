@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
 import { z } from "zod";
 import { decodePng } from "../core/png.ts";
-import { createSprite } from "../core/sprite.ts";
+import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { createRegistry, defineOp } from "./registry.ts";
@@ -300,5 +300,57 @@ describe("describeOps", () => {
 			required?: string[];
 		};
 		expect(render.required ?? []).not.toContain("scale");
+	});
+});
+
+const addLayerOp = defineOp({
+	name: "test.addLayer",
+	sprite: "edits",
+	description: "Adds an image layer.",
+	input: z.object({ spriteId: z.string() }),
+	run: (workspace, input) => {
+		const sprite = workspace.getSprite(input.spriteId);
+		addLayer(
+			sprite,
+			createImageLayer({ id: "layer-9", name: "L" }),
+			sprite.root,
+		);
+		return {};
+	},
+});
+
+const prepareRegistry = createRegistry([addLayerOp, creates]);
+
+describe("prepare", () => {
+	test("an edits op returns the parsed spriteId and changes nothing until run", () => {
+		const { workspace, spriteId } = setup();
+		const prepared = prepareRegistry.prepare(workspace, "test.addLayer", {
+			spriteId,
+		});
+		expect(prepared.sprite).toBe("edits");
+		expect(prepared.spriteId).toBe(spriteId);
+		expect(workspace.getSprite(spriteId).root.children).toHaveLength(0);
+		const ran = prepared.run();
+		expect(ran.spriteId).toBe(spriteId);
+		expect(workspace.getSprite(spriteId).root.children).toHaveLength(1);
+	});
+
+	test("a creates op has no spriteId until run returns the new id", () => {
+		const { workspace } = setup();
+		const prepared = prepareRegistry.prepare(workspace, "test.creates", {});
+		expect(prepared.spriteId).toBeUndefined();
+		expect(workspace.spriteIds()).toHaveLength(1);
+		const ran = prepared.run();
+		expect(workspace.hasSprite(ran.spriteId)).toBe(true);
+		expect(workspace.spriteIds()).toHaveLength(2);
+	});
+
+	test("bad input is invalid_input before anything runs", () => {
+		const { workspace } = setup();
+		const error = thrown(() =>
+			prepareRegistry.prepare(workspace, "test.addLayer", { spriteId: 1 }),
+		);
+		expect(error.code).toBe("invalid_input");
+		expect(error.path).toBe("spriteId");
 	});
 });

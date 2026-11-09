@@ -46,12 +46,19 @@ type Creates<S extends z.ZodObject> = OpBase<S> & {
 	) => OpOutput & { spriteId: string };
 };
 
+export type PreparedCall = {
+	sprite: SpriteUse;
+	/** The parsed input's spriteId; undefined for ops that create their sprite. */
+	spriteId: string | undefined;
+	run(): { result: MutationResult; spriteId: string };
+};
+
 export type Operation = {
 	name: string;
 	description: string;
 	schema: z.ZodObject;
 	sprite: SpriteUse;
-	call: (workspace: Workspace, rawInput: unknown) => MutationResult;
+	prepare: (workspace: Workspace, rawInput: unknown) => PreparedCall;
 };
 
 export function parseInput<S extends z.ZodType>(
@@ -119,6 +126,19 @@ export function defineOp(
 		return result;
 	}
 
+	function runWrapped<T>(fn: () => T): T {
+		try {
+			return fn();
+		} catch (error) {
+			if (error instanceof OpError) throw error;
+			throw new OpError(
+				"internal",
+				error instanceof Error ? error.message : String(error),
+				{ path: "" },
+			);
+		}
+	}
+
 	if (definition.sprite === "creates") {
 		const schema = withRender
 			? definition.input.extend(renderField)
@@ -128,10 +148,25 @@ export function defineOp(
 			description: definition.description,
 			schema,
 			sprite: "creates",
-			call(workspace, rawInput) {
+			prepare(workspace, rawInput) {
 				const input = parseOpInput(schema, rawInput);
-				const output = definition.run(workspace, input);
-				return finish(workspace, input.render, output, output.spriteId);
+				return {
+					sprite: "creates",
+					spriteId: undefined,
+					run: () =>
+						runWrapped(() => {
+							const output = definition.run(workspace, input);
+							return {
+								result: finish(
+									workspace,
+									input.render,
+									output,
+									output.spriteId,
+								),
+								spriteId: output.spriteId,
+							};
+						}),
+				};
 			},
 		};
 	}
@@ -145,17 +180,27 @@ export function defineOp(
 		description: definition.description,
 		schema,
 		sprite,
-		call(workspace, rawInput) {
+		prepare(workspace, rawInput) {
 			const input = parseOpInput(schema, rawInput);
-			if (withRender && input.render?.selectionId) {
-				workspace.getSelection(
-					input.spriteId,
-					input.render.selectionId,
-					"render.selectionId",
-				);
-			}
-			const output = definition.run(workspace, input);
-			return finish(workspace, input.render, output, input.spriteId);
+			return {
+				sprite,
+				spriteId: input.spriteId,
+				run: () =>
+					runWrapped(() => {
+						if (withRender && input.render?.selectionId) {
+							workspace.getSelection(
+								input.spriteId,
+								input.render.selectionId,
+								"render.selectionId",
+							);
+						}
+						const output = definition.run(workspace, input);
+						return {
+							result: finish(workspace, input.render, output, input.spriteId),
+							spriteId: input.spriteId,
+						};
+					}),
+			};
 		},
 	};
 }
@@ -168,28 +213,29 @@ function changedFrames(changed: ChangedRect[]): number[] | undefined {
 export function createRegistry(operations: Operation[]) {
 	const byName = new Map(operations.map((op) => [op.name, op]));
 
+	function prepare(
+		workspace: Workspace,
+		name: string,
+		rawInput: unknown,
+	): PreparedCall {
+		const op = byName.get(name);
+		if (!op) {
+			throw new OpError("unknown_op", `Unknown operation "${name}"`, {
+				hint: `Known operations: ${[...byName.keys()].join(", ")}`,
+			});
+		}
+		return op.prepare(workspace, rawInput);
+	}
+
 	return {
 		spriteUse(name: string): SpriteUse | undefined {
 			return byName.get(name)?.sprite;
 		},
 
+		prepare,
+
 		callOp(workspace: Workspace, name: string, input: unknown): MutationResult {
-			const op = byName.get(name);
-			if (!op) {
-				throw new OpError("unknown_op", `Unknown operation "${name}"`, {
-					hint: `Known operations: ${[...byName.keys()].join(", ")}`,
-				});
-			}
-			try {
-				return op.call(workspace, input);
-			} catch (error) {
-				if (error instanceof OpError) throw error;
-				throw new OpError(
-					"internal",
-					error instanceof Error ? error.message : String(error),
-					{ path: "" },
-				);
-			}
+			return prepare(workspace, name, input).run().result;
 		},
 
 		describeOps() {

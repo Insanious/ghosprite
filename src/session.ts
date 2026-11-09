@@ -189,18 +189,19 @@ export class Session {
 		try {
 			for (; index < calls.length; index++) {
 				const call = calls[index] as Call;
-				if (this.registry.spriteUse(call.op) === "reads") {
-					results.push(
-						this.registry.callOp(this.workspace, call.op, call.input),
-					);
+				const prepared = this.registry.prepare(
+					this.workspace,
+					call.op,
+					call.input,
+				);
+				if (prepared.sprite === "reads") {
+					results.push(prepared.run().result);
 					continue;
 				}
 				recorded.push({ op: call.op, input: journalInput(call.input) });
-				// Relies on every op naming the sprite it mutates in `spriteId`.
-				const spriteId = (call.input as { spriteId?: unknown } | null)
-					?.spriteId;
+				const { spriteId } = prepared;
 				if (
-					typeof spriteId === "string" &&
+					spriteId !== undefined &&
 					this.workspace.hasSprite(spriteId) &&
 					!before.has(spriteId)
 				) {
@@ -209,15 +210,10 @@ export class Session {
 						structuredClone(this.workspace.getSprite(spriteId)),
 					);
 				}
-				const known = new Set(this.workspace.spriteIds());
-				try {
-					results.push(
-						this.registry.callOp(this.workspace, call.op, call.input),
-					);
-				} finally {
-					for (const id of this.workspace.spriteIds()) {
-						if (!known.has(id) && !before.has(id)) before.set(id, undefined);
-					}
+				const ran = prepared.run();
+				results.push(ran.result);
+				if (prepared.sprite === "creates" && !before.has(ran.spriteId)) {
+					before.set(ran.spriteId, undefined);
 				}
 			}
 		} catch (error) {
