@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { modifyMask } from "../core/modify-selection.ts";
-import { maskPixelCount } from "../core/selection.ts";
+import { storeSelection } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 
 export const selectionModify = defineOp({
@@ -24,11 +24,6 @@ export const selectionModify = defineOp({
 			input.brush,
 			sprite,
 		);
-		sprite.selections.set(input.selectionId, mask);
-		return {
-			selectionId: input.selectionId,
-			bounds: mask.bounds,
-			pixels: maskPixelCount(mask),
-		};
+		return storeSelection(sprite, input.selectionId, mask);
 	},
 });

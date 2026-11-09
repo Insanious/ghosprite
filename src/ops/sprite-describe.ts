@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { rgbaHex } from "../core/image.ts";
-import { maskPixelCount } from "../core/selection.ts";
 import { hasUserData } from "../core/sheet-json.ts";
 import {
 	type Cel,
@@ -13,6 +12,7 @@ import type {
 	PropertyValue,
 	UserData,
 } from "../core/user-data.ts";
+import { maskSummary } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 
 type Json = Record<string, unknown>;
@@ -135,8 +135,7 @@ export const spriteDescribe = defineOp({
 			})),
 			selections: [...sprite.selections].map(([id, mask]) => ({
 				id,
-				bounds: mask.bounds,
-				pixels: maskPixelCount(mask),
+				...maskSummary(mask),
 			})),
 			palettes: sprite.palettes.map((palette) => ({
 				startFrame: palette.startFrame,

@@ -8,18 +8,14 @@ import {
 	liftRegion,
 	type RegionTransform,
 } from "../core/region.ts";
-import {
-	emptyMask,
-	maskAsImage,
-	maskPixelCount,
-	trimMask,
-} from "../core/selection.ts";
+import { emptyMask, maskAsImage, trimMask } from "../core/selection.ts";
 import { OpError } from "../errors.ts";
 import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { editCels } from "./cel-edit.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { filterFields } from "./filter.ts";
+import { storeSelection } from "./mask.ts";
 import type { ChangedRect } from "./registry.ts";
 
 export const regionFields = {
@@ -85,13 +81,7 @@ export function runRegion(
 		}).changed;
 	}
 
-	sprite.selections.set(input.selectionId, moved);
-	return {
-		changed,
-		selectionId: input.selectionId,
-		bounds: moved.bounds,
-		pixels: maskPixelCount(moved),
-	};
+	return { changed, ...storeSelection(sprite, input.selectionId, moved) };
 }
 
 function transformMask(selection: Mask, transform: RegionTransform): Mask {

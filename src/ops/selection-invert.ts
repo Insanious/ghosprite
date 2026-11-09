@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { invertMask, maskPixelCount } from "../core/selection.ts";
+import { invertMask } from "../core/selection.ts";
+import { storeSelection } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 
 export const selectionInvert = defineOp({
@@ -11,11 +12,6 @@ export const selectionInvert = defineOp({
 		const current = workspace.getSelection(input.spriteId, input.selectionId);
 		const sprite = workspace.getSprite(input.spriteId);
 		const mask = invertMask(current, sprite);
-		sprite.selections.set(input.selectionId, mask);
-		return {
-			selectionId: input.selectionId,
-			bounds: mask.bounds,
-			pixels: maskPixelCount(mask),
-		};
+		return storeSelection(sprite, input.selectionId, mask);
 	},
 });

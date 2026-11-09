@@ -13,8 +13,10 @@ import {
 	maskFromContent,
 	maskFromEllipse,
 	maskFromWand,
+	maskPixelCount,
 	trimMask,
 } from "../core/selection.ts";
+import type { Sprite } from "../core/sprite.ts";
 import { checkPoint, resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";
@@ -191,4 +193,17 @@ export function resolveMask(
 	if ("rect" in spec) return trimMask(maskFromRect(spec.rect));
 	if ("polygon" in spec) return trimMask(maskFromPolygon(spec.polygon));
 	return trimMask(rowsMask(spec, path));
+}
+
+export function maskSummary(mask: Mask) {
+	return { bounds: mask.bounds, pixels: maskPixelCount(mask) };
+}
+
+export function storeSelection(
+	sprite: Sprite,
+	selectionId: string,
+	mask: Mask,
+) {
+	sprite.selections.set(selectionId, mask);
+	return { selectionId, ...maskSummary(mask) };
 }

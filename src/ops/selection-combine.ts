@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { combineMasks, maskPixelCount } from "../core/selection.ts";
-import { resolveMask, selectionShapeSchema } from "./mask.ts";
+import { combineMasks } from "../core/selection.ts";
+import { resolveMask, selectionShapeSchema, storeSelection } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 
 export const selectionCombine = defineOp({
@@ -17,11 +17,10 @@ export const selectionCombine = defineOp({
 		const current = workspace.getSelection(input.spriteId, input.selectionId);
 		const shape = resolveMask(workspace, input.spriteId, input.shape, "shape");
 		const mask = combineMasks(current, shape, input.mode);
-		workspace.getSprite(input.spriteId).selections.set(input.selectionId, mask);
-		return {
-			selectionId: input.selectionId,
-			bounds: mask.bounds,
-			pixels: maskPixelCount(mask),
-		};
+		return storeSelection(
+			workspace.getSprite(input.spriteId),
+			input.selectionId,
+			mask,
+		);
 	},
 });

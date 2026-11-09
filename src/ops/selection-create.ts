@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { maskPixelCount } from "../core/selection.ts";
-import { resolveMask, selectionShapeSchema } from "./mask.ts";
+import { resolveMask, selectionShapeSchema, storeSelection } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 
 export const selectionCreate = defineOp({
@@ -11,7 +10,10 @@ export const selectionCreate = defineOp({
 	run(workspace, input) {
 		const mask = resolveMask(workspace, input.spriteId, input.shape, "shape");
 		const selectionId = workspace.nextId("selection");
-		workspace.getSprite(input.spriteId).selections.set(selectionId, mask);
-		return { selectionId, bounds: mask.bounds, pixels: maskPixelCount(mask) };
+		return storeSelection(
+			workspace.getSprite(input.spriteId),
+			selectionId,
+			mask,
+		);
 	},
 });
