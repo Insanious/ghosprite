@@ -1,4 +1,5 @@
 import { celDelete } from "./cel-delete.ts";
+import { celGet } from "./cel-get.ts";
 import { celLink } from "./cel-link.ts";
 import { celSet } from "./cel-set.ts";
 import { celUnlink } from "./cel-unlink.ts";
@@ -65,6 +66,7 @@ export const operations: Operation[] = [
 	layerMove,
 	spriteFlatten,
 	celSet,
+	celGet,
 	celDelete,
 	celLink,
 	celUnlink,
