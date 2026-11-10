@@ -6,9 +6,9 @@ import {
 	intersectRects,
 	type Rect,
 } from "./image.ts";
-import type { Palette } from "./palette.ts";
-import type { Slice } from "./slice.ts";
-import type { Tag } from "./tag.ts";
+import { clonePalette, type Palette } from "./palette.ts";
+import { cloneSlice, type Slice } from "./slice.ts";
+import { cloneTag, type Tag } from "./tag.ts";
 import { cloneUserData, createUserData, type UserData } from "./user-data.ts";
 
 /** The index in this list is the value stored in .aseprite files. */
@@ -428,25 +428,10 @@ export function cloneSprite(sprite: Sprite): Sprite {
 	return {
 		...sprite,
 		frameDurations: [...sprite.frameDurations],
-		palettes: sprite.palettes.map((palette) => ({
-			...palette,
-			colors: palette.colors.map((color) => ({ ...color })),
-		})),
+		palettes: sprite.palettes.map(clonePalette),
 		root,
-		tags: sprite.tags.map((tag) => ({
-			...tag,
-			userData: cloneUserData(tag.userData),
-		})),
-		slices: sprite.slices.map((slice) => ({
-			...slice,
-			userData: cloneUserData(slice.userData),
-			keys: slice.keys.map((key) => ({
-				...key,
-				bounds: { ...key.bounds },
-				...(key.center && { center: { ...key.center } }),
-				...(key.pivot && { pivot: { ...key.pivot } }),
-			})),
-		})),
+		tags: sprite.tags.map(cloneTag),
+		slices: sprite.slices.map(cloneSlice),
 		userData: cloneUserData(sprite.userData),
 		pixelRatio: { ...sprite.pixelRatio },
 		gridBounds: { ...sprite.gridBounds },

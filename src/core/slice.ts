@@ -1,5 +1,5 @@
 import type { Rect } from "./image.ts";
-import type { UserData } from "./user-data.ts";
+import { cloneUserData, type UserData } from "./user-data.ts";
 
 export type SliceKey = {
 	frame: number;
@@ -13,6 +13,19 @@ export type Slice = {
 	userData: UserData;
 	keys: SliceKey[];
 };
+
+export function cloneSlice(slice: Slice): Slice {
+	return {
+		...slice,
+		userData: cloneUserData(slice.userData),
+		keys: slice.keys.map((key) => ({
+			...key,
+			bounds: { ...key.bounds },
+			...(key.center && { center: { ...key.center } }),
+			...(key.pivot && { pivot: { ...key.pivot } }),
+		})),
+	};
+}
 
 export function addSlice(sprite: { slices: Slice[] }, slice: Slice): void {
 	// Aseprite puts a new slice first.

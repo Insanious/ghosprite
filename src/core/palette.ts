@@ -6,6 +6,13 @@ export type Palette = {
 	colors: Rgba[];
 };
 
+export function clonePalette(palette: Palette): Palette {
+	return {
+		...palette,
+		colors: palette.colors.map((color) => ({ ...color })),
+	};
+}
+
 export function paletteAt(palettes: Palette[], frame: number): Palette {
 	let found: Palette | undefined;
 	for (const palette of palettes) {

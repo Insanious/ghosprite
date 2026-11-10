@@ -1,4 +1,4 @@
-import type { UserData } from "./user-data.ts";
+import { cloneUserData, type UserData } from "./user-data.ts";
 
 /** Indexed by the direction byte of the file's tags chunk. */
 export const TAG_DIRECTIONS = [
@@ -18,6 +18,10 @@ export type Tag = {
 	repeat: number;
 	userData: UserData;
 };
+
+export function cloneTag(tag: Tag): Tag {
+	return { ...tag, userData: cloneUserData(tag.userData) };
+}
 
 /**
  * Aseprite keeps tags ordered by from, then longest first, and a tag equal to
