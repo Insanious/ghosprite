@@ -19,7 +19,8 @@ export const layerMergeDown = defineOp({
 		requireRgba(sprite);
 		const upper = workspace.getLayer(input.spriteId, input.layerId);
 		const siblings = findParent(sprite, upper)?.children ?? [];
-		const lower = siblings[siblings.indexOf(upper) - 1];
+		const lower =
+			siblings[siblings.findIndex((child) => child.id === upper.id) - 1];
 		if (!lower) {
 			throw new OpError(
 				"invalid_input",

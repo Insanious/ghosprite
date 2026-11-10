@@ -102,10 +102,10 @@ export function mergeLayerDown(
  * The layers Aseprite's flatten draws: every layer directly under the root whatever
  * its own visibility, and below those only the visible ones.
  */
-function flattenedLayers(sprite: Sprite): Set<Layer> {
-	const drawn = new Set<Layer>();
+function flattenedLayers(sprite: Sprite): Set<string> {
+	const drawn = new Set<string>();
 	const add = (layer: Layer) => {
-		drawn.add(layer);
+		drawn.add(layer.id);
 		if (layer.kind !== "group") return;
 		for (const child of layer.children) {
 			if (child.flags.visible) add(child);
@@ -129,7 +129,7 @@ export function flattenSprite(
 	const changes: FrameChange[] = [];
 	const cels = new Map<number, Cel>();
 	for (let frame = 0; frame < sprite.frameDurations.length; frame++) {
-		const canvas = renderFrame(sprite, frame, (layer) => drawn.has(layer));
+		const canvas = renderFrame(sprite, frame, (layer) => drawn.has(layer.id));
 		const data = trimmedCelData(canvas, 0, 0);
 		if (data) cels.set(frame, { frame, zIndex: 0, data });
 		let rect = data ? celCanvasRect(sprite, data) : celRect(undefined);

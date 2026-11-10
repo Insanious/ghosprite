@@ -79,7 +79,9 @@ export function resolveLayerPosition(
 	}
 
 	const parent = findParent(sprite, target) as GroupLayer;
-	const index = siblings(parent, moving).indexOf(target);
+	const index = siblings(parent, moving).findIndex(
+		(child) => child.id === target.id,
+	);
 	if (
 		field === "below" &&
 		parent === sprite.root &&
@@ -96,14 +98,14 @@ export function resolveLayerPosition(
 }
 
 function siblings(parent: GroupLayer, moving: Layer | undefined): Layer[] {
-	return parent.children.filter((child) => child !== moving);
+	return parent.children.filter((child) => child.id !== moving?.id);
 }
 
 function isInside(moving: Layer, target: Layer): boolean {
-	if (moving === target) return true;
+	if (moving.id === target.id) return true;
 	if (moving.kind !== "group") return false;
 	for (const layer of walkRenderOrder(moving)) {
-		if (layer === target) return true;
+		if (layer.id === target.id) return true;
 	}
 	return false;
 }
