@@ -2,7 +2,7 @@
 
 A headless pixel-art sprite engine for AI agents, modelled on Aseprite's document model, driven through schema-described operations over MCP or a CLI. TypeScript on Bun.
 
-`docs/design.md` is the source of truth for what the project does. Don't edit it unless the owner asks. `plans/` holds numbered plans: run the lowest first. Plans are git-ignored and deleted once done.
+`docs/design.md` is the source of truth for what the project does. Don't edit it unless the owner asks. `plans/` holds numbered proposals: run the lowest first. They are git-ignored and deleted once done.
 
 ## Rules
 
