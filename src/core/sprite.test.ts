@@ -15,8 +15,10 @@ import {
 	imageLayers,
 	isLayerVisible,
 	linkCels,
+	removeCel,
 	type Sprite,
 	setCel,
+	setCelOpacity,
 	unlinkCel,
 	walkRenderOrder,
 } from "./sprite.ts";
@@ -337,6 +339,39 @@ describe("cel data ids", () => {
 			added.data.id,
 		);
 		expectCelIdInvariant(copy);
+	});
+});
+
+describe("removeCel and setCelOpacity", () => {
+	function linkedLayer() {
+		const sprite = newSprite();
+		const layer = createImageLayer({ id: "a", name: "A" });
+		addLayer(sprite, layer, sprite.root);
+		const data = newData();
+		const first = setCel(sprite, layer, 0, data);
+		setCel(sprite, layer, 1, data);
+		return { layer, data: first.data };
+	}
+
+	test("removeCel on one linked frame leaves the other cel with the same data", () => {
+		const { layer, data } = linkedLayer();
+		removeCel(layer, 0);
+		expect(layer.cels.has(0)).toBe(false);
+		expect(layer.cels.get(1)?.data).toBe(data);
+	});
+
+	test("setCelOpacity changes the opacity at every linked frame", () => {
+		const { layer } = linkedLayer();
+		setCelOpacity(layer, 0, 100);
+		expect(layer.cels.get(0)?.data.opacity).toBe(100);
+		expect(layer.cels.get(1)?.data.opacity).toBe(100);
+	});
+
+	test("both do nothing where there is no cel", () => {
+		const layer = createImageLayer({ id: "a", name: "A" });
+		removeCel(layer, 3);
+		setCelOpacity(layer, 3, 10);
+		expect(layer.cels.size).toBe(0);
 	});
 });
 

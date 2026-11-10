@@ -333,6 +333,21 @@ export function setCel(
 	return cel;
 }
 
+/** Deletes the cel at `frame` only: frames linked to it keep their cel. Does nothing where there is no cel. */
+export function removeCel(layer: ImageLayer, frame: number): void {
+	layer.cels.delete(frame);
+}
+
+/** Sets the opacity of the cel's data, so of every frame linked to it. Does nothing where there is no cel. */
+export function setCelOpacity(
+	layer: ImageLayer,
+	frame: number,
+	opacity: number,
+): void {
+	const cel = layer.cels.get(frame);
+	if (cel) cel.data.opacity = opacity;
+}
+
 /** The frames of `layer` whose cels use `data`, in ascending order. */
 export function framesSharingData(layer: ImageLayer, data: CelData): number[] {
 	const frames: number[] = [];

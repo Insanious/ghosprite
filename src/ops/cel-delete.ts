@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isEmptyRect } from "../core/image.ts";
-import { celCanvasRect } from "../core/sprite.ts";
+import { celCanvasRect, removeCel } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { resolveTarget } from "../target.ts";
 import { defineOp } from "./registry.ts";
@@ -34,7 +34,7 @@ export const celDelete = defineOp({
 		}
 		const cel = layer.cels.get(input.frame);
 		if (!cel) return { changed: [] };
-		layer.cels.delete(input.frame);
+		removeCel(layer, input.frame);
 		const rect = celCanvasRect(sprite, cel.data);
 		return {
 			changed: isEmptyRect(rect)
