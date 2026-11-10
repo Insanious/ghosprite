@@ -3,6 +3,7 @@ import {
 	type DitheringMatrix,
 	mapImageToPalette,
 } from "./dither.ts";
+import { recordCelData } from "./history.ts";
 import { isEmptyRect, type Rect, type Rgba } from "./image.ts";
 import { OctreeMap } from "./octree-map.ts";
 import { findMaskColor, paletteAt } from "./palette.ts";
@@ -44,6 +45,7 @@ export function mapSpriteToPalette(
 			const data = layer.cels.get(frame)?.data;
 			if (!data || converted.has(data.id)) continue;
 			converted.add(data.id);
+			recordCelData(sprite, data);
 
 			const { colors } = paletteAt(sprite.palettes, frame);
 			let entry = maps.get(colors);

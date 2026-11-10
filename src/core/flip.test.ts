@@ -5,6 +5,8 @@ import {
 	selectedPixels,
 	spriteWithSelectedShape,
 } from "../../tests/helpers/selection-fixture.ts";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
+import { wholeSprite } from "../../tests/helpers/whole-sprite.ts";
 import { flipImage, flipSprite } from "./flip.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 
@@ -72,4 +74,14 @@ describe("flipImage", () => {
 		flipImage(image, "horizontal");
 		expect(Array.from(image.data)).toEqual([7, 5]);
 	});
+});
+
+describe("flipSprite undo", () => {
+	test.each(["horizontal", "vertical"] as const)(
+		"undo and redo restore a %s flip",
+		(direction) => {
+			const { sprite } = wholeSprite();
+			checkUndoRedo(sprite, () => flipSprite(sprite, direction));
+		},
+	);
 });

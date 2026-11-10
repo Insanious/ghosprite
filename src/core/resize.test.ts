@@ -5,6 +5,8 @@ import {
 	selectedPixels,
 	spriteWithSelectedShape,
 } from "../../tests/helpers/selection-fixture.ts";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
+import { wholeSprite } from "../../tests/helpers/whole-sprite.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import { resizeImage, resizeSprite } from "./resize.ts";
 
@@ -82,5 +84,15 @@ describe("resizeImage", () => {
 		}
 		const out = resizeImage(src, 2, 2);
 		expect([0, 1, 2, 3].map((i) => out.data[i])).toEqual([0, 2, 8, 10]);
+	});
+});
+
+describe("resizeSprite undo", () => {
+	test.each([
+		[12, 8],
+		[3, 2],
+	])("undo and redo restore the sprite resized to %ix%i", (width, height) => {
+		const { sprite } = wholeSprite();
+		checkUndoRedo(sprite, () => resizeSprite(sprite, width, height));
 	});
 });

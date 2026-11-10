@@ -1,3 +1,4 @@
+import { recordCelData, recordHeader, recordSlices } from "./history.ts";
 import { bytesPerPixel, createImage, type Image, type Rect } from "./image.ts";
 import { maskAsImage, transformSelections, trimMask } from "./selection.ts";
 import {
@@ -55,10 +56,13 @@ function scaleCel(data: CelData, scale: Scale) {
 export function resizeSprite(sprite: Sprite, width: number, height: number) {
 	const scale = { x: width / sprite.width, y: height / sprite.height };
 	const scaled = new Set<CelDataId>();
+	recordHeader(sprite);
+	recordSlices(sprite);
 	for (const layer of imageLayers(sprite.root)) {
 		for (const cel of layer.cels.values()) {
 			if (scaled.has(cel.data.id)) continue;
 			scaled.add(cel.data.id);
+			recordCelData(sprite, cel.data);
 			scaleCel(cel.data, scale);
 		}
 	}

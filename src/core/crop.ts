@@ -1,3 +1,4 @@
+import { recordCelData, recordHeader, recordSlices } from "./history.ts";
 import {
 	bytesPerPixel,
 	createImage,
@@ -49,11 +50,14 @@ export function cropSprite(
 ): void {
 	const fill = { ...background, a: 255 };
 	const visited = new Set<CelDataId>();
+	recordHeader(sprite);
+	recordSlices(sprite);
 	for (const layer of imageLayers(sprite.root)) {
 		for (const cel of layer.cels.values()) {
 			const data = cel.data;
 			if (visited.has(data.id)) continue;
 			visited.add(data.id);
+			recordCelData(sprite, data);
 			if (layer.flags.background) {
 				data.image = cropImage(
 					data.image,
@@ -72,8 +76,11 @@ export function cropSprite(
 			data.x -= rect.x;
 			data.y -= rect.y;
 			if (data.preciseBounds) {
-				data.preciseBounds.x -= rect.x;
-				data.preciseBounds.y -= rect.y;
+				data.preciseBounds = {
+					...data.preciseBounds,
+					x: data.preciseBounds.x - rect.x,
+					y: data.preciseBounds.y - rect.y,
+				};
 			}
 		}
 	}

@@ -5,6 +5,8 @@ import {
 	selectedPixels,
 	spriteWithSelectedShape,
 } from "../../tests/helpers/selection-fixture.ts";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
+import { wholeSprite } from "../../tests/helpers/whole-sprite.ts";
 import { cropSprite } from "./crop.ts";
 
 describe("cropSprite linked cels", () => {
@@ -35,6 +37,19 @@ describe("cropSprite", () => {
 			y: -1,
 			width: 3,
 			height: 3,
+		});
+	});
+});
+
+describe("cropSprite undo", () => {
+	test("undo and redo restore the sprite", () => {
+		const { sprite } = wholeSprite();
+		checkUndoRedo(sprite, () => {
+			cropSprite(
+				sprite,
+				{ x: 1, y: 1, width: 4, height: 2 },
+				{ r: 9, g: 9, b: 9, a: 0 },
+			);
 		});
 	});
 });

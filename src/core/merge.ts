@@ -1,4 +1,5 @@
 import { contentBounds, cropImage } from "./crop.ts";
+import { recordCels, recordChildren, recordLayer } from "./history.ts";
 import {
 	createImage,
 	type Image,
@@ -16,6 +17,7 @@ import {
 	type ImageLayer,
 	imageLayers,
 	type Layer,
+	removeCel,
 	removeLayer,
 	type Sprite,
 	setCel,
@@ -88,12 +90,13 @@ export function mergeLayerDown(
 			if (data) {
 				setCel(sprite, lower, frame, data, bottom?.zIndex ?? 0);
 			} else {
-				lower.cels.delete(frame);
+				removeCel(sprite, lower, frame);
 			}
 		}
 		const changed = intersectRects(canvasRect(sprite), rect);
 		if (!isEmptyRect(changed)) changes.push({ frame, rect: changed });
 	}
+	recordLayer(sprite, lower);
 	lower.opacity = 255;
 	lower.blendMode = "normal";
 	removeLayer(sprite, upper);
@@ -142,6 +145,8 @@ export function flattenSprite(
 		}
 		if (!isEmptyRect(rect)) changes.push({ frame, rect });
 	}
+	recordChildren(sprite, sprite.root);
+	recordCels(sprite, target);
 	sprite.root.children = [target];
 	target.cels = flattened.cels;
 	return changes;

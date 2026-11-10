@@ -5,6 +5,8 @@ import {
 	selectedPixels,
 	spriteWithSelectedShape,
 } from "../../tests/helpers/selection-fixture.ts";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
+import { wholeSprite } from "../../tests/helpers/whole-sprite.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import { rotateImage, rotateSprite } from "./rotate.ts";
 
@@ -70,4 +72,14 @@ describe("rotateImage", () => {
 	test("90 then 270 restores the image", () => {
 		expect(rotateImage(rotateImage(sample(), 90), 270)).toEqual(sample());
 	});
+});
+
+describe("rotateSprite undo", () => {
+	test.each([90, 180] as const)(
+		"undo and redo restore a %i rotation",
+		(angle) => {
+			const { sprite } = wholeSprite();
+			checkUndoRedo(sprite, () => rotateSprite(sprite, angle));
+		},
+	);
 });

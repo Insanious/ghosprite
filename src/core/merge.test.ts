@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
 import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
+import { wholeSprite } from "../../tests/helpers/whole-sprite.ts";
 import { createImage, setPixel } from "./image.ts";
 import { flattenSprite, mergeLayerDown } from "./merge.ts";
 import {
@@ -55,4 +57,25 @@ test("flattenSprite leaves every cel with an id, none repeated across data", () 
 	expect(ids[0]).toBeDefined();
 	expect(ids[1]).not.toBe(ids[0]);
 	expectCelIdInvariant(sprite);
+});
+
+test("undo and redo restore a merge down", () => {
+	const { sprite, background, top } = wholeSprite();
+	checkUndoRedo(sprite, () => {
+		mergeLayerDown(sprite, top, background);
+	});
+});
+
+test("undo and redo restore a flatten into the background layer", () => {
+	const { sprite, background } = wholeSprite();
+	checkUndoRedo(sprite, () => {
+		flattenSprite(sprite, background);
+	});
+});
+
+test("undo and redo restore a flatten into a new layer", () => {
+	const { sprite } = wholeSprite();
+	checkUndoRedo(sprite, () => {
+		flattenSprite(sprite, createImageLayer({ id: "flat", name: "Flat" }));
+	});
 });

@@ -1,4 +1,5 @@
-import { bytesPerPixel, type Image } from "./image.ts";
+import { recordCelData } from "./history.ts";
+import { bytesPerPixel, copyImage, type Image } from "./image.ts";
 import { maskAsImage, transformSelections } from "./selection.ts";
 import { type CelDataId, imageLayers, type Sprite } from "./sprite.ts";
 
@@ -46,12 +47,15 @@ export function flipSprite(sprite: Sprite, direction: FlipDirection): void {
 		for (const { data } of layer.cels.values()) {
 			if (flipped.has(data.id)) continue;
 			flipped.add(data.id);
+			recordCelData(sprite, data);
 			if (direction === "horizontal") {
 				data.x = sprite.width - data.image.width - data.x;
 			} else {
 				data.y = sprite.height - data.image.height - data.y;
 			}
-			flipImage(data.image, direction);
+			const image = copyImage(data.image);
+			flipImage(image, direction);
+			data.image = image;
 			delete data.preciseBounds;
 		}
 	}

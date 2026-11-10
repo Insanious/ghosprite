@@ -1,4 +1,6 @@
 import { expect, test } from "bun:test";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
+import { wholeSprite } from "../../tests/helpers/whole-sprite.ts";
 import { bayerMatrix } from "./dither.ts";
 import { createImage, setPixel } from "./image.ts";
 import { mapSpriteToPalette } from "./map-to-palette.ts";
@@ -63,4 +65,11 @@ test("a cel with opacity below 255 ends at 255", () => {
 	mapSpriteToPalette(sprite, options);
 
 	expect(layer.cels.get(0)?.data.opacity).toBe(255);
+});
+
+test("undo and redo restore the sprite", () => {
+	const { sprite } = wholeSprite();
+	checkUndoRedo(sprite, () => {
+		mapSpriteToPalette(sprite, options);
+	});
 });

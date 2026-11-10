@@ -1,3 +1,4 @@
+import { recordCelData, recordHeader } from "./history.ts";
 import { bytesPerPixel, createImage, type Image } from "./image.ts";
 import { maskAsImage, transformSelections } from "./selection.ts";
 import { type CelDataId, imageLayers, type Sprite } from "./sprite.ts";
@@ -38,10 +39,12 @@ export function rotateImage(src: Image, angle: RotateAngle): Image {
 /** Turns every cel, selection and the canvas clockwise. Linked cels are rotated once. */
 export function rotateSprite(sprite: Sprite, angle: RotateAngle): void {
 	const rotated = new Set<CelDataId>();
+	recordHeader(sprite);
 	for (const layer of imageLayers(sprite.root)) {
 		for (const { data } of layer.cels.values()) {
 			if (rotated.has(data.id)) continue;
 			rotated.add(data.id);
+			recordCelData(sprite, data);
 			const { x, y } = data;
 			const { width, height } = data.image;
 			if (angle === 90) {
