@@ -77,6 +77,40 @@ export function getPixel(image: Image, x: number, y: number): number[] {
 	);
 }
 
+/** Scans an RGBA image once in row-major order: its distinct colours in first-seen order, and per pixel an index into them. Every alpha-0 pixel is `-1` whatever its RGB, and no transparent colour is in `colors`. */
+export function colorIndices(image: Image): {
+	colors: Rgba[];
+	indices: Int32Array;
+} {
+	if (image.mode !== "rgba") {
+		throw new RangeError(`colorIndices needs an rgba image, got ${image.mode}`);
+	}
+	const colors: Rgba[] = [];
+	const indexByColor = new Map<number, number>();
+	const indices = new Int32Array(image.width * image.height);
+	const { data } = image;
+	for (let i = 0; i < indices.length; i++) {
+		const o = i * 4;
+		const a = data[o + 3] as number;
+		if (a === 0) {
+			indices[i] = -1;
+			continue;
+		}
+		const r = data[o] as number;
+		const g = data[o + 1] as number;
+		const b = data[o + 2] as number;
+		const key = ((r << 24) | (g << 16) | (b << 8) | a) >>> 0;
+		let index = indexByColor.get(key);
+		if (index === undefined) {
+			index = colors.length;
+			indexByColor.set(key, index);
+			colors.push({ r, g, b, a });
+		}
+		indices[i] = index;
+	}
+	return { colors, indices };
+}
+
 export function setPixel(
 	image: Image,
 	x: number,

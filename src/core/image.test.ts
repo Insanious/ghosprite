@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+	colorIndices,
 	copyImage,
 	createImage,
 	getPixel,
@@ -107,5 +108,39 @@ describe("imageFromIndices", () => {
 			new Int32Array([0]),
 		);
 		expect(getPixel(image, 0, 0)).toEqual([9, 8, 7, 0]);
+	});
+});
+
+describe("colorIndices", () => {
+	test("lists colours in first-seen order and reuses repeats", () => {
+		const image = createImage(3, 2, "rgba");
+		const pixels = [
+			[9, 9, 9, 255],
+			[1, 2, 3, 255],
+			[9, 9, 9, 255],
+			[9, 9, 9, 128],
+			[1, 2, 3, 255],
+			[4, 5, 6, 255],
+		];
+		pixels.forEach((bytes, i) => {
+			setPixel(image, i % 3, Math.floor(i / 3), bytes);
+		});
+		const { colors, indices } = colorIndices(image);
+		expect(colors).toEqual([
+			{ r: 9, g: 9, b: 9, a: 255 },
+			{ r: 1, g: 2, b: 3, a: 255 },
+			{ r: 9, g: 9, b: 9, a: 128 },
+			{ r: 4, g: 5, b: 6, a: 255 },
+		]);
+		expect([...indices]).toEqual([0, 1, 0, 2, 1, 3]);
+	});
+
+	test("maps every alpha-0 pixel to -1 whatever its RGB", () => {
+		const image = createImage(3, 1, "rgba");
+		setPixel(image, 0, 0, [1, 2, 3, 0]);
+		setPixel(image, 1, 0, [200, 0, 0, 0]);
+		const { colors, indices } = colorIndices(image);
+		expect(colors).toEqual([]);
+		expect([...indices]).toEqual([-1, -1, -1]);
 	});
 });

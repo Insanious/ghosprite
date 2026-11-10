@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-	getPixel,
+	colorIndices,
 	type Image,
 	imageFromIndices,
 	type Rgba,
@@ -69,31 +69,16 @@ export function rowsFromImage(
 	};
 	let transparentChar = [...BLANK_CHARS].find((char) => !isVisible(char));
 
-	const pixels: (Rgba | undefined)[] = [];
-	const distinct = new Map<string, Rgba>();
-	for (let i = 0; i < image.width * image.height; i++) {
-		const [r = 0, g = 0, b = 0, a = 0] = getPixel(
-			image,
-			i % image.width,
-			Math.floor(i / image.width),
-		);
-		if (a === 0) {
-			pixels.push(undefined);
-		} else {
-			const color = { r, g, b, a };
-			pixels.push(color);
-			distinct.set(colorKey(color), color);
-		}
-	}
+	const { colors, indices } = colorIndices(image);
 
 	const free = ALPHABET.filter((char) => !(char in legend));
-	const needsChar = [...distinct.keys()].filter((key) => !charByColor.has(key));
+	const needsChar = colors.filter((color) => !charByColor.has(colorKey(color)));
 	const transparentNeedsChar =
-		transparentChar === undefined && pixels.includes(undefined);
+		transparentChar === undefined && indices.includes(-1);
 	if (needsChar.length + (transparentNeedsChar ? 1 : 0) > free.length) {
 		throw new OpError(
 			"out_of_range",
-			`The image has ${distinct.size} distinct colours and needs ${needsChar.length + (transparentNeedsChar ? 1 : 0)} new characters, but only ${free.length} are free`,
+			`The image has ${colors.length} distinct colours and needs ${needsChar.length + (transparentNeedsChar ? 1 : 0)} new characters, but only ${free.length} are free`,
 			{
 				path,
 				hint: "Read a smaller rect, or reduce colours first with palette.quantize and sprite.mapToPalette",
@@ -124,9 +109,10 @@ export function rowsFromImage(
 
 	const rows: string[] = [];
 	for (let y = 0; y < image.height; y++) {
-		const row = pixels
-			.slice(y * image.width, (y + 1) * image.width)
-			.map(charFor);
+		const row = Array.from(
+			indices.subarray(y * image.width, (y + 1) * image.width),
+			(index) => charFor(colors[index]),
+		);
 		const transparentRow = row.map((char) => char === transparentChar);
 		let end = row.length;
 		while (end > 1 && transparentRow[end - 1]) end--;

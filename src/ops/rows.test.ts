@@ -276,6 +276,16 @@ describe("rowsFromImage", () => {
 		expect(getPixel(image, 1, 2)).toEqual([2, 2, 2, 255]);
 	});
 
+	test("a transparent pixel between two new colours takes the next free character in pixel order", () => {
+		const { legend, rows } = encode(
+			[rgba(1, 1, 1), clear, rgba(2, 2, 2), rgba(1, 1, 1)],
+			4,
+			{ ".": "#ff0000", " ": "#00ff00" },
+		);
+		expect(rows).toEqual(["ABCA"]);
+		expect(legend).toEqual({ A: "#010101", B: "#00000000", C: "#020202" });
+	});
+
 	test("trimming works when transparent is a new character", () => {
 		const { rows } = encode([rgba(1, 1, 1), clear, clear, clear], 2, {
 			".": "#ff0000",
