@@ -1,14 +1,11 @@
 import { z } from "zod";
-import type { CelCanvas } from "../core/cel-edit.ts";
-import type { Mask } from "../core/draw/spans.ts";
-import type { ChannelName, Channels, Filter } from "../core/filter/filter.ts";
 import {
-	copyImage,
-	type Image,
-	intersectRects,
-	isEmptyRect,
-	type Rect,
-} from "../core/image.ts";
+	type ChannelName,
+	type Channels,
+	type Filter,
+	filterCanvas,
+} from "../core/filter/filter.ts";
+import { intersectRects, isEmptyRect } from "../core/image.ts";
 import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { editCels } from "./cel-edit.ts";
@@ -73,27 +70,7 @@ export function runFilter(
 	if (isEmptyRect(area)) return { changed: [] };
 
 	return editCels({ sprite, layer }, input.frames, (canvas) => {
-		const source = copyImage(canvas.image);
-		const imageArea = { ...area, x: area.x - canvas.x, y: area.y - canvas.y };
-		const imageCanvas = { ...canvasRect, x: -canvas.x, y: -canvas.y };
-		filter(source, canvas.image, imageArea, channels, imageCanvas);
-		if (mask) keepOutsideMask(source, canvas, mask, area);
+		filterCanvas(canvas, filter, area, channels, canvasRect, mask);
 		return canvas;
 	});
-}
-
-function keepOutsideMask(
-	source: Image,
-	canvas: CelCanvas,
-	mask: Mask,
-	area: Rect,
-) {
-	const { bounds, bits } = mask;
-	for (let y = area.y; y < area.y + area.height; y++) {
-		for (let x = area.x; x < area.x + area.width; x++) {
-			if (bits[(y - bounds.y) * bounds.width + x - bounds.x]) continue;
-			const at = ((y - canvas.y) * source.width + x - canvas.x) * 4;
-			canvas.image.data.set(source.data.subarray(at, at + 4), at);
-		}
-	}
 }
