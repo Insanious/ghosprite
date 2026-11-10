@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
-import { readdirSync } from "node:fs";
 import { deflateSync } from "node:zlib";
 import {
 	chunkTypes,
+	fixturePaths,
 	read,
 	readFixture,
 } from "../../tests/helpers/ase-build.ts";
@@ -66,15 +66,6 @@ function describe(sprite: Sprite) {
 		colorProfile: sprite.colorProfile,
 		layers: describeLayers(walkRenderOrder(sprite.root)),
 	};
-}
-
-function fixturePaths(): string[] {
-	const root = new URL("../../tests/fixtures/", import.meta.url);
-	const names = [
-		...readdirSync(root),
-		...readdirSync(new URL("sprites/", root)).map((name) => `sprites/${name}`),
-	];
-	return names.filter((name) => name.endsWith(".aseprite"));
 }
 
 test("every fixture round-trips", () => {

@@ -1,6 +1,7 @@
 import type { Mask } from "./draw/spans.ts";
 import {
 	type ColorMode,
+	copyImage,
 	type Image,
 	intersectRects,
 	type Rect,
@@ -8,7 +9,7 @@ import {
 import type { Palette } from "./palette.ts";
 import type { Slice } from "./slice.ts";
 import type { Tag } from "./tag.ts";
-import { createUserData, type UserData } from "./user-data.ts";
+import { cloneUserData, createUserData, type UserData } from "./user-data.ts";
 
 /** The index in this list is the value stored in .aseprite files. */
 export const BLEND_MODES = [
@@ -348,9 +349,83 @@ export function linkCels(
 	return changes;
 }
 
-/** Gives the cel at `frame` its own copy of its data. Returns false if it had no cel or wasn't linked. */
+/** A deep copy of one cel's data. */
 export function copyCelData(data: CelData): CelData {
-	return structuredClone(data);
+	return {
+		...data,
+		image: copyImage(data.image),
+		userData: cloneUserData(data.userData),
+		...(data.preciseBounds && { preciseBounds: { ...data.preciseBounds } }),
+	};
+}
+
+/** A deep copy that keeps cels linked in the original linked in the copy. */
+export function cloneSprite(sprite: Sprite): Sprite {
+	const copies = new Map<CelData, CelData>();
+	const sharedCopy = (data: CelData): CelData => {
+		let copy = copies.get(data);
+		if (!copy) {
+			copy = copyCelData(data);
+			copies.set(data, copy);
+		}
+		return copy;
+	};
+	const cloneImageLayer = (layer: ImageLayer): ImageLayer => ({
+		...layer,
+		flags: { ...layer.flags },
+		userData: cloneUserData(layer.userData),
+		cels: new Map(
+			[...layer.cels].map(([frame, cel]) => [
+				frame,
+				{ ...cel, data: sharedCopy(cel.data) },
+			]),
+		),
+	});
+	const cloneGroup = (group: GroupLayer): GroupLayer => ({
+		...group,
+		flags: { ...group.flags },
+		userData: cloneUserData(group.userData),
+		children: group.children.map((child) =>
+			child.kind === "group" ? cloneGroup(child) : cloneImageLayer(child),
+		),
+	});
+	const root = cloneGroup(sprite.root);
+	return {
+		...sprite,
+		frameDurations: [...sprite.frameDurations],
+		palettes: sprite.palettes.map((palette) => ({
+			...palette,
+			colors: palette.colors.map((color) => ({ ...color })),
+		})),
+		root,
+		tags: sprite.tags.map((tag) => ({
+			...tag,
+			userData: cloneUserData(tag.userData),
+		})),
+		slices: sprite.slices.map((slice) => ({
+			...slice,
+			userData: cloneUserData(slice.userData),
+			keys: slice.keys.map((key) => ({
+				...key,
+				bounds: { ...key.bounds },
+				...(key.center && { center: { ...key.center } }),
+				...(key.pivot && { pivot: { ...key.pivot } }),
+			})),
+		})),
+		userData: cloneUserData(sprite.userData),
+		pixelRatio: { ...sprite.pixelRatio },
+		gridBounds: { ...sprite.gridBounds },
+		colorProfile:
+			sprite.colorProfile.type === "icc"
+				? { ...sprite.colorProfile, icc: sprite.colorProfile.icc.slice() }
+				: { ...sprite.colorProfile },
+		selections: new Map(
+			[...sprite.selections].map(([id, mask]) => [
+				id,
+				{ bounds: { ...mask.bounds }, bits: mask.bits.slice() },
+			]),
+		),
+	};
 }
 
 /** The image layers under `parent`, in render order. */
@@ -358,6 +433,7 @@ export function imageLayers(parent: GroupLayer): ImageLayer[] {
 	return [...walkRenderOrder(parent)].filter((layer) => layer.kind === "image");
 }
 
+/** Gives the cel at `frame` its own copy of its data. Returns false if it had no cel or wasn't linked. */
 export function unlinkCel(layer: ImageLayer, frame: number): boolean {
 	const cel = layer.cels.get(frame);
 	if (!cel || framesSharingData(layer, cel.data).length < 2) return false;

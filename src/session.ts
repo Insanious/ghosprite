@@ -1,4 +1,4 @@
-import type { Sprite } from "./core/sprite.ts";
+import { cloneSprite, type Sprite } from "./core/sprite.ts";
 import { OpError } from "./errors.ts";
 import { operations } from "./ops/index.ts";
 import { createRegistry, type MutationResult } from "./ops/registry.ts";
@@ -205,10 +205,7 @@ export class Session {
 					this.workspace.hasSprite(spriteId) &&
 					!before.has(spriteId)
 				) {
-					before.set(
-						spriteId,
-						structuredClone(this.workspace.getSprite(spriteId)),
-					);
+					before.set(spriteId, cloneSprite(this.workspace.getSprite(spriteId)));
 				}
 				const ran = prepared.run();
 				results.push(ran.result);

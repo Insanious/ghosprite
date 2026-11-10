@@ -1,14 +1,20 @@
 import { describe, expect, test } from "bun:test";
+import { fixturePaths, readFixture } from "../../tests/helpers/ase-build.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import {
 	addLayer,
 	type CelData,
+	cloneSprite,
+	copyCelData,
 	createGroupLayer,
 	createImageLayer,
 	createSprite,
 	findLayer,
 	framesSharingData,
+	imageLayers,
 	isLayerVisible,
+	linkCels,
+	type Sprite,
 	setCel,
 	walkRenderOrder,
 } from "./sprite.ts";
@@ -82,6 +88,181 @@ describe("linked cels", () => {
 		const second = setCel(sprite, layer, 1, data);
 		first.zIndex = 3;
 		expect(second.zIndex).toBe(0);
+	});
+});
+
+function mutableObjects(root: unknown): Set<object> {
+	const found = new Set<object>();
+	const visit = (value: unknown) => {
+		if (typeof value !== "object" || value === null || found.has(value)) return;
+		found.add(value);
+		if (value instanceof Map) {
+			for (const [key, item] of value) {
+				visit(key);
+				visit(item);
+			}
+		} else if (!ArrayBuffer.isView(value)) {
+			for (const item of Object.values(value)) visit(item);
+		}
+	};
+	visit(root);
+	return found;
+}
+
+function expectNothingShared(original: unknown, copy: unknown) {
+	const originals = mutableObjects(original);
+	for (const object of mutableObjects(copy)) {
+		expect(originals.has(object)).toBe(false);
+	}
+}
+
+function filledSprite(): Sprite {
+	const sprite = createSprite({
+		width: 4,
+		height: 4,
+		mode: "rgba",
+		palettes: [{ startFrame: 0, colors: [{ r: 1, g: 2, b: 3, a: 4 }] }],
+		frameDurations: [100, 200],
+	});
+	const group = createGroupLayer({ id: "g", name: "G", uuid: "u1" });
+	addLayer(sprite, group, sprite.root);
+	const layer = createImageLayer({ id: "a", name: "A", uuid: "u2" });
+	addLayer(sprite, layer, group);
+	const data = newData();
+	data.preciseBounds = { x: 0, y: 0, width: 2, height: 2 };
+	data.userData.text = "cel";
+	setCel(sprite, layer, 0, data);
+	layer.userData.properties.set(
+		"ext",
+		new Map([
+			["vec", { type: "vector", value: [{ type: "bool", value: true }] }],
+			[
+				"nested",
+				{
+					type: "properties",
+					value: new Map([["n", { type: "uint8", value: 3 }]]),
+				},
+			],
+			["pt", { type: "point", value: { x: 1, y: 2 } }],
+			["big", { type: "int64", value: 5n }],
+		]),
+	);
+	sprite.tags.push({
+		name: "t",
+		from: 0,
+		to: 1,
+		direction: "forward",
+		repeat: 0,
+		userData: createUserData(),
+	});
+	sprite.slices.push({
+		name: "s",
+		userData: createUserData(),
+		keys: [
+			{
+				frame: 0,
+				bounds: { x: 0, y: 0, width: 2, height: 2 },
+				center: { x: 1, y: 1, width: 1, height: 1 },
+				pivot: { x: 1, y: 1 },
+			},
+		],
+	});
+	sprite.selections.set("sel", {
+		bounds: { x: 0, y: 0, width: 2, height: 1 },
+		bits: new Uint8Array([1, 1]),
+	});
+	sprite.colorProfile = { type: "icc", icc: new Uint8Array([1, 2, 3]) };
+	return sprite;
+}
+
+describe("cloneSprite", () => {
+	test("linked cels stay linked", () => {
+		const sprite = createSprite({
+			width: 4,
+			height: 4,
+			mode: "rgba",
+			palettes: [{ startFrame: 0, colors: [] }],
+			frameDurations: [100, 100, 100],
+		});
+		const linked = createImageLayer({ id: "a", name: "A" });
+		const other = createImageLayer({ id: "b", name: "B" });
+		addLayer(sprite, linked, sprite.root);
+		addLayer(sprite, other, sprite.root);
+		setCel(sprite, linked, 0, newData());
+		linkCels(sprite, linked, [0, 1, 2]);
+		setCel(sprite, other, 0, newData());
+
+		const copy = cloneSprite(sprite);
+		const [copyLinked, copyOther] = imageLayers(copy.root);
+		const shared = copyLinked?.cels.get(0)?.data;
+		expect(copyLinked?.cels.get(1)?.data).toBe(shared);
+		expect(copyLinked?.cels.get(2)?.data).toBe(shared);
+		expect(shared).not.toBe(linked.cels.get(0)?.data);
+		expect(copyOther?.cels.get(0)?.data).not.toBe(shared);
+
+		const image = copyLinked?.cels.get(1)?.data.image;
+		if (!image) throw new Error("missing image");
+		setPixel(image, 1, 1, [9, 9, 9, 255]);
+		expect(
+			getPixel(copyLinked?.cels.get(0)?.data.image ?? image, 1, 1),
+		).toEqual([9, 9, 9, 255]);
+		expect(
+			getPixel(copyLinked?.cels.get(2)?.data.image ?? image, 1, 1),
+		).toEqual([9, 9, 9, 255]);
+		expect(getPixel(linked.cels.get(0)?.data.image ?? image, 1, 1)).toEqual([
+			0, 0, 0, 0,
+		]);
+	});
+
+	test("shares nothing mutable with the original", () => {
+		const sprite = filledSprite();
+		const copy = cloneSprite(sprite);
+		expect(copy).toStrictEqual(structuredClone(sprite));
+		expectNothingShared(sprite, copy);
+	});
+
+	test("matches structuredClone for every fixture and keeps its links", () => {
+		for (const path of fixturePaths()) {
+			const { sprite } = readFixture(path);
+			const copy = cloneSprite(sprite);
+			expect({ path, copy }).toStrictEqual({
+				path,
+				copy: structuredClone(sprite),
+			});
+			const originalLayers = imageLayers(sprite.root);
+			const copyLayers = imageLayers(copy.root);
+			originalLayers.forEach((layer, i) => {
+				const frames = [...layer.cels.keys()];
+				for (const a of frames) {
+					for (const b of frames) {
+						const linkedBefore =
+							layer.cels.get(a)?.data === layer.cels.get(b)?.data;
+						const cels = copyLayers[i]?.cels;
+						expect({
+							path,
+							a,
+							b,
+							linked: cels?.get(a)?.data === cels?.get(b)?.data,
+						}).toEqual({
+							path,
+							a,
+							b,
+							linked: linkedBefore,
+						});
+					}
+				}
+			});
+		}
+	});
+});
+
+describe("copyCelData", () => {
+	test("copies everything", () => {
+		const data = newData();
+		data.preciseBounds = { x: 0, y: 0, width: 1, height: 1 };
+		const copy = copyCelData(data);
+		expect(copy).toStrictEqual(data);
+		expectNothingShared(data, copy);
 	});
 });
 

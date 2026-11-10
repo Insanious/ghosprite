@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { deflateSync, inflateSync } from "node:zlib";
 import { ByteReader, ByteWriter } from "../../src/core/ase-bytes.ts";
 import { readAseprite } from "../../src/core/ase-read.ts";
@@ -14,6 +14,16 @@ export function read(bytes: Uint8Array) {
 
 export function readFixture(path: string) {
 	return read(readFileSync(new URL(`../fixtures/${path}`, import.meta.url)));
+}
+
+/** Every .aseprite fixture, as a path relative to tests/fixtures/. */
+export function fixturePaths(): string[] {
+	const root = new URL("../fixtures/", import.meta.url);
+	const names = [
+		...readdirSync(root),
+		...readdirSync(new URL("sprites/", root)).map((name) => `sprites/${name}`),
+	];
+	return names.filter((name) => name.endsWith(".aseprite"));
 }
 
 export function layerNamed(layers: Iterable<Layer>, name: string): Layer {

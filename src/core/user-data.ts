@@ -34,6 +34,40 @@ export function createUserData(): UserData {
 	};
 }
 
+function clonePropertiesMap(map: PropertiesMap): PropertiesMap {
+	return new Map(
+		[...map].map(([key, value]) => [key, clonePropertyValue(value)]),
+	);
+}
+
+function clonePropertyValue(property: PropertyValue): PropertyValue {
+	switch (property.type) {
+		case "point":
+		case "size":
+		case "rect":
+			return { ...property, value: { ...property.value } } as PropertyValue;
+		case "vector":
+			return { ...property, value: property.value.map(clonePropertyValue) };
+		case "properties":
+			return { ...property, value: clonePropertiesMap(property.value) };
+		default:
+			return { ...property };
+	}
+}
+
+export function cloneUserData(userData: UserData): UserData {
+	return {
+		text: userData.text,
+		color: { ...userData.color },
+		properties: new Map(
+			[...userData.properties].map(([key, map]) => [
+				key,
+				clonePropertiesMap(map),
+			]),
+		),
+	};
+}
+
 const INT_RANGES = {
 	int8: [-(2n ** 7n), 2n ** 7n - 1n],
 	uint8: [0n, 2n ** 8n - 1n],

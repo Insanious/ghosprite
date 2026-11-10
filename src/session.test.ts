@@ -222,6 +222,16 @@ describe("Session undo and redo", () => {
 		expect(render(session, spriteId, 0)).toBe(render(session, spriteId, 1));
 	});
 
+	test("linked cels stay linked after undoing a draw on a linked sprite", () => {
+		const { session, spriteId, layerId } = setup(2);
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		session.run("cel.link", { spriteId, layerId, frames: [0, 1] });
+		draw(session, spriteId, layerId, 1, "#00ff00");
+		session.undo();
+		draw(session, spriteId, layerId, 2, "#0000ff", 1);
+		expect(render(session, spriteId, 0)).toBe(render(session, spriteId, 1));
+	});
+
 	test("a new step after an undo drops the redo steps", () => {
 		const { session, spriteId, layerId } = setup();
 		draw(session, spriteId, layerId, 0, "#ff0000");
