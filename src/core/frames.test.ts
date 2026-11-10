@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { createFrame, deleteFrame, duplicateFrame } from "./frames.ts";
 import { createImage } from "./image.ts";
 import {
@@ -124,6 +125,45 @@ describe("tags", () => {
 		sprite.tags = [tag(0, 3), tag(2, 2)];
 		deleteFrame(sprite, 2);
 		expect(sprite.tags.map((t) => [t.from, t.to])).toEqual([[0, 2]]);
+	});
+});
+
+describe("undo and redo", () => {
+	test("createFrame with a background colour inside a tagged range", () => {
+		const { sprite, plain } = setup(4);
+		addLayer(
+			sprite,
+			createImageLayer({
+				id: "bg",
+				name: "bg",
+				flags: { background: true },
+			}),
+			sprite.root,
+			0,
+		);
+		setCel(sprite, plain, 2, newData());
+		sprite.tags = [tag(0, 3), tag(2, 3)];
+		checkUndoRedo(sprite, () =>
+			createFrame(sprite, 1, { background: { r: 1, g: 2, b: 3, a: 255 } }),
+		);
+	});
+
+	test("duplicateFrame with a continuous layer and a plain one", () => {
+		const { sprite, plain, continuous } = setup(3);
+		setCel(sprite, plain, 0, newData());
+		setCel(sprite, plain, 1, newData());
+		setCel(sprite, continuous, 0, newData());
+		checkUndoRedo(sprite, () => duplicateFrame(sprite, 0));
+	});
+
+	test("deleteFrame removing a tag and renumbering cels on two layers", () => {
+		const { sprite, plain, continuous } = setup(4);
+		setCel(sprite, plain, 1, newData());
+		setCel(sprite, plain, 3, newData());
+		setCel(sprite, continuous, 2, newData());
+		setCel(sprite, continuous, 3, newData());
+		sprite.tags = [tag(0, 3), tag(2, 2)];
+		checkUndoRedo(sprite, () => deleteFrame(sprite, 2));
 	});
 });
 

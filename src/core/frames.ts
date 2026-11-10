@@ -1,3 +1,4 @@
+import { recordCels, recordHeader, recordTags } from "./history.ts";
 import { createImage, type Rgba } from "./image.ts";
 import {
 	type Cel,
@@ -12,13 +13,17 @@ import {
 import { insertTag, type Tag } from "./tag.ts";
 import { createUserData } from "./user-data.ts";
 
-function moveCels(layer: ImageLayer, shift: (frame: number) => number | null) {
+function moveCels(
+	sprite: Sprite,
+	layer: ImageLayer,
+	shift: (frame: number) => number | null,
+) {
+	recordCels(sprite, layer);
 	const moved = new Map<number, Cel>();
 	for (const cel of layer.cels.values()) {
 		const frame = shift(cel.frame);
 		if (frame === null) continue;
-		cel.frame = frame;
-		moved.set(frame, cel);
+		moved.set(frame, { ...cel, frame });
 	}
 	layer.cels = moved;
 }
@@ -66,9 +71,11 @@ function adjustTagsForDelete(sprite: Sprite, frame: number) {
 }
 
 function insertEmptyFrame(sprite: Sprite, at: number, duration: number) {
+	recordHeader(sprite);
+	recordTags(sprite);
 	sprite.frameDurations.splice(at, 0, duration);
 	for (const layer of imageLayers(sprite.root)) {
-		moveCels(layer, (frame) => (frame >= at ? frame + 1 : frame));
+		moveCels(sprite, layer, (frame) => (frame >= at ? frame + 1 : frame));
 	}
 	adjustTagsForInsert(sprite, at);
 }
@@ -120,9 +127,11 @@ export function duplicateFrame(sprite: Sprite, frame: number): void {
 }
 
 export function deleteFrame(sprite: Sprite, frame: number): void {
+	recordHeader(sprite);
+	recordTags(sprite);
 	sprite.frameDurations.splice(frame, 1);
 	for (const layer of imageLayers(sprite.root)) {
-		moveCels(layer, (at) => {
+		moveCels(sprite, layer, (at) => {
 			if (at === frame) return null;
 			return at > frame ? at - 1 : at;
 		});

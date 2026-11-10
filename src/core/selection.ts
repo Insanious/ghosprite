@@ -3,6 +3,7 @@ import { algoEllipsefill } from "./draw/algo.ts";
 import { floodfill } from "./draw/floodfill.ts";
 import { maskFromBits } from "./draw/mask.ts";
 import type { Mask } from "./draw/spans.ts";
+import { recordSelections } from "./history.ts";
 import {
 	copyImage,
 	createImage,
@@ -12,6 +13,7 @@ import {
 	type Rgba,
 	unionRects,
 } from "./image.ts";
+import type { Sprite } from "./sprite.ts";
 
 export type CombineMode = "add" | "subtract" | "intersect";
 
@@ -121,28 +123,27 @@ export function maskFromEllipse(rect: Rect): Mask {
 	return trimMask(mask);
 }
 
-export function setSelection(
-	sprite: { selections: Map<string, Mask> },
-	id: string,
-	mask: Mask,
-): void {
+export function setSelection(sprite: Sprite, id: string, mask: Mask): void {
+	recordSelections(sprite);
 	sprite.selections.set(id, mask);
 }
 
-export function deleteSelection(
-	sprite: { selections: Map<string, Mask> },
-	id: string,
-): void {
+export function deleteSelection(sprite: Sprite, id: string): void {
+	recordSelections(sprite);
 	sprite.selections.delete(id);
 }
 
 /** Replaces each non-empty selection with `transform` of it, keeping creation order. */
 export function transformSelections(
-	sprite: { selections: Map<string, Mask> },
+	sprite: Sprite,
 	transform: (mask: Mask) => Mask,
 ): void {
+	const isEmpty = (mask: Mask) =>
+		mask.bounds.width === 0 || mask.bounds.height === 0;
+	if (![...sprite.selections.values()].some((mask) => !isEmpty(mask))) return;
+	recordSelections(sprite);
 	for (const [id, mask] of sprite.selections) {
-		if (mask.bounds.width === 0 || mask.bounds.height === 0) continue;
+		if (isEmpty(mask)) continue;
 		sprite.selections.set(id, transform(mask));
 	}
 }

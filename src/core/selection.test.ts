@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { maskFromRect } from "./draw/mask.ts";
 import {
 	combineMasks,
@@ -6,19 +7,43 @@ import {
 	maskFromEllipse,
 	maskPixelCount,
 	setSelection,
+	transformSelections,
 	trimMask,
 } from "./selection.ts";
+import { createSprite } from "./sprite.ts";
 
 const rect = (x: number, y: number, width: number, height: number) =>
 	maskFromRect({ x, y, width, height });
 
 describe("setSelection and deleteSelection", () => {
-	const store = () => ({
-		selections: new Map([
-			["a", rect(0, 0, 1, 1)],
-			["b", rect(1, 1, 1, 1)],
-			["c", rect(2, 2, 1, 1)],
-		]),
+	const store = () => {
+		const sprite = createSprite({
+			width: 8,
+			height: 8,
+			mode: "rgba",
+			palettes: [{ startFrame: 0, colors: [] }],
+		});
+		sprite.selections.set("a", rect(0, 0, 1, 1));
+		sprite.selections.set("b", rect(1, 1, 1, 1));
+		sprite.selections.set("c", rect(2, 2, 1, 1));
+		return sprite;
+	};
+
+	test("undo keeps a replaced id in the middle", () => {
+		const sprite = store();
+		checkUndoRedo(sprite, () => setSelection(sprite, "b", rect(5, 5, 2, 2)));
+	});
+
+	test("undo brings a deleted first id back first", () => {
+		const sprite = store();
+		checkUndoRedo(sprite, () => deleteSelection(sprite, "a"));
+	});
+
+	test("transformSelections undoes and redoes", () => {
+		const sprite = store();
+		checkUndoRedo(sprite, () =>
+			transformSelections(sprite, (mask) => trimMask(mask)),
+		);
 	});
 
 	test("setSelection on an existing id keeps its place in iteration order", () => {

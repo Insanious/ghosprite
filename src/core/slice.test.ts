@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { addSlice, removeSlice, type Slice, sliceKeyAt } from "./slice.ts";
+import { createSprite } from "./sprite.ts";
 import { createUserData } from "./user-data.ts";
 
 const bounds = { x: 0, y: 0, width: 4, height: 4 };
@@ -27,14 +29,35 @@ function named(name: string): Slice {
 	return { name, userData: createUserData(), keys: [{ frame: 0, bounds }] };
 }
 
+function spriteWithSlices(...slices: Slice[]) {
+	const sprite = createSprite({
+		width: 4,
+		height: 4,
+		mode: "rgba",
+		palettes: [{ startFrame: 0, colors: [] }],
+	});
+	sprite.slices.push(...slices);
+	return sprite;
+}
+
 test("addSlice puts the new slice before existing ones", () => {
-	const sprite = { slices: [named("a")] };
+	const sprite = spriteWithSlices(named("a"));
 	addSlice(sprite, named("b"));
 	expect(sprite.slices.map((s) => s.name)).toEqual(["b", "a"]);
 });
 
 test("removeSlice removes only the slice at the index", () => {
-	const sprite = { slices: [named("a"), named("b"), named("c")] };
+	const sprite = spriteWithSlices(named("a"), named("b"), named("c"));
 	removeSlice(sprite, 1);
 	expect(sprite.slices.map((s) => s.name)).toEqual(["a", "c"]);
+});
+
+test("addSlice undoes and redoes", () => {
+	const sprite = spriteWithSlices(named("a"), named("b"));
+	checkUndoRedo(sprite, () => addSlice(sprite, named("c")));
+});
+
+test("removeSlice undoes and redoes", () => {
+	const sprite = spriteWithSlices(named("a"), named("b"));
+	checkUndoRedo(sprite, () => removeSlice(sprite, 1));
 });

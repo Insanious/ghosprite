@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { type Palette, paletteAt, setPalette } from "./palette.ts";
 import { createSprite } from "./sprite.ts";
 
@@ -45,6 +46,17 @@ describe("setPalette", () => {
 			{ startFrame: 0, colors: first.colors },
 			{ startFrame: 3, colors: red },
 		]);
+	});
+
+	test.each([
+		["an existing", 3],
+		["a new", 1],
+	])("undoes and redoes on %s start frame", (_, frame) => {
+		const sprite = spriteWith([
+			{ startFrame: 0, colors: first.colors },
+			{ startFrame: 3, colors: second.colors },
+		]);
+		checkUndoRedo(sprite, () => setPalette(sprite, frame, red));
 	});
 
 	test("at a new frame adds a palette in startFrame order", () => {

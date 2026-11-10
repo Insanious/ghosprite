@@ -1,4 +1,6 @@
+import { recordSlices } from "./history.ts";
 import type { Rect } from "./image.ts";
+import type { Sprite } from "./sprite.ts";
 import { cloneUserData, type UserData } from "./user-data.ts";
 
 export type SliceKey = {
@@ -27,12 +29,14 @@ export function cloneSlice(slice: Slice): Slice {
 	};
 }
 
-export function addSlice(sprite: { slices: Slice[] }, slice: Slice): void {
+export function addSlice(sprite: Sprite, slice: Slice): void {
+	recordSlices(sprite);
 	// Aseprite puts a new slice first.
 	sprite.slices.unshift(slice);
 }
 
-export function removeSlice(sprite: { slices: Slice[] }, index: number): void {
+export function removeSlice(sprite: Sprite, index: number): void {
+	recordSlices(sprite);
 	sprite.slices.splice(index, 1);
 }
 

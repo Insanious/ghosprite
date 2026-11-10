@@ -1,3 +1,4 @@
+import { recordPalettes } from "./history.ts";
 import type { Rgba } from "./image.ts";
 import type { Sprite } from "./sprite.ts";
 
@@ -30,6 +31,7 @@ export function paletteAt(palettes: Palette[], frame: number): Palette {
 }
 
 export function setPalette(sprite: Sprite, frame: number, colors: Rgba[]) {
+	recordPalettes(sprite);
 	const existing = sprite.palettes.find((p) => p.startFrame === frame);
 	if (existing) {
 		existing.colors = colors;

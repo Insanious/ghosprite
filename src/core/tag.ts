@@ -1,3 +1,5 @@
+import { recordTags } from "./history.ts";
+import type { Sprite } from "./sprite.ts";
 import { cloneUserData, type UserData } from "./user-data.ts";
 
 /** Indexed by the direction byte of the file's tags chunk. */
@@ -27,7 +29,8 @@ export function cloneTag(tag: Tag): Tag {
  * Aseprite keeps tags ordered by from, then longest first, and a tag equal to
  * an existing one goes after it.
  */
-export function insertTag(sprite: { tags: Tag[] }, tag: Tag): void {
+export function insertTag(sprite: Sprite, tag: Tag): void {
+	recordTags(sprite);
 	const { tags } = sprite;
 	const before = tags.findIndex(
 		(other) =>
@@ -36,6 +39,7 @@ export function insertTag(sprite: { tags: Tag[] }, tag: Tag): void {
 	tags.splice(before < 0 ? tags.length : before, 0, tag);
 }
 
-export function removeTag(sprite: { tags: Tag[] }, index: number): void {
+export function removeTag(sprite: Sprite, index: number): void {
+	recordTags(sprite);
 	sprite.tags.splice(index, 1);
 }
