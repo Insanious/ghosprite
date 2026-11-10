@@ -1,6 +1,11 @@
 import { bytesPerPixel, createImage, type Image, type Rect } from "./image.ts";
 import { maskAsImage, transformSelections, trimMask } from "./selection.ts";
-import { type CelData, imageLayers, type Sprite } from "./sprite.ts";
+import {
+	type CelData,
+	type CelDataId,
+	imageLayers,
+	type Sprite,
+} from "./sprite.ts";
 
 /** Port of `resize_image_nearest` from doc/algorithm/resize_image.cpp. */
 export function resizeImage(src: Image, width: number, height: number): Image {
@@ -49,11 +54,11 @@ function scaleCel(data: CelData, scale: Scale) {
 /** Cels, slices, selections and the canvas scale by nearest-neighbour, as Lua's `sprite:resize` does. */
 export function resizeSprite(sprite: Sprite, width: number, height: number) {
 	const scale = { x: width / sprite.width, y: height / sprite.height };
-	const scaled = new Set<CelData>();
+	const scaled = new Set<CelDataId>();
 	for (const layer of imageLayers(sprite.root)) {
 		for (const cel of layer.cels.values()) {
-			if (scaled.has(cel.data)) continue;
-			scaled.add(cel.data);
+			if (scaled.has(cel.data.id)) continue;
+			scaled.add(cel.data.id);
 			scaleCel(cel.data, scale);
 		}
 	}

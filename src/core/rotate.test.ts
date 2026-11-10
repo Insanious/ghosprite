@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { spriteWithLinkedCels } from "../../tests/helpers/linked-cels.ts";
 import {
 	opaquePixels,
 	selectedPixels,
@@ -6,6 +7,16 @@ import {
 } from "../../tests/helpers/selection-fixture.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import { rotateImage, rotateSprite } from "./rotate.ts";
+
+describe("rotateSprite linked cels", () => {
+	test("a cel linked across frames is rotated once", () => {
+		const { sprite, layer } = spriteWithLinkedCels();
+		rotateSprite(sprite, 90);
+		const data = layer.cels.get(0)?.data;
+		expect([data?.image.width, data?.image.height]).toEqual([2, 3]);
+		expect(layer.cels.get(1)?.data).toBe(data);
+	});
+});
 
 describe("rotateSprite selections", () => {
 	test.each([90, 180, 270] as const)(

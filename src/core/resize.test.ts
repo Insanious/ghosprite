@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { spriteWithLinkedCels } from "../../tests/helpers/linked-cels.ts";
 import {
 	opaquePixels,
 	selectedPixels,
@@ -6,6 +7,16 @@ import {
 } from "../../tests/helpers/selection-fixture.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import { resizeImage, resizeSprite } from "./resize.ts";
+
+describe("resizeSprite linked cels", () => {
+	test("a cel linked across frames is scaled once", () => {
+		const { sprite, layer } = spriteWithLinkedCels();
+		resizeSprite(sprite, 6, 4);
+		const data = layer.cels.get(0)?.data;
+		expect([data?.image.width, data?.image.height]).toEqual([6, 4]);
+		expect(layer.cels.get(1)?.data).toBe(data);
+	});
+});
 
 describe("resizeSprite selections", () => {
 	test.each([2, 3])(

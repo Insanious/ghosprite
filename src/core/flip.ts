@@ -1,6 +1,6 @@
 import { bytesPerPixel, type Image } from "./image.ts";
 import { maskAsImage, transformSelections } from "./selection.ts";
-import { type CelData, imageLayers, type Sprite } from "./sprite.ts";
+import { type CelDataId, imageLayers, type Sprite } from "./sprite.ts";
 
 export type FlipDirection = "horizontal" | "vertical";
 
@@ -41,11 +41,11 @@ export function flipImage(image: Image, direction: FlipDirection): void {
 
 /** Mirrors every cel and selection inside the canvas. Linked cels are flipped once. */
 export function flipSprite(sprite: Sprite, direction: FlipDirection): void {
-	const flipped = new Set<CelData>();
+	const flipped = new Set<CelDataId>();
 	for (const layer of imageLayers(sprite.root)) {
 		for (const { data } of layer.cels.values()) {
-			if (flipped.has(data)) continue;
-			flipped.add(data);
+			if (flipped.has(data.id)) continue;
+			flipped.add(data.id);
 			if (direction === "horizontal") {
 				data.x = sprite.width - data.image.width - data.x;
 			} else {

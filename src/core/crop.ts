@@ -10,7 +10,7 @@ import {
 } from "./image.ts";
 import { renderFrame } from "./render.ts";
 import { transformSelections } from "./selection.ts";
-import { type CelData, imageLayers, type Sprite } from "./sprite.ts";
+import { type CelDataId, imageLayers, type Sprite } from "./sprite.ts";
 
 /** `source` cut to `rect` (in source pixels); area outside `source` is `fill`. */
 export function cropImage(source: Image, rect: Rect, fill: Rgba): Image {
@@ -48,12 +48,12 @@ export function cropSprite(
 	background: Rgba = { r: 0, g: 0, b: 0, a: 0 },
 ): void {
 	const fill = { ...background, a: 255 };
-	const visited = new Set<CelData>();
+	const visited = new Set<CelDataId>();
 	for (const layer of imageLayers(sprite.root)) {
 		for (const cel of layer.cels.values()) {
 			const data = cel.data;
-			if (visited.has(data)) continue;
-			visited.add(data);
+			if (visited.has(data.id)) continue;
+			visited.add(data.id);
 			if (layer.flags.background) {
 				data.image = cropImage(
 					data.image,

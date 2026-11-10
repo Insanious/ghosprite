@@ -4,6 +4,7 @@ import { isEmptyRect, type Rgba } from "../core/image.ts";
 import { OctreeMap } from "../core/octree-map.ts";
 import { findMaskColor, paletteAt } from "../core/palette.ts";
 import {
+	type CelDataId,
 	celCanvasRect,
 	findBackground,
 	framesSharingData,
@@ -48,11 +49,11 @@ export const spriteMapToPalette = defineOp({
 		const changed: ChangedRect[] = [];
 
 		for (const layer of imageLayers(sprite.root)) {
-			const converted = new Set();
+			const converted = new Set<CelDataId>();
 			for (const frame of [...layer.cels.keys()].sort((a, b) => a - b)) {
 				const data = layer.cels.get(frame)?.data;
-				if (!data || converted.has(data)) continue;
-				converted.add(data);
+				if (!data || converted.has(data.id)) continue;
+				converted.add(data.id);
 
 				const { colors } = paletteAt(sprite.palettes, frame);
 				let entry = maps.get(colors);

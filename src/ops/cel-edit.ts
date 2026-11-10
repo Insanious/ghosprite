@@ -6,7 +6,7 @@ import {
 } from "../core/cel-edit.ts";
 import { isEmptyRect, type Rect, unionRects } from "../core/image.ts";
 import {
-	type CelData,
+	type CelDataId,
 	celCanvasRect,
 	type ImageLayer,
 	type Sprite,
@@ -42,12 +42,12 @@ export function editCels(
 	frames: number[],
 	edit: CelEdit,
 ): { changed: ChangedRect[] } {
-	const edited = new Set<CelData>();
+	const edited = new Set<CelDataId>();
 	const changed: ChangedRect[] = [];
 	for (const frame of [...new Set(frames)].sort((a, b) => a - b)) {
 		const cel = target.layer.cels.get(frame);
-		if (!cel || edited.has(cel.data)) continue;
-		edited.add(cel.data);
+		if (!cel || edited.has(cel.data.id)) continue;
+		edited.add(cel.data.id);
 		const commit = commitEdit(target, frame, edit);
 		changed.push(...changedRects(target.layer, commit.frames, commit.rect));
 	}

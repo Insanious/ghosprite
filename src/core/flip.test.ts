@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { spriteWithLinkedCels } from "../../tests/helpers/linked-cels.ts";
 import {
 	opaquePixels,
 	selectedPixels,
@@ -6,6 +7,17 @@ import {
 } from "../../tests/helpers/selection-fixture.ts";
 import { flipImage, flipSprite } from "./flip.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
+
+describe("flipSprite linked cels", () => {
+	test("a cel linked across frames is flipped once", () => {
+		const { sprite, layer } = spriteWithLinkedCels();
+		flipSprite(sprite, "horizontal");
+		const data = layer.cels.get(0)?.data;
+		if (!data) throw new Error("no cel");
+		expect(getPixel(data.image, 2, 0)).toEqual([9, 8, 7, 255]);
+		expect(layer.cels.get(1)?.data).toBe(data);
+	});
+});
 
 describe("flipSprite selections", () => {
 	test.each(["horizontal", "vertical"] as const)(
