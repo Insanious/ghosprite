@@ -38,7 +38,7 @@ export const tagCreate = defineOp({
 			"color",
 			paletteAt(sprite.palettes, 0),
 		);
-		insertTag(sprite.tags, {
+		insertTag(sprite, {
 			name: input.name,
 			from: input.from,
 			to: input.to,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { removeTag } from "../core/tag.ts";
 import { indexOfNamed } from "./named.ts";
 import { defineOp } from "./registry.ts";
 
@@ -9,7 +10,7 @@ export const tagDelete = defineOp({
 	input: z.object({ spriteId: z.string(), name: z.string() }),
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
-		sprite.tags.splice(indexOfNamed(sprite.tags, input.name, "tag"), 1);
+		removeTag(sprite, indexOfNamed(sprite.tags, input.name, "tag"));
 		return {};
 	},
 });

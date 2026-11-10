@@ -187,7 +187,7 @@ describe("layoutSheet padding", () => {
 describe("layoutSheet tag", () => {
 	test("keeps only that tag's frames in order", () => {
 		const sprite = five();
-		insertTag(sprite.tags, {
+		insertTag(sprite, {
 			name: "mid",
 			from: 1,
 			to: 3,

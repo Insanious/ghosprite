@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { removeSlice } from "../core/slice.ts";
 import { indexOfNamed } from "./named.ts";
 import { defineOp } from "./registry.ts";
 
@@ -9,7 +10,7 @@ export const sliceDelete = defineOp({
 	input: z.object({ spriteId: z.string(), name: z.string() }),
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
-		sprite.slices.splice(indexOfNamed(sprite.slices, input.name, "slice"), 1);
+		removeSlice(sprite, indexOfNamed(sprite.slices, input.name, "slice"));
 		return {};
 	},
 });

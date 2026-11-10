@@ -23,10 +23,15 @@ export type Tag = {
  * Aseprite keeps tags ordered by from, then longest first, and a tag equal to
  * an existing one goes after it.
  */
-export function insertTag(tags: Tag[], tag: Tag): void {
+export function insertTag(sprite: { tags: Tag[] }, tag: Tag): void {
+	const { tags } = sprite;
 	const before = tags.findIndex(
 		(other) =>
 			other.from > tag.from || (other.from === tag.from && other.to < tag.to),
 	);
 	tags.splice(before < 0 ? tags.length : before, 0, tag);
+}
+
+export function removeTag(sprite: { tags: Tag[] }, index: number): void {
+	sprite.tags.splice(index, 1);
 }

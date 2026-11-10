@@ -30,7 +30,7 @@ function moveCels(layer: ImageLayer, shift: (frame: number) => number | null) {
  */
 function readdTag(sprite: Sprite, tag: Tag) {
 	sprite.tags = sprite.tags.filter((other) => other !== tag);
-	insertTag(sprite.tags, tag);
+	insertTag(sprite, tag);
 }
 
 function adjustTags(

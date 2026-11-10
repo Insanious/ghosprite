@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addSlice } from "../core/slice.ts";
 import { createUserData } from "../core/user-data.ts";
 import { pointSchema, rectSchema } from "./geometry.ts";
 import { assertNameFree } from "./named.ts";
@@ -19,8 +20,7 @@ export const sliceCreate = defineOp({
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
 		assertNameFree(sprite.slices, input.name, "slice");
-		// Aseprite puts a new slice first.
-		sprite.slices.unshift({
+		addSlice(sprite, {
 			name: input.name,
 			userData: createUserData(),
 			keys: [

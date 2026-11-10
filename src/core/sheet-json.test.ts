@@ -69,7 +69,7 @@ describe("buildSheetJson filenames", () => {
 
 	test("default format adds the tag, with frames numbered from 0", () => {
 		const sprite = spriteWith(4);
-		insertTag(sprite.tags, tag("walk", 1, 2));
+		insertTag(sprite, tag("walk", 1, 2));
 		expect(Object.keys(build(sprite, {}, { tag: "walk" }).frames)).toEqual([
 			"sprite #walk 0.aseprite",
 			"sprite #walk 1.aseprite",
@@ -105,7 +105,7 @@ describe("buildSheetJson filenames", () => {
 
 	test("{tag} and {tagframe} for a frame in one tag", () => {
 		const sprite = spriteWith(4);
-		insertTag(sprite.tags, tag("walk", 1, 3));
+		insertTag(sprite, tag("walk", 1, 3));
 		expect(
 			Object.keys(build(sprite, { filenameFormat: "{tag}:{tagframe}" }).frames),
 		).toEqual([":0", "walk:0", "walk:1", "walk:2"]);
@@ -113,8 +113,8 @@ describe("buildSheetJson filenames", () => {
 
 	test("{tag} is the innermost of overlapping tags", () => {
 		const sprite = spriteWith(4);
-		insertTag(sprite.tags, tag("all", 0, 3));
-		insertTag(sprite.tags, tag("hit", 2, 3));
+		insertTag(sprite, tag("all", 0, 3));
+		insertTag(sprite, tag("hit", 2, 3));
 		expect(
 			Object.keys(build(sprite, { filenameFormat: "{tag}:{tagframe}" }).frames),
 		).toEqual(["all:0", "all:1", "hit:0", "hit:1"]);
@@ -122,7 +122,7 @@ describe("buildSheetJson filenames", () => {
 
 	test("a tag option gives {tagframe} relative to that tag", () => {
 		const sprite = spriteWith(4);
-		insertTag(sprite.tags, tag("walk", 1, 3));
+		insertTag(sprite, tag("walk", 1, 3));
 		expect(
 			Object.keys(
 				build(sprite, { filenameFormat: "{tagframe}" }, { tag: "walk" }).frames,
@@ -193,10 +193,10 @@ describe("buildSheetJson meta", () => {
 		userData.color = { r: 255, g: 0, b: 16, a: 255 };
 		userData.text = "note";
 		insertTag(
-			sprite.tags,
+			sprite,
 			tag("walk", 0, 2, { direction: "ping-pong", repeat: 2, userData }),
 		);
-		insertTag(sprite.tags, tag("idle", 1, 1));
+		insertTag(sprite, tag("idle", 1, 1));
 		expect(build(sprite).meta.frameTags).toEqual([
 			{
 				name: "walk",
@@ -320,7 +320,7 @@ describe("buildSheetJson properties", () => {
 			userData.properties.set(id, new Map(map));
 		}
 		const sprite = spriteWith(1);
-		insertTag(sprite.tags, tag("t", 0, 0, { userData }));
+		insertTag(sprite, tag("t", 0, 0, { userData }));
 		const [json] = build(sprite).meta.frameTags as { properties?: unknown }[];
 		return JSON.stringify(json?.properties);
 	};
