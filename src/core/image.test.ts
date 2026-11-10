@@ -3,6 +3,7 @@ import {
 	copyImage,
 	createImage,
 	getPixel,
+	imageFromIndices,
 	intersectRects,
 	isEmptyRect,
 	setPixel,
@@ -82,5 +83,29 @@ describe("rect", () => {
 		).toEqual({ x: -1, y: -4, width: 5, height: 6 });
 		const a = { x: 2, y: 2, width: 3, height: 3 };
 		expect(unionRects(a, { x: 0, y: 0, width: 0, height: 5 })).toEqual(a);
+	});
+});
+
+describe("imageFromIndices", () => {
+	test("sets indexed pixels to their colour and leaves -1 transparent", () => {
+		const colors = [
+			{ r: 1, g: 2, b: 3, a: 255 },
+			{ r: 4, g: 5, b: 6, a: 128 },
+		];
+		const image = imageFromIndices(2, 2, colors, new Int32Array([0, -1, 1, 0]));
+		expect(getPixel(image, 0, 0)).toEqual([1, 2, 3, 255]);
+		expect(getPixel(image, 1, 0)).toEqual([0, 0, 0, 0]);
+		expect(getPixel(image, 0, 1)).toEqual([4, 5, 6, 128]);
+		expect(getPixel(image, 1, 1)).toEqual([1, 2, 3, 255]);
+	});
+
+	test("writes a colour with alpha 0 as given", () => {
+		const image = imageFromIndices(
+			1,
+			1,
+			[{ r: 9, g: 8, b: 7, a: 0 }],
+			new Int32Array([0]),
+		);
+		expect(getPixel(image, 0, 0)).toEqual([9, 8, 7, 0]);
 	});
 });

@@ -53,6 +53,22 @@ function pixelOffset(image: Image, x: number, y: number): number {
 	return (y * image.width + x) * BYTES_PER_PIXEL[image.mode];
 }
 
+/** An RGBA image where pixel i is `colors[indices[i]]` in row-major order, and `-1` is transparent black. */
+export function imageFromIndices(
+	width: number,
+	height: number,
+	colors: readonly Rgba[],
+	indices: Int32Array,
+): Image {
+	const image = createImage(width, height, "rgba");
+	for (let i = 0; i < indices.length; i++) {
+		const color = colors[indices[i] as number];
+		if (color === undefined) continue;
+		image.data.set([color.r, color.g, color.b, color.a], i * 4);
+	}
+	return image;
+}
+
 /** The pixel's bytes: [r, g, b, a], [value, alpha] or [index]. */
 export function getPixel(image: Image, x: number, y: number): number[] {
 	const offset = pixelOffset(image, x, y);

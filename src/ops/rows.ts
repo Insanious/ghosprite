@@ -1,10 +1,9 @@
 import { z } from "zod";
 import {
-	createImage,
 	getPixel,
 	type Image,
+	imageFromIndices,
 	type Rgba,
-	setPixel,
 } from "../core/image.ts";
 import type { Palette } from "../core/palette.ts";
 import { OpError } from "../errors.ts";
@@ -173,19 +172,16 @@ export function imageFromPixels(
 	palette: Palette,
 	path: string,
 ): Image {
-	const image = createImage(width, height, "rgba");
+	const colors = groups.map((group, index) =>
+		toRgba(group.color, `${path}.${index}.color`, palette),
+	);
+	const indices = new Int32Array(width * height).fill(-1);
 	groups.forEach((group, index) => {
-		const color = toRgba(group.color, `${path}.${index}.color`, palette);
 		for (const point of group.points) {
-			setPixel(image, point.x - origin.x, point.y - origin.y, [
-				color.r,
-				color.g,
-				color.b,
-				color.a,
-			]);
+			indices[(point.y - origin.y) * width + (point.x - origin.x)] = index;
 		}
 	});
-	return image;
+	return imageFromIndices(width, height, colors, indices);
 }
 
 /** Builds an RGBA image from rows of legend characters. Errors point at `<path>.rows.N` and `<path>.legend.K`. */
@@ -204,12 +200,14 @@ export function imageFromRows(
 		]),
 	);
 	const { cells: rows, width } = splitRows(rowStrings, rowsWidth, path);
-	const image = createImage(width, rows.length, "rgba");
+	const colorList = [...colors.values()];
+	const indexByChar = new Map([...colors.keys()].map((key, i) => [key, i]));
+	const indices = new Int32Array(width * rows.length).fill(-1);
 	rows.forEach((row, y) => {
 		row.forEach((char, x) => {
-			const color = colors.get(char);
-			if (color) {
-				setPixel(image, x, y, [color.r, color.g, color.b, color.a]);
+			const index = indexByChar.get(char);
+			if (index !== undefined) {
+				indices[y * width + x] = index;
 			} else if (!BLANK_CHARS.has(char)) {
 				throw new OpError(
 					"invalid_input",
@@ -222,5 +220,5 @@ export function imageFromRows(
 			}
 		});
 	});
-	return image;
+	return imageFromIndices(width, rows.length, colorList, indices);
 }
