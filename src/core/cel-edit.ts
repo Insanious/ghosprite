@@ -1,3 +1,4 @@
+import { recordCels, recordPatch } from "./history.ts";
 import {
 	createImage,
 	type Image,
@@ -197,12 +198,14 @@ export function commitCel(
 	const changed = !isEmptyRect(diff);
 
 	if (!next) {
+		recordCels(sprite, layer);
 		for (const shared of frames) layer.cels.delete(shared);
 		return { frames, rect: intersectRects(diff, canvasRect(sprite)) };
 	}
 
 	const cel = imageRect(next);
 	if (existing) {
+		recordPatch(sprite, existing.data, next);
 		Object.assign(existing.data, { image: next.image, x: next.x, y: next.y });
 		if (changed) delete existing.data.preciseBounds;
 	} else {

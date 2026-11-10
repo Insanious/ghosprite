@@ -70,7 +70,7 @@ export function editCel(
 	let rect = commit.rect;
 	const cel = target.layer.cels.get(frame);
 	if (opacity !== undefined && cel && cel.data.opacity !== opacity) {
-		setCelOpacity(target.layer, frame, opacity);
+		setCelOpacity(target.sprite, target.layer, frame, opacity);
 		rect = unionRects(rect, celCanvasRect(target.sprite, cel.data));
 	}
 	return {

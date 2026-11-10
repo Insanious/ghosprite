@@ -1,4 +1,5 @@
 import type { Mask } from "./draw/spans.ts";
+import { recordCelData, recordCels, recordChildren } from "./history.ts";
 import {
 	type ColorMode,
 	copyImage,
@@ -275,6 +276,7 @@ export function addLayer(
 	} else if (background && parent === sprite.root && index === 0) {
 		throw new RangeError("Nothing can go below the background layer");
 	}
+	recordChildren(sprite, parent);
 	parent.children.splice(index, 0, layer);
 }
 
@@ -297,6 +299,7 @@ export function removeLayer(sprite: Sprite, layer: Layer): void {
 	if (!parent) {
 		throw new RangeError(`Layer "${layer.id}" is not in the sprite`);
 	}
+	recordChildren(sprite, parent);
 	parent.children.splice(parent.children.indexOf(layer), 1);
 }
 
@@ -329,23 +332,33 @@ export function setCel(
 		id: data.id ?? newCelDataId(sprite),
 	});
 	const cel: Cel = { frame, zIndex, data: placed };
+	recordCels(sprite, layer);
 	layer.cels.set(frame, cel);
 	return cel;
 }
 
 /** Deletes the cel at `frame` only: frames linked to it keep their cel. Does nothing where there is no cel. */
-export function removeCel(layer: ImageLayer, frame: number): void {
+export function removeCel(
+	sprite: Sprite,
+	layer: ImageLayer,
+	frame: number,
+): void {
+	if (!layer.cels.has(frame)) return;
+	recordCels(sprite, layer);
 	layer.cels.delete(frame);
 }
 
 /** Sets the opacity of the cel's data, so of every frame linked to it. Does nothing where there is no cel. */
 export function setCelOpacity(
+	sprite: Sprite,
 	layer: ImageLayer,
 	frame: number,
 	opacity: number,
 ): void {
 	const cel = layer.cels.get(frame);
-	if (cel) cel.data.opacity = opacity;
+	if (!cel) return;
+	recordCelData(sprite, cel.data);
+	cel.data.opacity = opacity;
 }
 
 /** The frames of `layer` whose cels use `data`, in ascending order. */
@@ -461,6 +474,12 @@ export function unlinkCel(
 ): boolean {
 	const cel = layer.cels.get(frame);
 	if (!cel || framesSharingData(layer, cel.data).length < 2) return false;
-	cel.data = { ...copyCelData(cel.data), id: newCelDataId(sprite) };
+	setCel(
+		sprite,
+		layer,
+		frame,
+		{ ...copyCelData(cel.data), id: newCelDataId(sprite) },
+		cel.zIndex,
+	);
 	return true;
 }

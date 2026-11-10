@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { celCanvas, commitCel } from "./cel-edit.ts";
+import { beginStep, endStep, undoBytes } from "./history.ts";
 import { createImage, setPixel } from "./image.ts";
 import {
 	addLayer,
@@ -172,5 +174,83 @@ describe("commitCel", () => {
 		expect(cel?.zIndex).toBe(0);
 		expect(cel?.data).toMatchObject({ x: 2, y: 1, opacity: 255 });
 		expect(cel?.data.userData).toEqual(createUserData());
+	});
+});
+
+describe("undo of commitCel", () => {
+	function paint(
+		sprite: ReturnType<typeof setup>["sprite"],
+		layer: ImageLayer,
+		frame: number,
+		x: number,
+		y: number,
+	) {
+		const canvas = celCanvas(sprite, layer, frame);
+		setPixel(canvas.image, x - canvas.x, y - canvas.y, [1, 2, 3, 255]);
+		commitCel(sprite, layer, frame, canvas);
+	}
+
+	function threeFrames() {
+		const s = setup();
+		s.sprite.frameDurations.push(100);
+		return s;
+	}
+
+	test("an edit of a linked cel keeps the three frames one object", () => {
+		const { sprite, layer } = threeFrames();
+		const data = putCel(sprite, layer, [0, 1, 2], 2, 2, 0, 0, [[0, 0]]);
+		checkUndoRedo(sprite, () => paint(sprite, layer, 1, 3, 3));
+		expect(layer.cels.get(0)?.data).toBe(data);
+		expect(layer.cels.get(2)?.data).toBe(data);
+		expect(data.image.width).toBe(2);
+	});
+
+	test("erasing a linked cel to nothing brings the shared object back", () => {
+		const { sprite, layer } = threeFrames();
+		const data = putCel(sprite, layer, [0, 1, 2], 2, 2, 0, 0, [[0, 0]]);
+		checkUndoRedo(sprite, () => commitCel(sprite, layer, 0, edit(4, 4, 0, 0)));
+		expect(layer.cels.get(2)?.data).toBe(data);
+	});
+
+	test("hidden colour in transparent pixels survives a trimming edit", () => {
+		const { sprite, layer } = setup();
+		const data = putCel(sprite, layer, [0], 4, 4, 0, 0, [[0, 0]]);
+		data.image.data.set([5, 6, 7, 0], 4 * 3);
+		data.image.data.set([5, 6, 7, 0], 4 * 15);
+		const trimmed = edit(1, 1, 0, 0);
+		setPixel(trimmed.image, 0, 0, [9, 8, 7, 255]);
+		checkUndoRedo(sprite, () => commitCel(sprite, layer, 0, trimmed));
+	});
+
+	test("a background cel", () => {
+		const { sprite, layer } = setup(true);
+		putCel(sprite, layer, [0], 4, 4, 0, 0, [[1, 1]]);
+		checkUndoRedo(sprite, () => paint(sprite, layer, 0, 2, 2));
+	});
+
+	test("a cel hanging off the canvas keeps its outside pixels", () => {
+		const { sprite, layer } = setup();
+		putCel(sprite, layer, [0], 3, 1, -2, 0, [[0, 0]]);
+		checkUndoRedo(sprite, () => paint(sprite, layer, 0, 3, 3));
+	});
+
+	test("one changed pixel costs at most 16 bytes of history", () => {
+		const sprite = createSprite({
+			width: 512,
+			height: 512,
+			mode: "rgba",
+			palettes: [{ startFrame: 0, colors: [] }],
+			frameDurations: [100],
+		});
+		const layer = createImageLayer({ id: "l1", name: "L" });
+		addLayer(sprite, layer, sprite.root);
+		const full = celCanvas(sprite, layer, 0);
+		full.image.data.fill(255);
+		commitCel(sprite, layer, 0, full);
+		beginStep(sprite);
+		const before = undoBytes(sprite);
+		paint(sprite, layer, 0, 7, 9);
+		expect(undoBytes(sprite) - before).toBeLessThanOrEqual(16);
+		endStep(sprite);
 	});
 });

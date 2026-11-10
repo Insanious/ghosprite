@@ -1,5 +1,12 @@
 import type { Mask } from "./draw/spans.ts";
-import type { Image, Rect } from "./image.ts";
+import {
+	createImage,
+	type Image,
+	intersectRects,
+	isEmptyRect,
+	type Rect,
+	unionRects,
+} from "./image.ts";
 import { clonePalette, type Palette } from "./palette.ts";
 import { cloneSlice, type Slice } from "./slice.ts";
 import type {
@@ -38,7 +45,20 @@ type Entry =
 			opacity: number;
 			userData: UserData;
 			preciseBounds?: Rect;
+	  }
+	| {
+			kind: "patch";
+			data: CelData;
+			x: number;
+			y: number;
+			width: number;
+			height: number;
+			preciseBounds?: Rect;
+			box: Rect;
+			bytes: Uint8Array;
 	  };
+
+type PlacedImage = { image: Image; x: number; y: number };
 
 type Step = { entries: Entry[]; nextCelDataId: number };
 
@@ -120,6 +140,101 @@ function celDataOf(data: CelData): Entry {
 	};
 }
 
+function rectOf(placed: PlacedImage): Rect {
+	return {
+		x: placed.x,
+		y: placed.y,
+		width: placed.image.width,
+		height: placed.image.height,
+	};
+}
+
+/** Byte offset of the sprite-space pixel, or -1 where the image has none. */
+function offsetAt(placed: PlacedImage, x: number, y: number): number {
+	const column = x - placed.x;
+	const row = y - placed.y;
+	if (
+		column < 0 ||
+		row < 0 ||
+		column >= placed.image.width ||
+		row >= placed.image.height
+	) {
+		return -1;
+	}
+	return (row * placed.image.width + column) * 4;
+}
+
+/** Bounding box of the pixels whose four bytes differ, a missing pixel counting as 0,0,0,0. */
+function byteDiffBox(a: PlacedImage, b: PlacedImage): Rect {
+	const area = unionRects(rectOf(a), rectOf(b));
+	let minX = Number.POSITIVE_INFINITY;
+	let minY = Number.POSITIVE_INFINITY;
+	let maxX = Number.NEGATIVE_INFINITY;
+	let maxY = Number.NEGATIVE_INFINITY;
+	for (let y = area.y; y < area.y + area.height; y++) {
+		for (let x = area.x; x < area.x + area.width; x++) {
+			const ai = offsetAt(a, x, y);
+			const bi = offsetAt(b, x, y);
+			for (let k = 0; k < 4; k++) {
+				const left = ai < 0 ? 0 : (a.image.data[ai + k] as number);
+				const right = bi < 0 ? 0 : (b.image.data[bi + k] as number);
+				if (left === right) continue;
+				minX = Math.min(minX, x);
+				minY = Math.min(minY, y);
+				maxX = Math.max(maxX, x);
+				maxY = Math.max(maxY, y);
+				break;
+			}
+		}
+	}
+	if (maxX < minX) return { x: 0, y: 0, width: 0, height: 0 };
+	return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 };
+}
+
+/** Copies the rows of `rect` that lie in both images from `from` to `to`. */
+function copyRect(from: PlacedImage, to: PlacedImage, rect: Rect): void {
+	const shared = intersectRects(rect, intersectRects(rectOf(from), rectOf(to)));
+	if (isEmptyRect(shared)) return;
+	for (let y = shared.y; y < shared.y + shared.height; y++) {
+		const source = offsetAt(from, shared.x, y);
+		to.image.data.set(
+			from.image.data.subarray(source, source + shared.width * 4),
+			offsetAt(to, shared.x, y),
+		);
+	}
+}
+
+/** What `data` holds now, as far as it differs from `next`. */
+function patchOf(data: CelData, next: PlacedImage): Entry {
+	const box = byteDiffBox(data, next);
+	const bytes = new Uint8Array(box.width * box.height * 4);
+	copyRect(
+		data,
+		{
+			image: {
+				...data.image,
+				width: box.width,
+				height: box.height,
+				data: bytes,
+			},
+			x: box.x,
+			y: box.y,
+		},
+		box,
+	);
+	return {
+		kind: "patch",
+		data,
+		x: data.x,
+		y: data.y,
+		width: data.image.width,
+		height: data.image.height,
+		...(data.preciseBounds && { preciseBounds: { ...data.preciseBounds } }),
+		box,
+		bytes,
+	};
+}
+
 /** Writes the entry's state back and returns an entry holding the state it replaced. */
 function apply(entry: Entry): Entry {
 	switch (entry.kind) {
@@ -174,6 +289,36 @@ function apply(entry: Entry): Entry {
 			data.y = entry.y;
 			data.opacity = entry.opacity;
 			data.userData = entry.userData;
+			if (entry.preciseBounds) data.preciseBounds = entry.preciseBounds;
+			else delete data.preciseBounds;
+			return replaced;
+		}
+		case "patch": {
+			const { data } = entry;
+			const restored: PlacedImage = {
+				image: createImage(entry.width, entry.height, "rgba"),
+				x: entry.x,
+				y: entry.y,
+			};
+			copyRect(data, restored, rectOf(restored));
+			copyRect(
+				{
+					image: {
+						...restored.image,
+						width: entry.box.width,
+						height: entry.box.height,
+						data: entry.bytes,
+					},
+					x: entry.box.x,
+					y: entry.box.y,
+				},
+				restored,
+				entry.box,
+			);
+			const replaced = patchOf(data, restored);
+			data.image = restored.image;
+			data.x = entry.x;
+			data.y = entry.y;
 			if (entry.preciseBounds) data.preciseBounds = entry.preciseBounds;
 			else delete data.preciseBounds;
 			return replaced;
@@ -258,6 +403,7 @@ export function undoBytes(sprite: Sprite): number {
 	]) {
 		for (const entry of step.entries) {
 			if (entry.kind === "celData") bytes += entry.image.data.byteLength;
+			if (entry.kind === "patch") bytes += entry.bytes.byteLength;
 		}
 	}
 	return bytes;
@@ -297,4 +443,13 @@ export function recordCels(sprite: Sprite, layer: ImageLayer): void {
 
 export function recordCelData(sprite: Sprite, data: CelData): void {
 	add(sprite, () => celDataOf(data));
+}
+
+/** Records the pixels of `data` that committing `next` will change. */
+export function recordPatch(
+	sprite: Sprite,
+	data: CelData,
+	next: { image: Image; x: number; y: number },
+): void {
+	add(sprite, () => patchOf(data, next));
 }

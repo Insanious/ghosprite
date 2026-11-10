@@ -34,7 +34,7 @@ export const celDelete = defineOp({
 		}
 		const cel = layer.cels.get(input.frame);
 		if (!cel) return { changed: [] };
-		removeCel(layer, input.frame);
+		removeCel(sprite, layer, input.frame);
 		const rect = celCanvasRect(sprite, cel.data);
 		return {
 			changed: isEmptyRect(rect)

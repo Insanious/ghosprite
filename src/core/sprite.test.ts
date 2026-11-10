@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { fixturePaths, readFixture } from "../../tests/helpers/ase-build.ts";
 import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
+import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import {
 	addLayer,
@@ -16,6 +17,7 @@ import {
 	isLayerVisible,
 	linkCels,
 	removeCel,
+	removeLayer,
 	type Sprite,
 	setCel,
 	setCelOpacity,
@@ -350,27 +352,28 @@ describe("removeCel and setCelOpacity", () => {
 		const data = newData();
 		const first = setCel(sprite, layer, 0, data);
 		setCel(sprite, layer, 1, data);
-		return { layer, data: first.data };
+		return { sprite, layer, data: first.data };
 	}
 
 	test("removeCel on one linked frame leaves the other cel with the same data", () => {
-		const { layer, data } = linkedLayer();
-		removeCel(layer, 0);
+		const { sprite, layer, data } = linkedLayer();
+		removeCel(sprite, layer, 0);
 		expect(layer.cels.has(0)).toBe(false);
 		expect(layer.cels.get(1)?.data).toBe(data);
 	});
 
 	test("setCelOpacity changes the opacity at every linked frame", () => {
-		const { layer } = linkedLayer();
-		setCelOpacity(layer, 0, 100);
+		const { sprite, layer } = linkedLayer();
+		setCelOpacity(sprite, layer, 0, 100);
 		expect(layer.cels.get(0)?.data.opacity).toBe(100);
 		expect(layer.cels.get(1)?.data.opacity).toBe(100);
 	});
 
 	test("both do nothing where there is no cel", () => {
+		const sprite = newSprite();
 		const layer = createImageLayer({ id: "a", name: "A" });
-		removeCel(layer, 3);
-		setCelOpacity(layer, 3, 10);
+		removeCel(sprite, layer, 3);
+		setCelOpacity(sprite, layer, 3, 10);
 		expect(layer.cels.size).toBe(0);
 	});
 });
@@ -510,5 +513,90 @@ describe("layer tree", () => {
 		addLayer(sprite, createImageLayer({ id: "in2", name: "" }), group);
 		const ids = [...walkRenderOrder(sprite.root)].map((layer) => layer.id);
 		expect(ids).toEqual(["below", "g", "in1", "in2", "above"]);
+	});
+});
+
+describe("undo of cel and layer writes", () => {
+	function threeFrameSprite() {
+		const sprite = createSprite({
+			width: 4,
+			height: 4,
+			mode: "rgba",
+			palettes: [{ startFrame: 0, colors: [] }],
+			frameDurations: [100, 100, 100],
+		});
+		const layer = createImageLayer({ id: "a", name: "A" });
+		addLayer(sprite, layer, sprite.root);
+		return { sprite, layer };
+	}
+
+	function spriteWithGroup() {
+		const { sprite } = threeFrameSprite();
+		const group = createGroupLayer({ id: "g", name: "G" });
+		addLayer(sprite, group, sprite.root);
+		addLayer(sprite, createImageLayer({ id: "c", name: "C" }), group);
+		return { sprite, group };
+	}
+
+	test("addLayer into a group", () => {
+		const { sprite, group } = spriteWithGroup();
+		checkUndoRedo(sprite, () =>
+			addLayer(sprite, createImageLayer({ id: "d", name: "D" }), group, 0),
+		);
+	});
+
+	test("removeLayer of a group with children", () => {
+		const { sprite, group } = spriteWithGroup();
+		checkUndoRedo(sprite, () => removeLayer(sprite, group));
+	});
+
+	test("a remove then add at another index", () => {
+		const { sprite } = spriteWithGroup();
+		const first = sprite.root.children[0];
+		if (!first) throw new Error("missing layer");
+		checkUndoRedo(sprite, () => {
+			removeLayer(sprite, first);
+			addLayer(sprite, first, sprite.root, 1);
+		});
+	});
+
+	test("setCel over an existing cel", () => {
+		const { sprite, layer } = threeFrameSprite();
+		setCel(sprite, layer, 0, newData());
+		checkUndoRedo(sprite, () => setCel(sprite, layer, 0, newData()));
+	});
+
+	test("setCel into an empty frame", () => {
+		const { sprite, layer } = threeFrameSprite();
+		setCel(sprite, layer, 0, newData());
+		checkUndoRedo(sprite, () => setCel(sprite, layer, 2, newData()));
+	});
+
+	test("removeCel in the middle of the map brings the key order back", () => {
+		const { sprite, layer } = threeFrameSprite();
+		for (const frame of [0, 1, 2]) setCel(sprite, layer, frame, newData());
+		checkUndoRedo(sprite, () => removeCel(sprite, layer, 1));
+	});
+
+	test("setCelOpacity on a linked cel", () => {
+		const { sprite, layer } = threeFrameSprite();
+		setCel(sprite, layer, 0, newData());
+		linkCels(sprite, layer, [0, 1]);
+		checkUndoRedo(sprite, () => setCelOpacity(sprite, layer, 1, 10));
+	});
+
+	test("unlinkCel brings back one shared object with the original id", () => {
+		const { sprite, layer } = threeFrameSprite();
+		setCel(sprite, layer, 0, newData());
+		linkCels(sprite, layer, [0, 1, 2]);
+		checkUndoRedo(sprite, () => unlinkCel(sprite, layer, 1));
+		expect(layer.cels.get(0)?.data).toBe(layer.cels.get(1)?.data);
+		expect(layer.cels.get(2)?.data).toBe(layer.cels.get(1)?.data);
+	});
+
+	test("linkCels over frames that had their own cels", () => {
+		const { sprite, layer } = threeFrameSprite();
+		for (const frame of [0, 1, 2]) setCel(sprite, layer, frame, newData());
+		checkUndoRedo(sprite, () => linkCels(sprite, layer, [0, 1, 2]));
 	});
 });
