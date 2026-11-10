@@ -1,4 +1,5 @@
 import type { Rgba } from "./image.ts";
+import type { Sprite } from "./sprite.ts";
 
 export type Palette = {
 	startFrame: number;
@@ -19,6 +20,16 @@ export function paletteAt(palettes: Palette[], frame: number): Palette {
 		throw new RangeError(`No palette applies at frame ${frame}`);
 	}
 	return found;
+}
+
+export function setPalette(sprite: Sprite, frame: number, colors: Rgba[]) {
+	const existing = sprite.palettes.find((p) => p.startFrame === frame);
+	if (existing) {
+		existing.colors = colors;
+		return;
+	}
+	sprite.palettes.push({ startFrame: frame, colors });
+	sprite.palettes.sort((a, b) => a.startFrame - b.startFrame);
 }
 
 /** The first entry exactly equal to `#00000000`, or -1. */

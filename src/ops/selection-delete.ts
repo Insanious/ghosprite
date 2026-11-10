@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { deleteSelection } from "../core/selection.ts";
 import { defineOp } from "./registry.ts";
 
 export const selectionDelete = defineOp({
@@ -8,7 +9,7 @@ export const selectionDelete = defineOp({
 	input: z.object({ spriteId: z.string(), selectionId: z.string() }),
 	run(workspace, input) {
 		workspace.getSelection(input.spriteId, input.selectionId);
-		workspace.getSprite(input.spriteId).selections.delete(input.selectionId);
+		deleteSelection(workspace.getSprite(input.spriteId), input.selectionId);
 		return {};
 	},
 });

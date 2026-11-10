@@ -2,13 +2,39 @@ import { describe, expect, test } from "bun:test";
 import { maskFromRect } from "./draw/mask.ts";
 import {
 	combineMasks,
+	deleteSelection,
 	maskFromEllipse,
 	maskPixelCount,
+	setSelection,
 	trimMask,
 } from "./selection.ts";
 
 const rect = (x: number, y: number, width: number, height: number) =>
 	maskFromRect({ x, y, width, height });
+
+describe("setSelection and deleteSelection", () => {
+	const store = () => ({
+		selections: new Map([
+			["a", rect(0, 0, 1, 1)],
+			["b", rect(1, 1, 1, 1)],
+			["c", rect(2, 2, 1, 1)],
+		]),
+	});
+
+	test("setSelection on an existing id keeps its place in iteration order", () => {
+		const sprite = store();
+		const replacement = rect(5, 5, 2, 2);
+		setSelection(sprite, "b", replacement);
+		expect([...sprite.selections.keys()]).toEqual(["a", "b", "c"]);
+		expect(sprite.selections.get("b")).toBe(replacement);
+	});
+
+	test("deleteSelection removes only that id", () => {
+		const sprite = store();
+		deleteSelection(sprite, "b");
+		expect([...sprite.selections.keys()]).toEqual(["a", "c"]);
+	});
+});
 
 describe("combineMasks", () => {
 	test("add with disjoint bounds covers both", () => {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paletteAt } from "../core/palette.ts";
+import { setPalette } from "../core/palette.ts";
 import { quantizeSprite } from "../core/quantize-sprite.ts";
 import { requireRgba } from "../target.ts";
 import { MAX_COLORS } from "./palette.ts";
@@ -24,7 +24,7 @@ export const paletteQuantize = defineOp({
 		const sprite = workspace.getSprite(input.spriteId);
 		requireRgba(sprite);
 		const colors = quantizeSprite(sprite, input);
-		paletteAt(sprite.palettes, 0).colors = colors;
+		setPalette(sprite, 0, colors);
 		return {};
 	},
 });

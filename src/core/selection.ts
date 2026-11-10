@@ -121,6 +121,21 @@ export function maskFromEllipse(rect: Rect): Mask {
 	return trimMask(mask);
 }
 
+export function setSelection(
+	sprite: { selections: Map<string, Mask> },
+	id: string,
+	mask: Mask,
+): void {
+	sprite.selections.set(id, mask);
+}
+
+export function deleteSelection(
+	sprite: { selections: Map<string, Mask> },
+	id: string,
+): void {
+	sprite.selections.delete(id);
+}
+
 /** Replaces each non-empty selection with `transform` of it, keeping creation order. */
 export function transformSelections(
 	sprite: { selections: Map<string, Mask> },

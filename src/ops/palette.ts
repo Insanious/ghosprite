@@ -1,7 +1,7 @@
 import { extname } from "node:path";
 import { z } from "zod";
 import type { Rgba } from "../core/image.ts";
-import { paletteAt } from "../core/palette.ts";
+import { paletteAt, setPalette } from "../core/palette.ts";
 import {
 	readGpl,
 	readHex,
@@ -10,7 +10,6 @@ import {
 	writeHex,
 	writePal,
 } from "../core/palette-file.ts";
-import type { Sprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
 import { checkFrame, requireRgba } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";
@@ -34,16 +33,6 @@ function formatOf(path: string) {
 		});
 	}
 	return FORMATS[extension as keyof typeof FORMATS];
-}
-
-function setPalette(sprite: Sprite, frame: number, colors: Rgba[]) {
-	const existing = sprite.palettes.find((p) => p.startFrame === frame);
-	if (existing) {
-		existing.colors = colors;
-		return;
-	}
-	sprite.palettes.push({ startFrame: frame, colors });
-	sprite.palettes.sort((a, b) => a.startFrame - b.startFrame);
 }
 
 export const paletteSet = defineOp({

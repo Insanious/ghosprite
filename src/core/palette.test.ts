@@ -1,5 +1,6 @@
-import { expect, test } from "bun:test";
-import { type Palette, paletteAt } from "./palette.ts";
+import { describe, expect, test } from "bun:test";
+import { type Palette, paletteAt, setPalette } from "./palette.ts";
+import { createSprite } from "./sprite.ts";
 
 const first: Palette = {
 	startFrame: 0,
@@ -27,4 +28,32 @@ test("paletteAt does not depend on list order", () => {
 
 test("paletteAt throws when no palette starts at or before the frame", () => {
 	expect(() => paletteAt([second], 1)).toThrow(RangeError);
+});
+
+const spriteWith = (palettes: Palette[]) =>
+	createSprite({ width: 1, height: 1, mode: "rgba", palettes });
+const red = [{ r: 255, g: 0, b: 0, a: 255 }];
+
+describe("setPalette", () => {
+	test("at a frame that has a palette replaces only its colours", () => {
+		const sprite = spriteWith([
+			{ startFrame: 0, colors: first.colors },
+			{ startFrame: 3, colors: second.colors },
+		]);
+		setPalette(sprite, 3, red);
+		expect(sprite.palettes).toEqual([
+			{ startFrame: 0, colors: first.colors },
+			{ startFrame: 3, colors: red },
+		]);
+	});
+
+	test("at a new frame adds a palette in startFrame order", () => {
+		const sprite = spriteWith([
+			{ startFrame: 0, colors: first.colors },
+			{ startFrame: 5, colors: second.colors },
+		]);
+		setPalette(sprite, 2, red);
+		expect(sprite.palettes.map((p) => p.startFrame)).toEqual([0, 2, 5]);
+		expect(sprite.palettes[1]?.colors).toBe(red);
+	});
 });

@@ -14,6 +14,7 @@ import {
 	maskFromEllipse,
 	maskFromWand,
 	maskPixelCount,
+	setSelection,
 	trimMask,
 } from "../core/selection.ts";
 import type { Sprite } from "../core/sprite.ts";
@@ -204,6 +205,6 @@ export function storeSelection(
 	selectionId: string,
 	mask: Mask,
 ) {
-	sprite.selections.set(selectionId, mask);
+	setSelection(sprite, selectionId, mask);
 	return { selectionId, ...maskSummary(mask) };
 }
