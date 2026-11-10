@@ -22,7 +22,7 @@ import {
 	addLayer,
 	BLEND_MODES,
 	type Cel,
-	type CelData,
+	type CelDataInit,
 	createGroupLayer,
 	createImageLayer,
 	createSprite,
@@ -634,7 +634,7 @@ function readLinkedCel(
 	}
 	const { x, y, opacity, zIndex } = placement;
 	const shared = target.data;
-	const data: CelData =
+	const data: CelDataInit =
 		shared.x === x && shared.y === y && shared.opacity === opacity
 			? shared
 			: {

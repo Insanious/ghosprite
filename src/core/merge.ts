@@ -10,13 +10,15 @@ import {
 import { compositeCel, renderFrame } from "./render.ts";
 import {
 	type Cel,
-	type CelData,
+	type CelDataInit,
 	celCanvasRect,
+	createImageLayer,
 	type ImageLayer,
 	imageLayers,
 	type Layer,
 	removeLayer,
 	type Sprite,
+	setCel,
 } from "./sprite.ts";
 import { createUserData } from "./user-data.ts";
 
@@ -30,7 +32,7 @@ function trimmedCelData(
 	x: number,
 	y: number,
 	userData = createUserData(),
-): CelData | undefined {
+): CelDataInit | undefined {
 	const bounds = contentBounds(canvas, 0);
 	if (!bounds) return undefined;
 	return {
@@ -84,7 +86,7 @@ export function mergeLayerDown(
 				bottom?.data.userData,
 			);
 			if (data) {
-				lower.cels.set(frame, { frame, zIndex: bottom?.zIndex ?? 0, data });
+				setCel(sprite, lower, frame, data, bottom?.zIndex ?? 0);
 			} else {
 				lower.cels.delete(frame);
 			}
@@ -127,11 +129,12 @@ export function flattenSprite(
 	const drawn = flattenedLayers(sprite);
 	const layers = imageLayers(sprite.root);
 	const changes: FrameChange[] = [];
-	const cels = new Map<number, Cel>();
+	// target may be one of the layers still being read, so its cels are replaced at the end
+	const flattened = createImageLayer({ id: target.id, name: target.name });
 	for (let frame = 0; frame < sprite.frameDurations.length; frame++) {
 		const canvas = renderFrame(sprite, frame, (layer) => drawn.has(layer.id));
-		const data = trimmedCelData(canvas, 0, 0);
-		if (data) cels.set(frame, { frame, zIndex: 0, data });
+		const trimmed = trimmedCelData(canvas, 0, 0);
+		const data = trimmed && setCel(sprite, flattened, frame, trimmed, 0).data;
 		let rect = data ? celCanvasRect(sprite, data) : celRect(undefined);
 		for (const layer of layers) {
 			const old = layer.cels.get(frame);
@@ -140,6 +143,6 @@ export function flattenSprite(
 		if (!isEmptyRect(rect)) changes.push({ frame, rect });
 	}
 	sprite.root.children = [target];
-	target.cels = cels;
+	target.cels = flattened.cels;
 	return changes;
 }

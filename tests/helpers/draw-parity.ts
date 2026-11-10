@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { createImage, type Image } from "../../src/core/image.ts";
-import type { CelData } from "../../src/core/sprite.ts";
+import type { CelDataInit } from "../../src/core/sprite.ts";
 import { createUserData } from "../../src/core/user-data.ts";
 import { operations } from "../../src/ops/index.ts";
 import { createRegistry } from "../../src/ops/registry.ts";
@@ -24,7 +24,7 @@ function selectionCel(
 	workspace: Workspace,
 	spriteId: string,
 	selectionId: string,
-): CelData | undefined {
+): CelDataInit | undefined {
 	const { bounds, bits } = workspace.getSelection(spriteId, selectionId);
 	if (bounds.width === 0 || bounds.height === 0) return undefined;
 	const image = createImage(bounds.width, bounds.height, "rgba");
@@ -40,7 +40,7 @@ function selectionCel(
 	};
 }
 
-function runCase(file: CaseFile, calls: Case): CelData | undefined {
+function runCase(file: CaseFile, calls: Case): CelDataInit | undefined {
 	const workspace = new Workspace();
 	const { spriteId } = registry.callOp(workspace, "sprite.create", {
 		width: file.width,
@@ -62,7 +62,7 @@ function runCase(file: CaseFile, calls: Case): CelData | undefined {
 	return layer.cels.get(0)?.data;
 }
 
-function describe(cel: CelData | undefined): string {
+function describe(cel: CelDataInit | undefined): string {
 	return cel
 		? `cel ${cel.image.width}x${cel.image.height} at (${cel.x}, ${cel.y}), opacity ${cel.opacity}`
 		: "no cel";
@@ -101,7 +101,7 @@ export function drawParity(group: string) {
 				expect(describe(ours)).toBe(describe(golden));
 				return;
 			}
-			const bounds = (cel: CelData) =>
+			const bounds = (cel: CelDataInit) =>
 				[cel.x, cel.y, cel.image.width, cel.image.height, cel.opacity].join();
 			if (bounds(ours) !== bounds(golden)) {
 				throw new Error(

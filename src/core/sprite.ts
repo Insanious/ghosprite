@@ -46,7 +46,11 @@ export type LayerFlags = {
 	reference: boolean;
 };
 
+/** Names a link: cels hold the same `CelData` exactly when their data ids are equal. */
+export type CelDataId = number;
+
 export type CelData = {
+	id: CelDataId;
 	image: Image;
 	x: number;
 	y: number;
@@ -56,7 +60,10 @@ export type CelData = {
 	preciseBounds?: Rect;
 };
 
-/** Linked cels share one `CelData`; `zIndex` belongs to the cel. */
+/** `CelData` that `setCel` will give an id if it has none. */
+export type CelDataInit = Omit<CelData, "id"> & { id?: CelDataId };
+
+/** Linked cels share one `CelData`, and so one id; `zIndex` belongs to the cel. */
 export type Cel = {
 	frame: number;
 	zIndex: number;
@@ -110,6 +117,7 @@ export type Sprite = {
 	colorProfile: ColorProfile;
 	/** Trimmed masks keyed by selection id, in creation order. */
 	selections: Map<string, Mask>;
+	nextCelDataId: number;
 };
 
 export type LayerInit = {
@@ -178,7 +186,12 @@ export function createSprite(init: {
 		gridBounds: { x: 0, y: 0, width: 16, height: 16 },
 		colorProfile: { type: "srgb" },
 		selections: new Map(),
+		nextCelDataId: 1,
 	};
+}
+
+export function newCelDataId(sprite: Sprite): CelDataId {
+	return sprite.nextCelDataId++;
 }
 
 /** Layers in render order: bottom to top, each group followed by its children. */
@@ -287,12 +300,15 @@ export function removeLayer(sprite: Sprite, layer: Layer): void {
 	parent.children.splice(parent.children.indexOf(layer), 1);
 }
 
-/** Replaces any cel at `frame`. Pass the same `data` for several frames to link them. */
+/**
+ * Replaces any cel at `frame`. Data without an id gets a new one. Pass the same `data`
+ * for several frames to link them.
+ */
 export function setCel(
 	sprite: Sprite,
 	layer: ImageLayer,
 	frame: number,
-	data: CelData,
+	data: CelDataInit,
 	zIndex = 0,
 ): Cel {
 	if (
@@ -309,7 +325,10 @@ export function setCel(
 			`A ${data.image.mode} image cannot go in a ${sprite.mode} sprite`,
 		);
 	}
-	const cel: Cel = { frame, zIndex, data };
+	const placed: CelData = Object.assign(data, {
+		id: data.id ?? newCelDataId(sprite),
+	});
+	const cel: Cel = { frame, zIndex, data: placed };
 	layer.cels.set(frame, cel);
 	return cel;
 }
@@ -318,13 +337,13 @@ export function setCel(
 export function framesSharingData(layer: ImageLayer, data: CelData): number[] {
 	const frames: number[] = [];
 	for (const cel of layer.cels.values()) {
-		if (cel.data === data) frames.push(cel.frame);
+		if (cel.data.id === data.id) frames.push(cel.frame);
 	}
 	return frames.sort((a, b) => a - b);
 }
 
-/** A frame whose cel changed, with the cel data it had before (absent if it had no cel). */
-export type CelChange = { frame: number; previous?: CelData };
+/** A frame whose cel changed, with the canvas rect the replaced cel covered (absent if it had no cel). */
+export type CelChange = { frame: number; previous?: Rect };
 
 /**
  * Links the cels at `frames`: the lowest frame with a cel is the source, and every higher
@@ -342,9 +361,10 @@ export function linkCels(
 	for (const frame of sorted) {
 		if (frame <= source.frame) continue;
 		const previous = layer.cels.get(frame);
-		if (previous?.data === source.data) continue;
+		if (previous?.data.id === source.data.id) continue;
+		const previousRect = previous && celCanvasRect(sprite, previous.data);
 		setCel(sprite, layer, frame, source.data, source.zIndex);
-		changes.push({ frame, previous: previous?.data });
+		changes.push({ frame, previous: previousRect });
 	}
 	return changes;
 }
@@ -361,12 +381,12 @@ export function copyCelData(data: CelData): CelData {
 
 /** A deep copy that keeps cels linked in the original linked in the copy. */
 export function cloneSprite(sprite: Sprite): Sprite {
-	const copies = new Map<CelData, CelData>();
+	const copies = new Map<CelDataId, CelData>();
 	const sharedCopy = (data: CelData): CelData => {
-		let copy = copies.get(data);
+		let copy = copies.get(data.id);
 		if (!copy) {
 			copy = copyCelData(data);
-			copies.set(data, copy);
+			copies.set(data.id, copy);
 		}
 		return copy;
 	};
@@ -434,9 +454,13 @@ export function imageLayers(parent: GroupLayer): ImageLayer[] {
 }
 
 /** Gives the cel at `frame` its own copy of its data. Returns false if it had no cel or wasn't linked. */
-export function unlinkCel(layer: ImageLayer, frame: number): boolean {
+export function unlinkCel(
+	sprite: Sprite,
+	layer: ImageLayer,
+	frame: number,
+): boolean {
 	const cel = layer.cels.get(frame);
 	if (!cel || framesSharingData(layer, cel.data).length < 2) return false;
-	cel.data = copyCelData(cel.data);
+	cel.data = { ...copyCelData(cel.data), id: newCelDataId(sprite) };
 	return true;
 }

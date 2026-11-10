@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { fixturePaths, readFixture } from "../../tests/helpers/ase-build.ts";
+import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import {
 	addLayer,
-	type CelData,
+	type CelDataInit,
 	cloneSprite,
 	copyCelData,
 	createGroupLayer,
@@ -16,6 +17,7 @@ import {
 	linkCels,
 	type Sprite,
 	setCel,
+	unlinkCel,
 	walkRenderOrder,
 } from "./sprite.ts";
 import { createUserData } from "./user-data.ts";
@@ -30,7 +32,7 @@ function newSprite(mode: "rgba" | "indexed" = "rgba") {
 	});
 }
 
-function newData(mode: "rgba" | "indexed" = "rgba"): CelData {
+function newData(mode: "rgba" | "indexed" = "rgba"): CelDataInit {
 	return {
 		image: createImage(4, 4, mode),
 		x: 0,
@@ -76,7 +78,7 @@ describe("linked cels", () => {
 		const second = setCel(sprite, layer, 1, data);
 		setPixel(first.data.image, 1, 1, [9, 8, 7, 255]);
 		expect(getPixel(second.data.image, 1, 1)).toEqual([9, 8, 7, 255]);
-		expect(framesSharingData(layer, data)).toEqual([0, 1]);
+		expect(framesSharingData(layer, first.data)).toEqual([0, 1]);
 	});
 
 	test("zIndex is per cel", () => {
@@ -258,11 +260,83 @@ describe("cloneSprite", () => {
 
 describe("copyCelData", () => {
 	test("copies everything", () => {
-		const data = newData();
+		const data = { ...newData(), id: 1 };
 		data.preciseBounds = { x: 0, y: 0, width: 1, height: 1 };
 		const copy = copyCelData(data);
 		expect(copy).toStrictEqual(data);
 		expectNothingShared(data, copy);
+	});
+});
+
+describe("cel data ids", () => {
+	function threeFrames() {
+		const sprite = createSprite({
+			width: 4,
+			height: 4,
+			mode: "rgba",
+			palettes: [{ startFrame: 0, colors: [] }],
+			frameDurations: [100, 100, 100],
+		});
+		const layer = createImageLayer({ id: "a", name: "A" });
+		addLayer(sprite, layer, sprite.root);
+		return { sprite, layer };
+	}
+
+	test("setCel gives new data distinct ids and keeps one id for linked frames", () => {
+		const { sprite, layer } = threeFrames();
+		const shared = newData();
+		const first = setCel(sprite, layer, 0, shared);
+		const second = setCel(sprite, layer, 1, shared);
+		const other = setCel(sprite, layer, 2, newData());
+		expect(second.data.id).toBe(first.data.id);
+		expect(other.data.id).not.toBe(first.data.id);
+		expect(framesSharingData(layer, first.data)).toEqual([0, 1]);
+		expect(framesSharingData(layer, other.data)).toEqual([2]);
+		expectCelIdInvariant(sprite);
+	});
+
+	test("unlinkCel gives the cel a new id and leaves the others linked", () => {
+		const { sprite, layer } = threeFrames();
+		setCel(sprite, layer, 0, newData());
+		linkCels(sprite, layer, [0, 1, 2]);
+		const before = layer.cels.get(0)?.data.id;
+		expect(unlinkCel(sprite, layer, 1)).toBe(true);
+		const unlinked = layer.cels.get(1)?.data;
+		if (!unlinked) throw new Error("missing cel");
+		expect(unlinked.id).not.toBe(before);
+		expect(framesSharingData(layer, unlinked)).toEqual([1]);
+		expect(layer.cels.get(0)?.data.id).toBe(before);
+		expect(layer.cels.get(2)?.data.id).toBe(before);
+		expectCelIdInvariant(sprite);
+	});
+
+	test("linkCels reports the canvas rect of each replaced cel", () => {
+		const { sprite, layer } = threeFrames();
+		setCel(sprite, layer, 0, newData());
+		setCel(sprite, layer, 1, { ...newData(), x: 2, y: 1 });
+		expect(linkCels(sprite, layer, [0, 1, 2])).toEqual([
+			{ frame: 1, previous: { x: 2, y: 1, width: 2, height: 3 } },
+			{ frame: 2, previous: undefined },
+		]);
+	});
+
+	test("a clone keeps the ids and hands out ids the original cels don't have", () => {
+		const { sprite, layer } = threeFrames();
+		setCel(sprite, layer, 0, newData());
+		linkCels(sprite, layer, [0, 1]);
+		setCel(sprite, layer, 2, newData());
+		const copy = cloneSprite(sprite);
+		const [copyLayer] = imageLayers(copy.root);
+		if (!copyLayer) throw new Error("missing layer");
+		expect(copy.nextCelDataId).toBe(sprite.nextCelDataId);
+		for (const [frame, cel] of layer.cels) {
+			expect(copyLayer.cels.get(frame)?.data.id).toBe(cel.data.id);
+		}
+		const added = setCel(copy, copyLayer, 2, newData());
+		expect([...layer.cels.values()].map((cel) => cel.data.id)).not.toContain(
+			added.data.id,
+		);
+		expectCelIdInvariant(copy);
 	});
 });
 

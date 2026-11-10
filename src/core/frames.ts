@@ -5,6 +5,7 @@ import {
 	findBackground,
 	type ImageLayer,
 	imageLayers,
+	newCelDataId,
 	type Sprite,
 	setCel,
 } from "./sprite.ts";
@@ -113,12 +114,8 @@ export function duplicateFrame(sprite: Sprite, frame: number): void {
 		if (!source) continue;
 		const data = layer.flags.continuous
 			? source.data
-			: copyCelData(source.data);
-		layer.cels.set(frame + 1, {
-			frame: frame + 1,
-			zIndex: source.zIndex,
-			data,
-		});
+			: { ...copyCelData(source.data), id: newCelDataId(sprite) };
+		setCel(sprite, layer, frame + 1, data, source.zIndex);
 	}
 }
 

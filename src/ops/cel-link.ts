@@ -26,10 +26,7 @@ export const celLink = defineOp({
 			const linked = layer.cels.get(frame)?.data;
 			if (!linked) continue;
 			const rect = previous
-				? unionRects(
-						celCanvasRect(sprite, previous),
-						celCanvasRect(sprite, linked),
-					)
+				? unionRects(previous, celCanvasRect(sprite, linked))
 				: celCanvasRect(sprite, linked);
 			if (!isEmptyRect(rect)) {
 				changed.push({ layerId: layer.id, frame, rect });

@@ -14,13 +14,13 @@ export const celUnlink = defineOp({
 		frame: z.number().int().min(0),
 	}),
 	run(workspace, input) {
-		const { layer } = resolveTarget(
+		const { sprite, layer } = resolveTarget(
 			workspace,
 			input.spriteId,
 			input.layerId,
 			input.frame,
 		);
-		unlinkCel(layer, input.frame);
+		unlinkCel(sprite, layer, input.frame);
 		return { changed: [] };
 	},
 });

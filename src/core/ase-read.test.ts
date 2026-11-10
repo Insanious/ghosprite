@@ -3,6 +3,7 @@ import { readdirSync } from "node:fs";
 import {
 	buildFile,
 	chunk,
+	fixturePaths,
 	imageLayer,
 	layerChunk,
 	layerNamed,
@@ -12,6 +13,7 @@ import {
 	read,
 	readFixture,
 } from "../../tests/helpers/ase-build.ts";
+import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
 import { AsepriteFileError } from "./ase-bytes.ts";
 import { type Layer, walkRenderOrder } from "./sprite.ts";
 
@@ -303,6 +305,25 @@ test("a link to a frame with a different position becomes a copy", () => {
 	expect(cels.get(1)?.data).toMatchObject({ x: 2 });
 	expect(cels.get(1)?.data.image.data).toEqual(cels.get(0)?.data.image.data);
 	expect(cels.get(2)?.data).toBe(cels.get(0)?.data);
+	expect(cels.get(1)?.data.id).not.toBe(cels.get(0)?.data.id);
+	expect(cels.get(2)?.data.id).toBe(cels.get(0)?.data.id);
+	expectCelIdInvariant(sprite);
+});
+
+test("link.aseprite gives linked cels one id and unlinked cels distinct ids", () => {
+	const { sprite } = readFixture("sprites/link.aseprite");
+	for (const name of ["L2", "L3"]) {
+		const layer = imageLayer(sprite.root.children, name);
+		expect(layer.cels.get(0)?.data.id).toBe(layer.cels.get(1)?.data.id);
+	}
+	const l1 = imageLayer(sprite.root.children, "L1");
+	expect(l1.cels.get(0)?.data.id).not.toBe(l1.cels.get(1)?.data.id);
+});
+
+test("every fixture keeps the cel id invariant", () => {
+	for (const path of fixturePaths()) {
+		expectCelIdInvariant(readFixture(path).sprite);
+	}
 });
 
 test("malformed files are rejected", () => {

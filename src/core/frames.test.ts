@@ -1,17 +1,19 @@
 import { describe, expect, test } from "bun:test";
+import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
 import { createFrame, deleteFrame, duplicateFrame } from "./frames.ts";
 import { createImage } from "./image.ts";
 import {
 	addLayer,
-	type CelData,
+	type CelDataInit,
 	createImageLayer,
 	createSprite,
+	framesSharingData,
 	type ImageLayer,
 	setCel,
 } from "./sprite.ts";
 import { createUserData } from "./user-data.ts";
 
-function newData(): CelData {
+function newData(): CelDataInit {
 	return {
 		image: createImage(2, 2, "rgba"),
 		x: 0,
@@ -81,8 +83,7 @@ describe("linked cels", () => {
 describe("duplicateFrame", () => {
 	test("links the new cel on a continuous layer and copies it elsewhere", () => {
 		const { sprite, plain, continuous } = setup(2);
-		const shared = newData();
-		setCel(sprite, plain, 0, shared, 3);
+		const shared = setCel(sprite, plain, 0, newData(), 3).data;
 		setCel(sprite, plain, 1, shared);
 		setCel(sprite, continuous, 0, newData(), 2);
 		duplicateFrame(sprite, 0);
@@ -93,6 +94,20 @@ describe("duplicateFrame", () => {
 		expect(copy?.data).not.toBe(plain.cels.get(0)?.data);
 		expect(copy?.zIndex).toBe(3);
 		expect(plain.cels.get(2)?.data).toBe(shared);
+	});
+
+	test("gives the continuous copy the source's id and a plain copy a new one", () => {
+		const { sprite, plain, continuous } = setup(2);
+		const plainSource = setCel(sprite, plain, 0, newData()).data;
+		const continuousSource = setCel(sprite, continuous, 0, newData()).data;
+		duplicateFrame(sprite, 0);
+		const linked = continuous.cels.get(1)?.data;
+		const copied = plain.cels.get(1)?.data;
+		expect(linked?.id).toBe(continuousSource.id);
+		expect(copied?.id).not.toBe(plainSource.id);
+		expect(framesSharingData(plain, plainSource)).toEqual([0]);
+		expect(copied && framesSharingData(plain, copied)).toEqual([1]);
+		expectCelIdInvariant(sprite);
 	});
 });
 

@@ -3,7 +3,7 @@ import { celCanvas, commitCel } from "./cel-edit.ts";
 import { createImage, setPixel } from "./image.ts";
 import {
 	addLayer,
-	type CelData,
+	type CelDataInit,
 	createImageLayer,
 	createSprite,
 	type ImageLayer,
@@ -40,14 +40,16 @@ function putCel(
 ) {
 	const image = createImage(width, height, "rgba");
 	for (const [px, py] of pixels) setPixel(image, px, py, [9, 8, 7, 255]);
-	const data: CelData = {
+	const init: CelDataInit = {
 		image,
 		x,
 		y,
 		opacity: 200,
 		userData: createUserData(),
 	};
-	for (const frame of frames) setCel(sprite, layer, frame, data);
+	const [first = 0, ...rest] = frames;
+	const data = setCel(sprite, layer, first, init).data;
+	for (const frame of rest) setCel(sprite, layer, frame, data);
 	return data;
 }
 
