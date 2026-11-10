@@ -11,6 +11,7 @@ A headless pixel-art sprite engine for AI agents, modelled on Aseprite's documen
 - Ops in `src/ops` don't loop over pixels or index `image.data`. Put that work in a core function that takes or returns a whole image or buffer. Looping over strings or index buffers is fine.
 - Each operation's Zod schema is the only definition of its input. Derive types, validation and MCP tools from it, and never hand-write a duplicate.
 - Before adding a helper, type or constant, grep for an existing one and use it.
+- Core records the before-state of every write to a sprite through `src/core/history.ts`, and never writes into an image, `Cel` or selection mask the sprite holds: it records, then assigns a new one.
 - If a lint or type rule blocks the design you need, stop and report it. Don't work around it by copying code.
 
 ## Commands

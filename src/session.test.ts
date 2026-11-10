@@ -3,9 +3,11 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { deflateSync } from "node:zlib";
+import { expectSameSprite } from "../tests/helpers/undo.ts";
+import { undoBytes } from "./core/history.ts";
 import { encodePng } from "./core/png.ts";
 import { renderFrame } from "./core/render.ts";
-import type { Sprite } from "./core/sprite.ts";
+import { cloneSprite, type Sprite } from "./core/sprite.ts";
 import { OpError } from "./errors.ts";
 import type { MutationResult } from "./ops/registry.ts";
 import { type Call, Session } from "./session.ts";
@@ -445,5 +447,149 @@ describe("Session checkpoints, restore and journal", () => {
 		const error = thrown(() => session.checkpoint("checkpoint-3"));
 		expect(error.code).toBe("invalid_input");
 		expect(error.path).toBe("name");
+	});
+});
+
+describe("Session over the change log", () => {
+	function pixel(spriteId: string, layerId: string, x: number, color: string) {
+		return {
+			op: "draw.rect",
+			input: {
+				spriteId,
+				layerId,
+				frame: 0,
+				rect: { x, y: 0, width: 1, height: 1 },
+				filled: true,
+				color,
+			},
+		};
+	}
+
+	test("memory follows the change, not the sprite size", () => {
+		const session = new Session();
+		const { spriteId } = session.run("sprite.create", {
+			width: 256,
+			height: 256,
+		}) as unknown as Created;
+		const { layerId } = session.run("layer.create", {
+			spriteId,
+		}) as unknown as Created;
+		session.run("draw.rect", {
+			spriteId,
+			layerId,
+			frame: 0,
+			rect: { x: 0, y: 0, width: 256, height: 256 },
+			filled: true,
+			color: "#ff0000",
+		});
+		const sprite = session.workspace.getSprite(spriteId);
+		const before = undoBytes(sprite);
+		for (let x = 0; x < 10; x++) draw(session, spriteId, layerId, x, "#00ff00");
+		expect(undoBytes(sprite) - before).toBeLessThan(1024);
+	});
+
+	test("a batch that edits two sprites is one step", () => {
+		const a = setup();
+		const b = a.session.run("sprite.create", {
+			width: 4,
+			height: 4,
+		}) as unknown as Created;
+		const layerB = a.session.run("layer.create", {
+			spriteId: b.spriteId,
+		}) as unknown as Created;
+		const blankA = cloneSprite(a.session.workspace.getSprite(a.spriteId));
+		const blankB = cloneSprite(a.session.workspace.getSprite(b.spriteId));
+		a.session.apply([
+			pixel(a.spriteId, a.layerId, 0, "#ff0000"),
+			pixel(b.spriteId, layerB.layerId, 1, "#00ff00"),
+		]);
+		const drawnA = cloneSprite(a.session.workspace.getSprite(a.spriteId));
+		const drawnB = cloneSprite(a.session.workspace.getSprite(b.spriteId));
+		a.session.undo();
+		expectSameSprite(a.session.workspace.getSprite(a.spriteId), blankA);
+		expectSameSprite(a.session.workspace.getSprite(b.spriteId), blankB);
+		a.session.redo();
+		expectSameSprite(a.session.workspace.getSprite(a.spriteId), drawnA);
+		expectSameSprite(a.session.workspace.getSprite(b.spriteId), drawnB);
+	});
+
+	test("a batch that creates a sprite and draws on it survives undo and redo twice", () => {
+		const session = new Session();
+		session.apply([
+			{ op: "sprite.create", input: { width: 4, height: 4 } },
+			{ op: "layer.create", input: { spriteId: "sprite-1" } },
+			pixel("sprite-1", "layer-1", 0, "#ff0000"),
+		]);
+		const drawn = pixelsOf(session.workspace.getSprite("sprite-1"));
+		for (let i = 0; i < 2; i++) {
+			session.undo();
+			expect(session.workspace.spriteIds()).toEqual([]);
+			session.redo();
+		}
+		expect(pixelsOf(session.workspace.getSprite("sprite-1"))).toBe(drawn);
+	});
+
+	test("a sprite edited only in a dropped step can be edited and undone again", () => {
+		const a = setup();
+		const b = a.session.run("sprite.create", {
+			width: 4,
+			height: 4,
+		}) as unknown as Created;
+		const layerB = a.session.run("layer.create", {
+			spriteId: b.spriteId,
+		}) as unknown as Created;
+		draw(a.session, b.spriteId, layerB.layerId, 0, "#ff0000");
+		draw(a.session, b.spriteId, layerB.layerId, 1, "#00ff00");
+		a.session.undo(2);
+		draw(a.session, a.spriteId, a.layerId, 0, "#0000ff");
+		const blankB = render(a.session, b.spriteId);
+		draw(a.session, b.spriteId, layerB.layerId, 2, "#ffffff");
+		a.session.undo();
+		expect(render(a.session, b.spriteId)).toBe(blankB);
+	});
+
+	test("a failing op after a draw aborts the draw", () => {
+		const { session, spriteId, layerId } = setup();
+		const first = cloneSprite(session.workspace.getSprite(spriteId));
+		thrown(() =>
+			session.apply([
+				pixel(spriteId, layerId, 0, "#ff0000"),
+				{ op: "draw.rect", input: { spriteId: 1 } },
+			]),
+		);
+		expectSameSprite(session.workspace.getSprite(spriteId), first);
+	});
+
+	test("redo still works after a batch that failed", () => {
+		const { session, spriteId, layerId } = setup();
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		const drawn = render(session, spriteId);
+		session.undo();
+		thrown(() =>
+			session.apply([
+				pixel(spriteId, layerId, 1, "#00ff00"),
+				{ op: "draw.rect", input: { spriteId: 1 } },
+			]),
+		);
+		session.redo();
+		expect(render(session, spriteId)).toBe(drawn);
+	});
+
+	test("spriteAt an earlier checkpoint leaves the live state alone", () => {
+		const { session, spriteId, layerId } = setup();
+		const { checkpointId } = session.checkpoint("early");
+		draw(session, spriteId, layerId, 0, "#ff0000");
+		const live = session.workspace.getSprite(spriteId);
+		const liveCopy = cloneSprite(live);
+		const counters = session.workspace.counterSnapshot();
+		const position = session.journal().length;
+		const past = session.spriteAt(checkpointId, spriteId);
+		expect(session.workspace.getSprite(spriteId)).toBe(live);
+		expectSameSprite(live, liveCopy);
+		expect(session.journal()).toHaveLength(position);
+		expect(session.workspace.counterSnapshot()).toEqual(counters);
+		const pastCopy = cloneSprite(past);
+		draw(session, spriteId, layerId, 1, "#00ff00");
+		expectSameSprite(past, pastCopy);
 	});
 });

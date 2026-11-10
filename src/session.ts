@@ -1,3 +1,11 @@
+import {
+	abortStep,
+	beginStep,
+	discardRedo,
+	endStep,
+	redoStep,
+	undoStep,
+} from "./core/history.ts";
 import { cloneSprite, type Sprite } from "./core/sprite.ts";
 import { OpError } from "./errors.ts";
 import { operations } from "./ops/index.ts";
@@ -6,13 +14,12 @@ import { type IdKind, Workspace } from "./workspace.ts";
 
 export type Call = { op: string; input: unknown };
 
-type SpriteMap = Map<string, Sprite | undefined>;
+type StepSprites = Map<string, { sprite: Sprite; created: boolean }>;
 
 type Step = {
 	checkpointId: string;
 	journalEntry: Call;
-	before: SpriteMap;
-	after: SpriteMap;
+	sprites: StepSprites;
 	countersBefore: Map<IdKind, number>;
 	countersAfter: Map<IdKind, number>;
 };
@@ -71,36 +78,24 @@ export class Session {
 
 	spriteAt(checkpoint: string, spriteId: string): Sprite {
 		const target = this.positionOf(checkpoint);
-		let found: Sprite | undefined;
-		let recorded = false;
-		if (target <= this.position) {
-			for (const step of this.steps.slice(target, this.position)) {
-				if (step.before.has(spriteId)) {
-					found = step.before.get(spriteId);
-					recorded = true;
-					break;
-				}
+		if (target === this.position) return this.workspace.getSprite(spriteId);
+		const remembered = this.position;
+		this.restore(checkpoint);
+		try {
+			if (!this.workspace.hasSprite(spriteId)) {
+				throw new OpError(
+					"not_found",
+					`Sprite "${spriteId}" did not exist at ${checkpoint}`,
+					{ path: "spriteId" },
+				);
 			}
-		} else {
-			for (const step of this.steps.slice(this.position, target).reverse()) {
-				if (step.after.has(spriteId)) {
-					found = step.after.get(spriteId);
-					recorded = true;
-					break;
-				}
+			return cloneSprite(this.workspace.getSprite(spriteId));
+		} finally {
+			if (remembered < this.position) this.undo(this.position - remembered);
+			else if (remembered > this.position) {
+				this.redo(remembered - this.position);
 			}
 		}
-		if (!recorded && this.workspace.hasSprite(spriteId)) {
-			found = this.workspace.getSprite(spriteId);
-		}
-		if (!found) {
-			throw new OpError(
-				"not_found",
-				`Sprite "${spriteId}" did not exist at ${checkpoint}`,
-				{ path: "spriteId" },
-			);
-		}
-		return found;
 	}
 
 	private positionOf(checkpoint: string): number {
@@ -127,7 +122,11 @@ export class Session {
 		const sprites = new Set<string>();
 		for (let i = 0; i < steps; i++) {
 			const step = this.steps[this.position - 1] as Step;
-			this.swap(step.before, step.after, sprites);
+			for (const [id, { sprite, created }] of step.sprites) {
+				if (created) this.workspace.removeSprite(id);
+				else undoStep(sprite);
+				sprites.add(id);
+			}
 			this.workspace.restoreCounters(step.countersBefore);
 			this.position--;
 		}
@@ -139,7 +138,11 @@ export class Session {
 		const sprites = new Set<string>();
 		for (let i = 0; i < steps; i++) {
 			const step = this.steps[this.position] as Step;
-			this.swap(step.after, step.before, sprites);
+			for (const [id, { sprite, created }] of step.sprites) {
+				if (created) this.workspace.setSprite(id, sprite);
+				else redoStep(sprite);
+				sprites.add(id);
+			}
 			this.workspace.restoreCounters(step.countersAfter);
 			this.position++;
 		}
@@ -162,19 +165,6 @@ export class Session {
 			: (this.steps[this.position - 1] as Step).checkpointId;
 	}
 
-	/** Puts `incoming` live and records what it replaced in `outgoing`. */
-	private swap(incoming: SpriteMap, outgoing: SpriteMap, moved: Set<string>) {
-		for (const [id, sprite] of incoming) {
-			outgoing.set(
-				id,
-				this.workspace.hasSprite(id) ? this.workspace.getSprite(id) : undefined,
-			);
-			if (sprite) this.workspace.setSprite(id, sprite);
-			else this.workspace.removeSprite(id);
-			moved.add(id);
-		}
-	}
-
 	private transact(
 		calls: Call[],
 		label: string | undefined,
@@ -183,7 +173,7 @@ export class Session {
 		const recorded: Call[] = [];
 		const idsBefore = new Set(this.workspace.spriteIds());
 		const countersBefore = this.workspace.counterSnapshot();
-		const before: SpriteMap = new Map();
+		const touched: StepSprites = new Map();
 		const results: MutationResult[] = [];
 		let index = 0;
 		try {
@@ -203,18 +193,23 @@ export class Session {
 				if (
 					spriteId !== undefined &&
 					this.workspace.hasSprite(spriteId) &&
-					!before.has(spriteId)
+					!touched.has(spriteId)
 				) {
-					before.set(spriteId, cloneSprite(this.workspace.getSprite(spriteId)));
+					const sprite = this.workspace.getSprite(spriteId);
+					beginStep(sprite);
+					touched.set(spriteId, { sprite, created: false });
 				}
 				const ran = prepared.run();
 				results.push(ran.result);
-				if (prepared.sprite === "creates" && !before.has(ran.spriteId)) {
-					before.set(ran.spriteId, undefined);
+				if (prepared.sprite === "creates" && !touched.has(ran.spriteId)) {
+					touched.set(ran.spriteId, {
+						sprite: this.workspace.getSprite(ran.spriteId),
+						created: true,
+					});
 				}
 			}
 		} catch (error) {
-			this.rollback(before, idsBefore, countersBefore);
+			this.rollback(touched, idsBefore, countersBefore);
 			if (isBatch && error instanceof OpError) {
 				const prefix = `ops.${index}`;
 				throw new OpError(error.code, error.message, {
@@ -225,8 +220,13 @@ export class Session {
 			throw error;
 		}
 
-		if (before.size === 0) {
+		if (touched.size === 0) {
 			return { results, checkpointId: this.currentCheckpointId() };
+		}
+		for (const dropped of this.steps.slice(this.position)) {
+			for (const { sprite, created } of dropped.sprites.values()) {
+				if (!created) discardRedo(sprite);
+			}
 		}
 		this.steps.length = this.position;
 		const live = new Set(this.steps.map((s) => s.checkpointId));
@@ -245,26 +245,28 @@ export class Session {
 								: { label, ops: recorded },
 					}
 				: (recorded[0] as Call),
-			before,
-			after: new Map(),
+			sprites: touched,
 			countersBefore,
 			countersAfter: this.workspace.counterSnapshot(),
 		};
+		for (const { sprite, created } of touched.values()) {
+			if (!created) endStep(sprite);
+		}
 		this.steps.push(step);
 		this.position++;
 		return { results, checkpointId: step.checkpointId };
 	}
 
 	private rollback(
-		before: SpriteMap,
+		touched: StepSprites,
 		idsBefore: Set<string>,
 		counters: Map<IdKind, number>,
 	): void {
 		for (const id of this.workspace.spriteIds()) {
 			if (!idsBefore.has(id)) this.workspace.removeSprite(id);
 		}
-		for (const [id, sprite] of before) {
-			if (sprite) this.workspace.setSprite(id, sprite);
+		for (const { sprite, created } of touched.values()) {
+			if (!created) abortStep(sprite);
 		}
 		this.workspace.restoreCounters(counters);
 	}
