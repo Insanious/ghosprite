@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import { recordPalettes } from "./history.ts";
 import type { Rgba } from "./image.ts";
 import type { Sprite } from "./sprite.ts";
@@ -25,7 +26,7 @@ export function paletteAt(palettes: Palette[], frame: number): Palette {
 		}
 	}
 	if (!found) {
-		throw new RangeError(`No palette applies at frame ${frame}`);
+		throw new CoreError("out_of_range", `No palette applies at frame ${frame}`);
 	}
 	return found;
 }

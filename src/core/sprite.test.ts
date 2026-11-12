@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { fixturePaths, readFixture } from "../../tests/helpers/ase-build.ts";
 import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
+import { coded } from "../../tests/helpers/coded.ts";
 import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import {
@@ -383,14 +384,18 @@ describe("setCel", () => {
 		const sprite = newSprite("indexed");
 		const layer = createImageLayer({ id: "a", name: "A" });
 		addLayer(sprite, layer, sprite.root);
-		expect(() => setCel(sprite, layer, 0, newData("rgba"))).toThrow(RangeError);
+		expect(() => setCel(sprite, layer, 0, newData("rgba"))).toThrow(
+			coded("invalid_input"),
+		);
 	});
 
 	test("rejects a frame the sprite does not have", () => {
 		const sprite = newSprite();
 		const layer = createImageLayer({ id: "a", name: "A" });
 		addLayer(sprite, layer, sprite.root);
-		expect(() => setCel(sprite, layer, 2, newData())).toThrow(RangeError);
+		expect(() => setCel(sprite, layer, 2, newData())).toThrow(
+			coded("out_of_range"),
+		);
 	});
 });
 
@@ -434,7 +439,7 @@ describe("background layer", () => {
 		const sprite = newSprite();
 		addLayer(sprite, background("bg1"), sprite.root, 0);
 		expect(() => addLayer(sprite, background("bg2"), sprite.root, 0)).toThrow(
-			RangeError,
+			coded("invalid_input"),
 		);
 	});
 
@@ -442,7 +447,7 @@ describe("background layer", () => {
 		const sprite = newSprite();
 		addLayer(sprite, createImageLayer({ id: "a", name: "A" }), sprite.root);
 		expect(() => addLayer(sprite, background("bg"), sprite.root)).toThrow(
-			RangeError,
+			coded("invalid_input"),
 		);
 	});
 
@@ -451,7 +456,7 @@ describe("background layer", () => {
 		const group = createGroupLayer({ id: "g", name: "G" });
 		addLayer(sprite, group, sprite.root);
 		expect(() => addLayer(sprite, background("bg"), group, 0)).toThrow(
-			RangeError,
+			coded("invalid_input"),
 		);
 	});
 
@@ -459,7 +464,7 @@ describe("background layer", () => {
 		const sprite = newSprite();
 		expect(() =>
 			addLayer(sprite, background("bg", { opacity: 0 }), sprite.root, 0),
-		).toThrow(RangeError);
+		).toThrow(coded("invalid_input"));
 		expect(() =>
 			addLayer(
 				sprite,
@@ -467,7 +472,7 @@ describe("background layer", () => {
 				sprite.root,
 				0,
 			),
-		).toThrow(RangeError);
+		).toThrow(coded("invalid_input"));
 	});
 
 	test("rejects a layer added below it", () => {
@@ -480,17 +485,31 @@ describe("background layer", () => {
 				sprite.root,
 				0,
 			),
-		).toThrow(RangeError);
+		).toThrow(coded("invalid_input"));
 	});
 });
 
 describe("layer tree", () => {
+	test("rejects removing a layer that is not in the sprite", () => {
+		const sprite = newSprite();
+		const stray = createImageLayer({ id: "x", name: "X" });
+		expect(() => removeLayer(sprite, stray)).toThrow(coded("not_found"));
+	});
+
+	test("rejects a parent that is not in the sprite", () => {
+		const sprite = newSprite();
+		const stray = createGroupLayer({ id: "g", name: "G" });
+		expect(() =>
+			addLayer(sprite, createImageLayer({ id: "a", name: "A" }), stray),
+		).toThrow(coded("not_found"));
+	});
+
 	test("rejects a duplicate id", () => {
 		const sprite = newSprite();
 		addLayer(sprite, createImageLayer({ id: "a", name: "A" }), sprite.root);
 		expect(() =>
 			addLayer(sprite, createImageLayer({ id: "a", name: "B" }), sprite.root),
-		).toThrow(RangeError);
+		).toThrow(coded("invalid_input"));
 	});
 
 	test("findLayer finds nested layers", () => {

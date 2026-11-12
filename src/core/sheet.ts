@@ -1,4 +1,5 @@
 import { contentBounds, cropImage, pixelAt } from "./crop.ts";
+import { CoreError } from "./errors.ts";
 import { createImage, type Image, type Rect, unionRects } from "./image.ts";
 import { renderFrame } from "./render.ts";
 import { findBackground, isLayerVisible, type Sprite } from "./sprite.ts";
@@ -53,7 +54,7 @@ function exportedFrames(sprite: Sprite, tagName: string | undefined): number[] {
 	let to = sprite.frameDurations.length - 1;
 	if (tagName !== undefined) {
 		const tag = sprite.tags.find((t) => t.name === tagName);
-		if (!tag) throw new Error(`No tag named "${tagName}"`);
+		if (!tag) throw new CoreError("not_found", `No tag named "${tagName}"`);
 		from = tag.from;
 		to = tag.to;
 	}

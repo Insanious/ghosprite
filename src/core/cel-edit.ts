@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import { recordCels, recordPatch } from "./history.ts";
 import {
 	createImage,
@@ -29,7 +30,7 @@ export type CelCommit = {
 
 function requireRgba(sprite: Sprite): void {
 	if (sprite.mode !== "rgba") {
-		throw new RangeError(`Cannot edit a ${sprite.mode} sprite`);
+		throw new CoreError("unsupported", `Cannot edit a ${sprite.mode} sprite`);
 	}
 }
 

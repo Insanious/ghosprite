@@ -30,6 +30,8 @@ import {
 } from "./sprite.ts";
 import { createUserData } from "./user-data.ts";
 
+const plainError = expect.objectContaining({ name: "Error" });
+
 function richSprite() {
 	const { sprite, layer } = spriteWithLinkedCels();
 	sprite.tags.push({
@@ -244,7 +246,7 @@ describe("steps", () => {
 		const data = layer.cels.get(0)?.data;
 		if (data) recordCelData(sprite, data);
 		expect(undoBytes(sprite)).toBe(0);
-		expect(() => undoStep(sprite)).toThrow(RangeError);
+		expect(() => undoStep(sprite)).toThrow(plainError);
 	});
 
 	test("abortStep restores the sprite and leaves nothing to undo", () => {
@@ -255,19 +257,19 @@ describe("steps", () => {
 		sprite.width = 99;
 		abortStep(sprite);
 		expectSameSprite(sprite, before);
-		expect(() => undoStep(sprite)).toThrow(RangeError);
+		expect(() => undoStep(sprite)).toThrow(plainError);
 	});
 
 	test("open and closed steps guard each other", () => {
 		const { sprite } = richSprite();
 		beginStep(sprite);
-		expect(() => beginStep(sprite)).toThrow(RangeError);
-		expect(() => undoStep(sprite)).toThrow(RangeError);
-		expect(() => redoStep(sprite)).toThrow(RangeError);
+		expect(() => beginStep(sprite)).toThrow(plainError);
+		expect(() => undoStep(sprite)).toThrow(plainError);
+		expect(() => redoStep(sprite)).toThrow(plainError);
 		endStep(sprite);
 		undoStep(sprite);
 		discardRedo(sprite);
-		expect(() => redoStep(sprite)).toThrow(RangeError);
+		expect(() => redoStep(sprite)).toThrow(plainError);
 	});
 
 	test("an aborted step leaves redo working", () => {
@@ -294,7 +296,7 @@ describe("steps", () => {
 		});
 		undoStep(sprite);
 		beginStep(sprite);
-		expect(() => endStep(sprite)).toThrow(RangeError);
+		expect(() => endStep(sprite)).toThrow(plainError);
 		discardRedo(sprite);
 		endStep(sprite);
 	});

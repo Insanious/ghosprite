@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 export type ColorMode = "rgba" | "grayscale" | "indexed";
 
 export type Image = {
@@ -46,7 +47,8 @@ export function copyImage(image: Image): Image {
 
 function pixelOffset(image: Image, x: number, y: number): number {
 	if (x < 0 || y < 0 || x >= image.width || y >= image.height) {
-		throw new RangeError(
+		throw new CoreError(
+			"out_of_range",
 			`Pixel (${x}, ${y}) is outside a ${image.width}x${image.height} image`,
 		);
 	}
@@ -83,7 +85,10 @@ export function colorIndices(image: Image): {
 	indices: Int32Array;
 } {
 	if (image.mode !== "rgba") {
-		throw new RangeError(`colorIndices needs an rgba image, got ${image.mode}`);
+		throw new CoreError(
+			"unsupported",
+			`colorIndices needs an rgba image, got ${image.mode}`,
+		);
 	}
 	const colors: Rgba[] = [];
 	const indexByColor = new Map<number, number>();
@@ -119,7 +124,8 @@ export function setPixel(
 ): void {
 	const size = BYTES_PER_PIXEL[image.mode];
 	if (bytes.length !== size) {
-		throw new RangeError(
+		throw new CoreError(
+			"invalid_input",
 			`A ${image.mode} pixel takes ${size} bytes, got ${bytes.length}`,
 		);
 	}

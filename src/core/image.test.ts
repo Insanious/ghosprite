@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { coded } from "../../tests/helpers/coded.ts";
 import {
 	colorIndices,
 	copyImage,
@@ -42,9 +43,11 @@ describe("image", () => {
 
 	test("rejects out-of-bounds coordinates and wrong byte counts", () => {
 		const image = createImage(2, 2, "rgba");
-		expect(() => getPixel(image, 2, 0)).toThrow(RangeError);
-		expect(() => setPixel(image, 0, -1, [0, 0, 0, 0])).toThrow(RangeError);
-		expect(() => setPixel(image, 0, 0, [1])).toThrow(RangeError);
+		expect(() => getPixel(image, 2, 0)).toThrow(coded("out_of_range"));
+		expect(() => setPixel(image, 0, -1, [0, 0, 0, 0])).toThrow(
+			coded("out_of_range"),
+		);
+		expect(() => setPixel(image, 0, 0, [1])).toThrow(coded("invalid_input"));
 	});
 
 	test("copy is independent", () => {
@@ -112,6 +115,12 @@ describe("imageFromIndices", () => {
 });
 
 describe("colorIndices", () => {
+	test("rejects an indexed image", () => {
+		expect(() => colorIndices(createImage(1, 1, "indexed"))).toThrow(
+			coded("unsupported"),
+		);
+	});
+
 	test("lists colours in first-seen order and reuses repeats", () => {
 		const image = createImage(3, 2, "rgba");
 		const pixels = [

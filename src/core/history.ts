@@ -343,15 +343,15 @@ function moveStep(sprite: Sprite, step: Step): void {
 
 export function beginStep(sprite: Sprite): void {
 	const history = historyOf(sprite);
-	if (history.open) throw new RangeError("A step is already open");
+	if (history.open) throw new Error("A step is already open");
 	history.open = { entries: [], nextCelDataId: sprite.nextCelDataId };
 }
 
 export function endStep(sprite: Sprite): void {
 	const history = historyOf(sprite);
-	if (!history.open) throw new RangeError("No step is open");
+	if (!history.open) throw new Error("No step is open");
 	if (history.position < history.steps.length) {
-		throw new RangeError("Discard the redo steps before ending a step");
+		throw new Error("Discard the redo steps before ending a step");
 	}
 	history.steps.push(history.open);
 	history.position = history.steps.length;
@@ -360,21 +360,21 @@ export function endStep(sprite: Sprite): void {
 
 export function abortStep(sprite: Sprite): void {
 	const history = historyOf(sprite);
-	if (!history.open) throw new RangeError("No step is open");
+	if (!history.open) throw new Error("No step is open");
 	moveStep(sprite, history.open);
 	history.open = undefined;
 }
 
 function movable(sprite: Sprite): History {
 	const history = historyOf(sprite);
-	if (history.open) throw new RangeError("A step is open");
+	if (history.open) throw new Error("A step is open");
 	return history;
 }
 
 export function undoStep(sprite: Sprite): void {
 	const history = movable(sprite);
 	const step = history.steps[history.position - 1];
-	if (!step) throw new RangeError("Nothing to undo");
+	if (!step) throw new Error("Nothing to undo");
 	moveStep(sprite, step);
 	history.position--;
 }
@@ -382,7 +382,7 @@ export function undoStep(sprite: Sprite): void {
 export function redoStep(sprite: Sprite): void {
 	const history = movable(sprite);
 	const step = history.steps[history.position];
-	if (!step) throw new RangeError("Nothing to redo");
+	if (!step) throw new Error("Nothing to redo");
 	moveStep(sprite, step);
 	history.position++;
 }

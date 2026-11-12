@@ -1,4 +1,5 @@
 import type { Mask } from "./draw/spans.ts";
+import { CoreError } from "./errors.ts";
 import { recordCelData, recordCels, recordChildren } from "./history.ts";
 import {
 	type ColorMode,
@@ -169,7 +170,7 @@ export function createSprite(init: {
 }): Sprite {
 	const frameDurations = init.frameDurations ?? [100];
 	if (frameDurations.length < 1) {
-		throw new RangeError("A sprite needs at least one frame");
+		throw new CoreError("invalid_input", "A sprite needs at least one frame");
 	}
 	return {
 		mode: init.mode,
@@ -245,36 +246,54 @@ export function addLayer(
 	index: number = parent.children.length,
 ): void {
 	if (parent !== sprite.root && findLayer(sprite, parent.id) !== parent) {
-		throw new RangeError(`Parent layer "${parent.id}" is not in the sprite`);
+		throw new CoreError(
+			"not_found",
+			`Parent layer "${parent.id}" is not in the sprite`,
+		);
 	}
 	if (index < 0 || index > parent.children.length) {
-		throw new RangeError(
+		throw new CoreError(
+			"out_of_range",
 			`Index ${index} is outside 0..${parent.children.length}`,
 		);
 	}
 	if (findLayer(sprite, layer.id)) {
-		throw new RangeError(`Layer id "${layer.id}" is already in use`);
+		throw new CoreError(
+			"invalid_input",
+			`Layer id "${layer.id}" is already in use`,
+		);
 	}
 	const background = findBackground(sprite);
 	if (layer.flags.background) {
 		if (layer.kind !== "image") {
-			throw new RangeError("A group cannot be the background layer");
+			throw new CoreError(
+				"invalid_input",
+				"A group cannot be the background layer",
+			);
 		}
 		if (background) {
-			throw new RangeError("The sprite already has a background layer");
+			throw new CoreError(
+				"invalid_input",
+				"The sprite already has a background layer",
+			);
 		}
 		if (parent !== sprite.root || index !== 0) {
-			throw new RangeError(
+			throw new CoreError(
+				"invalid_input",
 				"The background layer must be at the bottom of the root",
 			);
 		}
 		if (layer.opacity !== 255 || layer.blendMode !== "normal") {
-			throw new RangeError(
+			throw new CoreError(
+				"invalid_input",
 				"The background layer must have opacity 255 and normal blend",
 			);
 		}
 	} else if (background && parent === sprite.root && index === 0) {
-		throw new RangeError("Nothing can go below the background layer");
+		throw new CoreError(
+			"invalid_input",
+			"Nothing can go below the background layer",
+		);
 	}
 	recordChildren(sprite, parent);
 	parent.children.splice(index, 0, layer);
@@ -297,7 +316,10 @@ export function celCanvasRect(sprite: Sprite, data: CelData): Rect {
 export function removeLayer(sprite: Sprite, layer: Layer): void {
 	const parent = findParent(sprite, layer);
 	if (!parent) {
-		throw new RangeError(`Layer "${layer.id}" is not in the sprite`);
+		throw new CoreError(
+			"not_found",
+			`Layer "${layer.id}" is not in the sprite`,
+		);
 	}
 	recordChildren(sprite, parent);
 	parent.children.splice(parent.children.indexOf(layer), 1);
@@ -319,12 +341,14 @@ export function setCel(
 		frame < 0 ||
 		frame >= sprite.frameDurations.length
 	) {
-		throw new RangeError(
+		throw new CoreError(
+			"out_of_range",
 			`Frame ${frame} is outside 0..${sprite.frameDurations.length - 1}`,
 		);
 	}
 	if (data.image.mode !== sprite.mode) {
-		throw new RangeError(
+		throw new CoreError(
+			"invalid_input",
 			`A ${data.image.mode} image cannot go in a ${sprite.mode} sprite`,
 		);
 	}

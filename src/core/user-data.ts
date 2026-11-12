@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import type { Rect, Rgba } from "./image.ts";
 
 export type PropertyValue =
@@ -85,12 +86,18 @@ function checkInteger(
 	value: number | bigint,
 ): void {
 	if (typeof value === "number" && !Number.isInteger(value)) {
-		throw new RangeError(`${type} value ${value} is not an integer`);
+		throw new CoreError(
+			"invalid_input",
+			`${type} value ${value} is not an integer`,
+		);
 	}
 	const [min, max] = INT_RANGES[type];
 	const big = BigInt(value);
 	if (big < min || big > max) {
-		throw new RangeError(`${type} value ${value} is outside ${min}..${max}`);
+		throw new CoreError(
+			"out_of_range",
+			`${type} value ${value} is outside ${min}..${max}`,
+		);
 	}
 }
 

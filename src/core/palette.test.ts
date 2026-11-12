@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { coded } from "../../tests/helpers/coded.ts";
 import { checkUndoRedo } from "../../tests/helpers/undo.ts";
 import { type Palette, paletteAt, setPalette } from "./palette.ts";
 import { createSprite } from "./sprite.ts";
@@ -28,7 +29,7 @@ test("paletteAt does not depend on list order", () => {
 });
 
 test("paletteAt throws when no palette starts at or before the frame", () => {
-	expect(() => paletteAt([second], 1)).toThrow(RangeError);
+	expect(() => paletteAt([second], 1)).toThrow(coded("out_of_range"));
 });
 
 const spriteWith = (palettes: Palette[]) =>
