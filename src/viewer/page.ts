@@ -5,13 +5,23 @@ const escapeHtml = (text: string): string =>
 		.replaceAll(">", "&gt;")
 		.replaceAll('"', "&quot;");
 
-export const page = (runName?: string): string => `<!doctype html>
+export interface PageOptions {
+	runName?: string;
+	warnings?: string[];
+}
+
+export const page = ({
+	runName,
+	warnings = [],
+}: PageOptions = {}): string => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>${runName === undefined ? "" : `${escapeHtml(runName)} · `}ghosprite viewer</title>
 <style>
 body { font: 14px system-ui, sans-serif; margin: 16px; background: #222; color: #eee; }
+#warnings { background: #4a3b12; border: 2px solid #c9a227; padding: 6px 10px; margin-bottom: 16px; }
+#warnings p { margin: 4px 0; }
 #timeline { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
 .card { background: #333; border: 2px solid #333; padding: 6px; cursor: pointer; max-width: 200px; }
 .card.selected { border-color: #6cf; }
@@ -28,7 +38,7 @@ pre { background: #111; padding: 8px; overflow: auto; }
 </style>
 </head>
 <body>
-${runName === undefined ? "" : `<h1 id="run">Run ${escapeHtml(runName)}</h1>\n`}<div id="timeline"></div>
+${runName === undefined ? "" : `<h1 id="run">Run ${escapeHtml(runName)}</h1>\n`}${warnings.length === 0 ? "" : `<div id="warnings">${warnings.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>\n`}<div id="timeline"></div>
 <div id="detail"></div>
 <script>
 let entries = [];

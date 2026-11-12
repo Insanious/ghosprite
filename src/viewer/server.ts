@@ -1,6 +1,6 @@
 import type { Session } from "../session.ts";
 import { currentPath, type StepPictures } from "./history.ts";
-import { page } from "./page.ts";
+import { type PageOptions, page } from "./page.ts";
 
 const MAX_TRIES = 20;
 const MAX_PORT = 65535;
@@ -9,7 +9,7 @@ export function startViewer(
 	session: Session,
 	pictures: StepPictures,
 	port: number,
-	runName?: string,
+	options?: PageOptions,
 ): { url: string; stop: () => void } {
 	const fetch = (request: Request): Response => {
 		if (request.method !== "GET" && request.method !== "HEAD") {
@@ -17,7 +17,7 @@ export function startViewer(
 		}
 		const { pathname } = new URL(request.url);
 		if (pathname === "/") {
-			return new Response(page(runName), {
+			return new Response(page(options), {
 				headers: { "content-type": "text/html; charset=utf-8" },
 			});
 		}

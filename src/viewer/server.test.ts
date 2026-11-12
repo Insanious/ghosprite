@@ -53,12 +53,9 @@ describe("startViewer", () => {
 
 	test("names the run in the heading and title when given one", async () => {
 		const pictures = new StepPictures();
-		const viewer = startViewer(
-			new Session(),
-			pictures,
-			0,
-			"2026-01-02T03-04-05Z",
-		);
+		const viewer = startViewer(new Session(), pictures, 0, {
+			runName: "2026-01-02T03-04-05Z",
+		});
 		cleanups.push(viewer.stop);
 		const html = await (await fetch(viewer.url)).text();
 		expect(html).toContain('<h1 id="run">Run 2026-01-02T03-04-05Z</h1>');
@@ -75,10 +72,32 @@ describe("startViewer", () => {
 	});
 
 	test("escapes the run name", async () => {
-		const viewer = startViewer(new Session(), new StepPictures(), 0, '<b>&"x');
+		const viewer = startViewer(new Session(), new StepPictures(), 0, {
+			runName: '<b>&"x',
+		});
 		cleanups.push(viewer.stop);
 		const html = await (await fetch(viewer.url)).text();
 		expect(html).toContain("Run &lt;b&gt;&amp;&quot;x</h1>");
+	});
+
+	test("shows warnings escaped in a banner and keeps the run name", async () => {
+		const viewer = startViewer(new Session(), new StepPictures(), 0, {
+			runName: "r1",
+			warnings: ["<b>careful</b>", "second"],
+		});
+		cleanups.push(viewer.stop);
+		const html = await (await fetch(viewer.url)).text();
+		expect(html).toContain('id="warnings"');
+		expect(html).toContain("<p>&lt;b&gt;careful&lt;/b&gt;</p>");
+		expect(html).toContain("<p>second</p>");
+		expect(html).not.toContain("<b>careful");
+		expect(html).toContain('<h1 id="run">Run r1</h1>');
+	});
+
+	test("has no banner without warnings", async () => {
+		const { viewer } = start();
+		const html = await (await fetch(viewer.url)).text();
+		expect(html).not.toContain('id="warnings"');
 	});
 
 	test("/log lists steps and moves with the path after an undo and a new step", async () => {

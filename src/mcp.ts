@@ -99,7 +99,7 @@ export async function serveStdio(
 	const viewer =
 		viewerPort === undefined
 			? undefined
-			: startViewer(session, pictures, viewerPort, runLog?.name);
+			: startViewer(session, pictures, viewerPort, { runName: runLog?.name });
 	if (viewer !== undefined) process.stdin.once("end", viewer.stop);
 	await createMcpServer(session, viewer?.url).connect(
 		new StdioServerTransport(),
