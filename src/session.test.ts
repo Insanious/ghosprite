@@ -4,10 +4,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { deflateSync } from "node:zlib";
 import { expectSameSprite } from "../tests/helpers/undo.ts";
-import { undoBytes } from "./core/history.ts";
-import { encodePng } from "./core/png.ts";
-import { renderFrame } from "./core/render.ts";
-import { cloneSprite, type Sprite } from "./core/sprite.ts";
+import {
+	cloneSprite,
+	encodePng,
+	renderFrame,
+	type Sprite,
+	undoBytes,
+} from "./core/index.ts";
 import { OpError } from "./errors.ts";
 import type { MutationResult } from "./ops/registry.ts";
 import { type Call, Session } from "./session.ts";

@@ -1,9 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { z } from "zod";
-import { diffFrames } from "./core/diff.ts";
-import { createImage } from "./core/image.ts";
-import { renderFrame } from "./core/render.ts";
-import type { Sprite } from "./core/sprite.ts";
+import type { Sprite } from "./core/index.ts";
+import { createImage, diffFrames, renderFrame } from "./core/index.ts";
 import { OpError } from "./errors.ts";
 import { parseInput } from "./ops/registry.ts";
 import { renderOptionFields, withGridRule } from "./ops/render.ts";

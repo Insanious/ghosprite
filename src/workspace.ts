@@ -1,6 +1,5 @@
-import type { Mask } from "./core/draw/spans.ts";
-import type { Layer, Sprite } from "./core/sprite.ts";
-import { findLayer } from "./core/sprite.ts";
+import type { Layer, Mask, Sprite } from "./core/index.ts";
+import { findLayer } from "./core/index.ts";
 import { OpError } from "./errors.ts";
 
 export type IdKind = "sprite" | "layer" | "selection";

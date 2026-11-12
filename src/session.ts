@@ -1,12 +1,13 @@
 import {
 	abortStep,
 	beginStep,
+	cloneSprite,
 	discardRedo,
 	endStep,
 	redoStep,
+	type Sprite,
 	undoStep,
-} from "./core/history.ts";
-import { cloneSprite, type Sprite } from "./core/sprite.ts";
+} from "./core/index.ts";
 import { OpError } from "./errors.ts";
 import { operations } from "./ops/index.ts";
 import { createRegistry, type MutationResult } from "./ops/registry.ts";

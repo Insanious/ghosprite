@@ -1,4 +1,4 @@
-import { CoreError } from "./core/errors.ts";
+import { CoreError } from "./core/index.ts";
 
 export type OpErrorCode =
 	| "invalid_input"

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { CoreError } from "./core/errors.ts";
+import { CoreError } from "./core/index.ts";
 import { OpError, toOpError } from "./errors.ts";
 
 describe("toOpError", () => {

@@ -1,4 +1,4 @@
-import type { ImageLayer, Sprite } from "./core/sprite.ts";
+import type { ImageLayer, Sprite } from "./core/index.ts";
 import { OpError } from "./errors.ts";
 import type { Workspace } from "./workspace.ts";
 

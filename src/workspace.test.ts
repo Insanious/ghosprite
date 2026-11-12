@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { addLayer, createGroupLayer, createSprite } from "./core/sprite.ts";
+import { addLayer, createGroupLayer, createSprite } from "./core/index.ts";
 import { OpError } from "./errors.ts";
 import { Workspace } from "./workspace.ts";
 
