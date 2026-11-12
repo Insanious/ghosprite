@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test";
-import { AsepriteFileError, ByteReader, ByteWriter } from "./ase-bytes.ts";
+import { coded } from "../../tests/helpers/coded.ts";
+import { ByteReader, ByteWriter } from "./ase-bytes.ts";
+import { CoreError } from "./errors.ts";
 
 test("every primitive round-trips", () => {
 	const writer = new ByteWriter();
@@ -63,18 +65,18 @@ test("reading past the end throws a malformed error", () => {
 		reader.dword();
 		expect.unreachable();
 	} catch (error) {
-		expect(error).toBeInstanceOf(AsepriteFileError);
-		expect((error as AsepriteFileError).reason).toBe("malformed");
+		expect(error).toBeInstanceOf(CoreError);
+		expect((error as CoreError).code).toBe("invalid_input");
 	}
 });
 
 test("a string longer than the data is malformed", () => {
 	const reader = new ByteReader(new Uint8Array([10, 0, 65]));
-	expect(() => reader.string()).toThrow(AsepriteFileError);
+	expect(() => reader.string()).toThrow(coded("invalid_input"));
 });
 
 test("seeking outside the data is malformed", () => {
 	const reader = new ByteReader(new Uint8Array(4));
-	expect(() => reader.seek(5)).toThrow(AsepriteFileError);
-	expect(() => reader.skip(-1)).toThrow(AsepriteFileError);
+	expect(() => reader.seek(5)).toThrow(coded("invalid_input"));
+	expect(() => reader.skip(-1)).toThrow(coded("invalid_input"));
 });

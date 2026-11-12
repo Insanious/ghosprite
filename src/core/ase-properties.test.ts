@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
-import { AsepriteFileError, ByteReader, ByteWriter } from "./ase-bytes.ts";
+import { coded } from "../../tests/helpers/coded.ts";
+import { ByteReader, ByteWriter } from "./ase-bytes.ts";
 import { readPropertiesMaps, writePropertiesMaps } from "./ase-properties.ts";
 import type { PropertiesMap, PropertyValue } from "./user-data.ts";
 
@@ -121,7 +122,7 @@ test("writing an extension with no ID throws", () => {
 		],
 	]);
 	expect(() => writePropertiesMaps(new ByteWriter(), maps, idOf)).toThrow(
-		AsepriteFileError,
+		coded("unsupported"),
 	);
 });
 
@@ -148,7 +149,7 @@ test("nesting is accepted to the depth limit and rejected beyond it", () => {
 		readPropertiesMaps(new ByteReader(nested(127)), nameOf),
 	).not.toThrow();
 	expect(() => readPropertiesMaps(new ByteReader(nested(128)), nameOf)).toThrow(
-		AsepriteFileError,
+		coded("invalid_input"),
 	);
 });
 
@@ -163,7 +164,7 @@ test("the writer rejects nesting past the limit", () => {
 			new Map([["", new Map([["k", value]])]]),
 			idOf,
 		),
-	).toThrow(AsepriteFileError);
+	).toThrow(coded("unsupported"));
 });
 
 test("an unknown type ID is malformed", () => {
@@ -177,7 +178,7 @@ test("an unknown type ID is malformed", () => {
 	writer.patchDword(0, writer.position);
 	expect(() =>
 		readPropertiesMaps(new ByteReader(writer.toBytes()), nameOf),
-	).toThrow(AsepriteFileError);
+	).toThrow(coded("invalid_input"));
 });
 
 test("a truncated section is malformed", () => {
@@ -189,6 +190,6 @@ test("a truncated section is malformed", () => {
 	);
 	const bytes = writer.toBytes().subarray(0, writer.position - 2);
 	expect(() => readPropertiesMaps(new ByteReader(bytes), nameOf)).toThrow(
-		AsepriteFileError,
+		coded("invalid_input"),
 	);
 });

@@ -6,7 +6,7 @@ import {
 	read,
 	readFixture,
 } from "../../tests/helpers/ase-build.ts";
-import { AsepriteFileError } from "./ase-bytes.ts";
+import { coded } from "../../tests/helpers/coded.ts";
 import { writeAseprite } from "./ase-write.ts";
 import { createImage } from "./image.ts";
 import {
@@ -180,7 +180,7 @@ test("layer UUIDs round-trip, and a mix of some and none throws", () => {
 	const [group] = sprite.root.children;
 	if (group?.kind !== "group") throw new Error("Expected a group");
 	group.uuid = "00112233-4455-6677-8899-aabbccddeeff";
-	expect(() => write(sprite)).toThrow(AsepriteFileError);
+	expect(() => write(sprite)).toThrow(coded("unsupported"));
 	const child = group.children[0];
 	if (child) child.uuid = "ffeeddcc-bbaa-9988-7766-554433221100";
 	expect(roundTrip(sprite).root.children[0]?.uuid).toBe(group.uuid);

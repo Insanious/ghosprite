@@ -14,14 +14,14 @@ import {
 	readFixture,
 } from "../../tests/helpers/ase-build.ts";
 import { expectCelIdInvariant } from "../../tests/helpers/cel-ids.ts";
-import { AsepriteFileError } from "./ase-bytes.ts";
+import { CoreError } from "./errors.ts";
 import { type Layer, walkRenderOrder } from "./sprite.ts";
 
-function failure(bytes: Uint8Array): AsepriteFileError {
+function failure(bytes: Uint8Array): CoreError {
 	try {
 		read(bytes);
 	} catch (error) {
-		if (error instanceof AsepriteFileError) return error;
+		if (error instanceof CoreError) return error;
 		throw error;
 	}
 	throw new Error("Expected the read to fail");
@@ -220,12 +220,12 @@ test("a tilemap layer is unsupported", () => {
 			],
 		}),
 	);
-	expect(error.reason).toBe("unsupported");
+	expect(error.code).toBe("unsupported");
 });
 
 test("a tileset chunk is unsupported", () => {
 	const error = failure(buildFile({ frames: [[chunk(0x2023, () => {})]] }));
-	expect(error.reason).toBe("unsupported");
+	expect(error.code).toBe("unsupported");
 });
 
 test("a frame 2 palette chunk keeps the other entries, and an unchanged one adds no palette", () => {
@@ -329,20 +329,20 @@ test("every fixture keeps the cel id invariant", () => {
 test("malformed files are rejected", () => {
 	const layer = layerChunk({ name: "a" });
 	expect(
-		failure(buildFile({ frames: [[layer], [linkCelChunk(0, 0)]] })).reason,
-	).toBe("malformed");
+		failure(buildFile({ frames: [[layer], [linkCelChunk(0, 0)]] })).code,
+	).toBe("invalid_input");
 
 	const good = buildFile({ frames: [[layer, rawCelChunk(0, [1, 2, 3, 4])]] });
-	expect(failure(good.subarray(0, good.length - 5)).reason).toBe("malformed");
+	expect(failure(good.subarray(0, good.length - 5)).code).toBe("invalid_input");
 
 	const badMagic = good.slice();
 	badMagic[4] = 0;
-	expect(failure(badMagic).reason).toBe("malformed");
+	expect(failure(badMagic).code).toBe("invalid_input");
 
 	const wrongSize = buildFile({ frames: [[layer, rawCelChunk(0, [1, 2, 3])]] });
-	expect(failure(wrongSize).reason).toBe("malformed");
+	expect(failure(wrongSize).code).toBe("invalid_input");
 
 	expect(
-		failure(buildFile({ frames: [[rawCelChunk(5, [1, 2, 3, 4])]] })).reason,
-	).toBe("malformed");
+		failure(buildFile({ frames: [[rawCelChunk(5, [1, 2, 3, 4])]] })).code,
+	).toBe("invalid_input");
 });

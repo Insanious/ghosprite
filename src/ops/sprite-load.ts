@@ -1,7 +1,7 @@
 import { inflateSync } from "node:zlib";
 import { z } from "zod";
-import { AsepriteFileError } from "../core/ase-bytes.ts";
 import { readAseprite } from "../core/ase-read.ts";
+import { CoreError } from "../core/errors.ts";
 import { OpError } from "../errors.ts";
 import { readFile } from "./file.ts";
 import { defineOp } from "./registry.ts";
@@ -21,14 +21,11 @@ export const spriteLoad = defineOp({
 			});
 			return { spriteId: workspace.addSprite(sprite), warnings };
 		} catch (error) {
-			if (!(error instanceof AsepriteFileError)) throw error;
-			if (error.reason === "unsupported") {
-				throw new OpError("unsupported", error.message, {
-					path: "path",
-					hint: error.hint,
-				});
-			}
-			throw new OpError("invalid_input", error.message, { path: "path" });
+			if (!(error instanceof CoreError)) throw error;
+			throw new OpError(error.code, error.message, {
+				path: "path",
+				hint: error.hint,
+			});
 		}
 	},
 });

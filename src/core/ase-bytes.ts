@@ -1,18 +1,5 @@
+import { CoreError } from "./errors.ts";
 import type { Rect } from "./image.ts";
-
-export type AsepriteFileErrorReason = "malformed" | "unsupported";
-
-export class AsepriteFileError extends Error {
-	readonly reason: AsepriteFileErrorReason;
-	readonly hint?: string;
-
-	constructor(reason: AsepriteFileErrorReason, message: string, hint?: string) {
-		super(message);
-		this.name = "AsepriteFileError";
-		this.reason = reason;
-		this.hint = hint;
-	}
-}
 
 const textDecoder = new TextDecoder("utf-8", { fatal: true });
 const textEncoder = new TextEncoder();
@@ -41,8 +28,8 @@ export class ByteReader {
 
 	seek(position: number): void {
 		if (!Number.isInteger(position) || position < 0 || position > this.length) {
-			throw new AsepriteFileError(
-				"malformed",
+			throw new CoreError(
+				"invalid_input",
 				`Seek to ${position} is outside the ${this.length}-byte data`,
 			);
 		}
@@ -55,8 +42,8 @@ export class ByteReader {
 
 	private take(count: number): number {
 		if (count < 0 || this.offset + count > this.bytes.length) {
-			throw new AsepriteFileError(
-				"malformed",
+			throw new CoreError(
+				"invalid_input",
 				`Read of ${count} bytes at ${this.offset} runs past the end of the ${this.length}-byte data`,
 			);
 		}
@@ -112,7 +99,7 @@ export class ByteReader {
 		try {
 			return textDecoder.decode(this.bytes.subarray(start, start + length));
 		} catch {
-			throw new AsepriteFileError("malformed", "String is not valid UTF-8");
+			throw new CoreError("invalid_input", "String is not valid UTF-8");
 		}
 	}
 
@@ -221,7 +208,7 @@ export class ByteWriter {
 	string(value: string): void {
 		const encoded = textEncoder.encode(value);
 		if (encoded.length > 0xffff) {
-			throw new AsepriteFileError(
+			throw new CoreError(
 				"unsupported",
 				`String is ${encoded.length} bytes, over the 65535 limit`,
 			);
@@ -248,7 +235,7 @@ export class ByteWriter {
 	uuid(value: string): void {
 		const hex = value.replaceAll("-", "");
 		if (!/^[0-9a-fA-F]{32}$/.test(hex)) {
-			throw new AsepriteFileError("unsupported", `"${value}" is not a UUID`);
+			throw new CoreError("unsupported", `"${value}" is not a UUID`);
 		}
 		for (let i = 0; i < 32; i += 2) {
 			this.byte(Number.parseInt(hex.slice(i, i + 2), 16));
@@ -262,7 +249,7 @@ export class ByteWriter {
 
 	patchDword(position: number, value: number): void {
 		if (position < 0 || position + 4 > this.offset) {
-			throw new RangeError(`Patch at ${position} is outside the written data`);
+			throw new Error(`Patch at ${position} is outside the written data`);
 		}
 		this.view.setUint32(position, value, true);
 	}

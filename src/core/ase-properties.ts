@@ -1,8 +1,5 @@
-import {
-	AsepriteFileError,
-	type ByteReader,
-	type ByteWriter,
-} from "./ase-bytes.ts";
+import type { ByteReader, ByteWriter } from "./ase-bytes.ts";
+import { CoreError } from "./errors.ts";
 import type { PropertiesMap, PropertyValue } from "./user-data.ts";
 
 const MAX_DEPTH = 128;
@@ -70,8 +67,8 @@ function readProperties(
 
 function checkDepth(depth: number): void {
 	if (depth > MAX_DEPTH) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`More than ${MAX_DEPTH} property levels`,
 		);
 	}
@@ -134,8 +131,8 @@ function readValue(
 		case TYPE_IDS.uuid:
 			return { type: "uuid", value: reader.uuid() };
 		default:
-			throw new AsepriteFileError(
-				"malformed",
+			throw new CoreError(
+				"invalid_input",
 				`Unknown property type ${type} at ${reader.position}`,
 			);
 	}
@@ -154,7 +151,7 @@ export function writePropertiesMaps(
 	for (const [key, map] of written) {
 		const id = key === "" ? 0 : extensionId(key);
 		if (id === undefined) {
-			throw new AsepriteFileError(
+			throw new CoreError(
 				"unsupported",
 				`Extension "${key}" has no external file ID`,
 			);
@@ -181,7 +178,7 @@ function writeProperties(
 
 function checkWriteDepth(depth: number): void {
 	if (depth > MAX_DEPTH) {
-		throw new AsepriteFileError(
+		throw new CoreError(
 			"unsupported",
 			`More than ${MAX_DEPTH} property levels`,
 		);
@@ -196,7 +193,7 @@ function writeValue(
 	checkWriteDepth(depth);
 	switch (property.type) {
 		case "null":
-			throw new AsepriteFileError(
+			throw new CoreError(
 				"unsupported",
 				"A null property cannot be stored in a file",
 			);

@@ -1,9 +1,4 @@
-import {
-	AsepriteFileError,
-	ByteWriter,
-	type FrameChunks,
-	writeChunk,
-} from "./ase-bytes.ts";
+import { ByteWriter, type FrameChunks, writeChunk } from "./ase-bytes.ts";
 import {
 	collectExtensionIds,
 	writeExternalFilesChunk,
@@ -11,6 +6,7 @@ import {
 	writeTags,
 	writeUserData,
 } from "./ase-write-meta.ts";
+import { CoreError } from "./errors.ts";
 import type { Rgba } from "./image.ts";
 import type { Palette } from "./palette.ts";
 import { paletteAt } from "./palette.ts";
@@ -102,7 +98,7 @@ function headerFlags(sprite: Sprite, layers: WriteState["layers"]): number {
 		({ layer }) => layer.uuid !== undefined,
 	).length;
 	if (withUuid !== 0 && withUuid !== layers.length) {
-		throw new AsepriteFileError(
+		throw new CoreError(
 			"unsupported",
 			"Either every layer has a UUID or none does",
 		);

@@ -1,4 +1,4 @@
-import { AsepriteFileError, ByteReader } from "./ase-bytes.ts";
+import { ByteReader } from "./ase-bytes.ts";
 import {
 	type ExternalFiles,
 	readCelExtraChunk,
@@ -8,6 +8,7 @@ import {
 	readTagsChunk,
 	readUserDataChunk,
 } from "./ase-read-meta.ts";
+import { CoreError } from "./errors.ts";
 import {
 	bytesPerPixel,
 	type ColorMode,
@@ -142,7 +143,7 @@ export function readAseprite(
 function readHeader(reader: ByteReader): { header: Header; sprite: Sprite } {
 	reader.dword();
 	if (reader.word() !== FILE_MAGIC) {
-		throw new AsepriteFileError("malformed", "Not an Aseprite file");
+		throw new CoreError("invalid_input", "Not an Aseprite file");
 	}
 	const frames = reader.word();
 	const width = reader.word();
@@ -166,10 +167,10 @@ function readHeader(reader: ByteReader): { header: Header; sprite: Sprite } {
 
 	const mode = COLOR_MODES[depth];
 	if (!mode) {
-		throw new AsepriteFileError("malformed", `Unknown color depth ${depth}`);
+		throw new CoreError("invalid_input", `Unknown color depth ${depth}`);
 	}
 	if (frames < 1) {
-		throw new AsepriteFileError("malformed", "The file has no frames");
+		throw new CoreError("invalid_input", "The file has no frames");
 	}
 
 	const sprite = createSprite({
@@ -201,8 +202,8 @@ function readFrame(state: ReadState): void {
 	const { reader, sprite } = state;
 	reader.dword();
 	if (reader.word() !== FRAME_MAGIC) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Frame ${state.frame} has a bad magic number`,
 		);
 	}
@@ -218,15 +219,15 @@ function readFrame(state: ReadState): void {
 		const size = reader.dword();
 		const type = reader.word();
 		if (size < CHUNK_HEADER_SIZE) {
-			throw new AsepriteFileError(
-				"malformed",
+			throw new CoreError(
+				"invalid_input",
 				`Chunk at ${start} is ${size} bytes, smaller than its header`,
 			);
 		}
 		const end = start + size;
 		if (end > reader.length) {
-			throw new AsepriteFileError(
-				"malformed",
+			throw new CoreError(
+				"invalid_input",
 				`Chunk at ${start} runs past the end of the file`,
 			);
 		}
@@ -274,7 +275,7 @@ function readChunk(state: ReadState, type: number, end: number): void {
 			readUserData(state);
 			break;
 		case CHUNK_TILESET:
-			throw new AsepriteFileError(
+			throw new CoreError(
 				"unsupported",
 				"Tilesets are not supported",
 				"Tilemaps aren't supported yet",
@@ -353,8 +354,8 @@ function setPaletteEntry(
 	color: { r: number; g: number; b: number; a: number },
 ): void {
 	if (index >= MAX_PALETTE_SIZE) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Palette entry ${index} is out of range`,
 		);
 	}
@@ -382,8 +383,8 @@ function readPaletteChunk(state: ReadState): void {
 	const to = reader.dword();
 	reader.skip(8);
 	if (newSize > MAX_PALETTE_SIZE) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Palette size ${newSize} is out of range`,
 		);
 	}
@@ -451,30 +452,24 @@ function readLayerChunk(state: ReadState): void {
 	const name = reader.string();
 
 	if (layerType === LAYER_TILEMAP) {
-		throw new AsepriteFileError(
+		throw new CoreError(
 			"unsupported",
 			"Tilemap layers are not supported",
 			"Tilemaps aren't supported yet",
 		);
 	}
 	if (layerType !== LAYER_IMAGE && layerType !== LAYER_GROUP) {
-		throw new AsepriteFileError(
-			"unsupported",
-			`Unknown layer type ${layerType}`,
-		);
+		throw new CoreError("unsupported", `Unknown layer type ${layerType}`);
 	}
 	const uuid = header.hasLayerUuids ? reader.uuid() : undefined;
 
 	const blendMode = BLEND_MODES[blendIndex];
 	if (!blendMode) {
-		throw new AsepriteFileError(
-			"unsupported",
-			`Unknown blend mode ${blendIndex}`,
-		);
+		throw new CoreError("unsupported", `Unknown blend mode ${blendIndex}`);
 	}
 	if (childLevel >= state.groupStack.length) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Layer "${name}" is nested ${childLevel} levels deep under a layer that is not a group`,
 		);
 	}
@@ -540,14 +535,14 @@ function readCelChunk(state: ReadState, end: number): void {
 
 	const layer = state.layers[layerIndex];
 	if (!layer) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Frame ${state.frame} has a cel on layer ${layerIndex}, which does not exist`,
 		);
 	}
 	if (layer.kind !== "image") {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Frame ${state.frame} has a cel on layer ${layerIndex}, which is a group`,
 		);
 	}
@@ -558,14 +553,14 @@ function readCelChunk(state: ReadState, end: number): void {
 		return;
 	}
 	if (celType === CEL_TILEMAP) {
-		throw new AsepriteFileError(
+		throw new CoreError(
 			"unsupported",
 			"Tilemap cels are not supported",
 			"Tilemaps aren't supported yet",
 		);
 	}
 	if (celType !== CEL_RAW && celType !== CEL_COMPRESSED) {
-		throw new AsepriteFileError("unsupported", `Unknown cel type ${celType}`);
+		throw new CoreError("unsupported", `Unknown cel type ${celType}`);
 	}
 
 	const width = reader.word();
@@ -604,15 +599,15 @@ function inflatePixels(
 	try {
 		pixels = state.options.inflate(compressed);
 	} catch (error) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Frame ${state.frame} has cel pixel data that does not decompress: ${error instanceof Error ? error.message : String(error)}`,
 		);
 	}
 	const expected = image.width * image.height * bytesPerPixel(image.mode);
 	if (pixels.length !== expected) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Frame ${state.frame} has ${pixels.length} bytes of cel pixel data, expected ${expected}`,
 		);
 	}
@@ -627,8 +622,8 @@ function readLinkedCel(
 	const linkFrame = state.reader.word();
 	const target = layer.cels.get(linkFrame);
 	if (!target) {
-		throw new AsepriteFileError(
-			"malformed",
+		throw new CoreError(
+			"invalid_input",
 			`Frame ${state.frame} links to frame ${linkFrame}, which has no cel on the layer`,
 		);
 	}

@@ -231,6 +231,7 @@ describe("sprite.load and sprite.save", () => {
 		const error = failure(() => call(new Workspace(), "sprite.load", { path }));
 		expect(error.code).toBe("invalid_input");
 		expect(error.path).toBe("path");
+		expect(error.message).toBe("Not an Aseprite file");
 	});
 
 	test("an unsupported file is unsupported with a tilemap hint", () => {
