@@ -773,6 +773,43 @@ describe("Session step log", () => {
 		expect(session.stepLog().at(-1)).not.toHaveProperty("note");
 	});
 
+	test("onStep fires once per change and per batch, not for anything else", () => {
+		const seen: string[] = [];
+		const session = new Session({
+			onStep: (entry) => seen.push(entry.checkpointId),
+		});
+		const { spriteId } = session.run("sprite.create", {
+			width: 4,
+			height: 4,
+		}) as unknown as Created;
+		const { layerId } = session.run("layer.create", {
+			spriteId,
+			name: "L",
+		}) as unknown as Created;
+		expect(seen).toEqual(["checkpoint-1", "checkpoint-2"]);
+		session.apply([
+			{ op: "sprite.create", input: { width: 1, height: 1 } },
+			{
+				op: "draw.rect",
+				input: {
+					spriteId,
+					layerId,
+					frame: 0,
+					rect: { x: 0, y: 0, width: 1, height: 1 },
+					filled: true,
+					color: "#ff0000",
+				},
+			},
+		]);
+		expect(seen).toEqual(["checkpoint-1", "checkpoint-2", "checkpoint-3"]);
+		session.run("sprite.render", { spriteId, frames: [0] });
+		expect(() => session.run("draw.rect", { spriteId })).toThrow();
+		session.undo();
+		session.redo();
+		session.restore("checkpoint-1");
+		expect(seen).toHaveLength(3);
+	});
+
 	test("the returned log is a copy", () => {
 		const { session } = setup();
 		session.stepLog().length = 0;

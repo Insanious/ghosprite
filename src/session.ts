@@ -52,7 +52,15 @@ function singleCallNote(input: unknown): string | undefined {
 	return typeof note === "string" ? note : undefined;
 }
 
+export type StepEntry = Extract<LogEntry, { kind: "step" }>;
+
+type SessionOptions = {
+	onStep?: (entry: StepEntry, workspace: Workspace) => void;
+};
+
 export class Session {
+	constructor(private readonly options: SessionOptions = {}) {}
+
 	readonly workspace = new Workspace();
 	readonly registry = createRegistry(operations);
 	private readonly steps: Step[] = [];
@@ -302,14 +310,16 @@ export class Session {
 		this.steps.push(step);
 		this.position++;
 		const note = isBatch ? label : singleCallNote(recorded[0]?.input);
-		this.log.push({
+		const entry: StepEntry = {
 			kind: "step",
 			checkpointId: step.checkpointId,
 			op: step.journalEntry.op,
 			input: structuredClone(step.journalEntry.input),
 			...(note === undefined ? {} : { note }),
 			sprites: [...touched.keys()],
-		});
+		};
+		this.log.push(entry);
+		this.options.onStep?.(structuredClone(entry), this.workspace);
 		return { results, checkpointId: step.checkpointId };
 	}
 
