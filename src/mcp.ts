@@ -4,7 +4,7 @@ import {
 	CallToolRequestSchema,
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { OpError } from "./errors.ts";
+import { OpError, toOpError } from "./errors.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
 
@@ -59,13 +59,7 @@ export function createMcpServer(session: Session): Server {
 				],
 			};
 		} catch (error) {
-			const opError =
-				error instanceof OpError
-					? error
-					: new OpError(
-							"internal",
-							error instanceof Error ? error.message : String(error),
-						);
+			const opError = toOpError(error);
 			return {
 				isError: true,
 				content: [{ type: "text" as const, text: JSON.stringify(opError) }],

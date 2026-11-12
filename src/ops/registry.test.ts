@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
 import { z } from "zod";
+import { CoreError } from "../core/errors.ts";
 import { decodePng } from "../core/png.ts";
 import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
 import { OpError } from "../errors.ts";
@@ -62,7 +63,18 @@ const explode = defineOp({
 	},
 });
 
-const registry = createRegistry([touch, bare, explode, creates]);
+const reject = defineOp({
+	name: "test.reject",
+	sprite: "creates",
+	description: "Throws a CoreError.",
+	input: z.object({}),
+	renderOption: false,
+	run: () => {
+		throw new CoreError("out_of_range", "too far", "try less");
+	},
+});
+
+const registry = createRegistry([touch, bare, explode, reject, creates]);
 
 function setup() {
 	const workspace = new Workspace();
@@ -202,6 +214,17 @@ describe("callOp", () => {
 			code: "internal",
 			message: "boom",
 			path: "",
+		});
+	});
+
+	test("a CoreError from an op keeps its code and hint", () => {
+		const { workspace } = setup();
+		const error = thrown(() => registry.callOp(workspace, "test.reject", {}));
+		expect(error.toJSON()).toEqual({
+			code: "out_of_range",
+			message: "too far",
+			path: "",
+			hint: "try less",
 		});
 	});
 

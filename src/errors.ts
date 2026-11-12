@@ -1,3 +1,5 @@
+import { CoreError } from "./core/errors.ts";
+
 export type OpErrorCode =
 	| "invalid_input"
 	| "unknown_op"
@@ -39,4 +41,15 @@ export class OpError extends Error {
 		if (this.hint !== undefined) info.hint = this.hint;
 		return info;
 	}
+}
+
+export function toOpError(error: unknown): OpError {
+	if (error instanceof OpError) return error;
+	if (error instanceof CoreError) {
+		return new OpError(error.code, error.message, { hint: error.hint });
+	}
+	return new OpError(
+		"internal",
+		error instanceof Error ? error.message : String(error),
+	);
 }

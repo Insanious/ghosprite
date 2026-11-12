@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Rect } from "../core/image.ts";
-import { OpError } from "../errors.ts";
+import { OpError, toOpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import {
 	type RenderedFrame,
@@ -130,12 +130,7 @@ export function defineOp(
 		try {
 			return fn();
 		} catch (error) {
-			if (error instanceof OpError) throw error;
-			throw new OpError(
-				"internal",
-				error instanceof Error ? error.message : String(error),
-				{ path: "" },
-			);
+			throw toOpError(error);
 		}
 	}
 
