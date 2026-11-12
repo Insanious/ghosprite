@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { deflateSync, inflateSync } from "node:zlib";
+import { coded } from "../../tests/helpers/coded.ts";
 import { createImage } from "./image.ts";
 import { crc32, decodePng, encodePng } from "./png.ts";
 
@@ -89,19 +90,34 @@ describe("decodePng filters", () => {
 
 describe("decodePng rejects", () => {
 	const raw = new Uint8Array(5);
+	const decode = (png: Uint8Array) => () => decodePng(png, inflateSync);
 	test("interlaced", () => {
-		expect(() =>
-			decodePng(buildPng(ihdr(1, 1, 8, 6, 1), raw), inflateSync),
-		).toThrow(/nterlaced/);
+		expect(decode(buildPng(ihdr(1, 1, 8, 6, 1), raw))).toThrow(
+			coded("unsupported"),
+		);
 	});
 	test("16-bit", () => {
-		expect(() =>
-			decodePng(buildPng(ihdr(1, 1, 16, 6, 0), raw), inflateSync),
-		).toThrow(/Unsupported/);
+		expect(decode(buildPng(ihdr(1, 1, 16, 6, 0), raw))).toThrow(
+			coded("unsupported"),
+		);
 	});
 	test("indexed colour", () => {
-		expect(() =>
-			decodePng(buildPng(ihdr(1, 1, 8, 3, 0), raw), inflateSync),
-		).toThrow(/Unsupported/);
+		expect(decode(buildPng(ihdr(1, 1, 8, 3, 0), raw))).toThrow(
+			coded("unsupported"),
+		);
+	});
+	test("a bad CRC", () => {
+		const png = buildPng(ihdr(1, 1, 8, 6, 0), raw);
+		const textDataStart = 8 + 25 + 8; // signature, IHDR chunk, tEXt length and type
+		png[textDataStart] = (png[textDataStart] ?? 0) ^ 0xff;
+		expect(decode(png)).toThrow(coded("invalid_input"));
+	});
+	test("not a PNG", () => {
+		expect(decode(new Uint8Array(20))).toThrow(coded("invalid_input"));
+	});
+	test("a non-rgba image on encode", () => {
+		expect(() => encodePng(createImage(1, 1, "indexed"), deflateSync)).toThrow(
+			coded("unsupported"),
+		);
 	});
 });

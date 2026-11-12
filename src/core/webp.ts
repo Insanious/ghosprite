@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import type { Image } from "./image.ts";
 
 const MAX_CODE_LENGTH = 15;
@@ -214,11 +215,15 @@ function tokenize(pixels: Uint32Array, width: number): Token[] {
 /** Encodes an RGBA image as a bare VP8L bitstream (the payload of a `VP8L` chunk). */
 export function encodeVp8l(image: Image): Uint8Array {
 	if (image.mode !== "rgba") {
-		throw new Error(`encodeVp8l needs an rgba image, got ${image.mode}`);
+		throw new CoreError(
+			"unsupported",
+			`encodeVp8l needs an rgba image, got ${image.mode}`,
+		);
 	}
 	const { width, height, data } = image;
 	if (width < 1 || height < 1 || width > 16384 || height > 16384) {
-		throw new Error(
+		throw new CoreError(
+			"out_of_range",
 			`WebP images are 1 to 16384 pixels per side, got ${width}x${height}`,
 		);
 	}
@@ -339,7 +344,12 @@ function setUint24(view: DataView, offset: number, value: number): void {
 /** Encodes frames of equal size as a looping animated lossless WebP; durations are in ms. */
 export function encodeAnimatedWebp(frames: AnimationFrame[]): Uint8Array {
 	const first = frames[0];
-	if (!first) throw new Error("an animation needs at least one frame");
+	if (!first) {
+		throw new CoreError(
+			"invalid_input",
+			"an animation needs at least one frame",
+		);
+	}
 	const { width, height } = first.image;
 
 	const vp8x = new Uint8Array(10);
@@ -352,7 +362,10 @@ export function encodeAnimatedWebp(frames: AnimationFrame[]): Uint8Array {
 
 	const anmfChunks = frames.map(({ image, duration }) => {
 		if (image.width !== width || image.height !== height) {
-			throw new Error("all animation frames must have the same size");
+			throw new CoreError(
+				"invalid_input",
+				"all animation frames must have the same size",
+			);
 		}
 		const bitstream = chunk("VP8L", encodeVp8l(image));
 		const header = new Uint8Array(16);

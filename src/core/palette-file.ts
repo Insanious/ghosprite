@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import type { Rgba } from "./image.ts";
 
 type Line = { number: number; text: string };
@@ -13,8 +14,8 @@ function contentLines(text: string): Line[] {
 	return lines;
 }
 
-function lineError(line: number, message: string): RangeError {
-	return new RangeError(`Line ${line}: ${message}`);
+function lineError(line: number, message: string): CoreError {
+	return new CoreError("invalid_input", `Line ${line}: ${message}`);
 }
 
 function expectHeader(line: Line | undefined, expected: string): void {

@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import type { Image, Rgba } from "./image.ts";
 import { OctreeMap } from "./octree-map.ts";
 import { quantizeImages } from "./quantize.ts";
@@ -193,7 +194,9 @@ function lzwEncode(pixels: Uint8Array, minCodeSize: number): Uint8Array {
 /** Encodes RGBA images of equal size as an endlessly looping GIF89a. */
 export function encodeGif(frames: readonly GifFrame[]): Uint8Array {
 	const first = frames[0];
-	if (!first) throw new RangeError("A GIF needs at least one frame");
+	if (!first) {
+		throw new CoreError("invalid_input", "A GIF needs at least one frame");
+	}
 	const { width, height } = first.image;
 	const transparent = hasTransparentPixel(frames);
 	const { palette, frames: indexed } = indexFrames(frames, transparent);

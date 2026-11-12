@@ -1,4 +1,5 @@
 import { blendNormal } from "./blend.ts";
+import { CoreError } from "./errors.ts";
 import { createImage, type Image, type Rgba } from "./image.ts";
 
 const GRID_COLOR: Rgba = { r: 128, g: 128, b: 128, a: 128 };
@@ -6,15 +7,20 @@ const MIN_GRID_SCALE = 4;
 
 export function upscale(image: Image, scale: number, grid: boolean): Image {
 	if (image.mode !== "rgba") {
-		throw new Error(`upscale needs an rgba image, got ${image.mode}`);
+		throw new CoreError(
+			"unsupported",
+			`upscale needs an rgba image, got ${image.mode}`,
+		);
 	}
 	if (!Number.isInteger(scale) || scale < 1) {
-		throw new RangeError(
+		throw new CoreError(
+			"out_of_range",
 			`Scale must be an integer of at least 1, got ${scale}`,
 		);
 	}
 	if (grid && scale < MIN_GRID_SCALE) {
-		throw new RangeError(
+		throw new CoreError(
+			"out_of_range",
 			`A grid needs a scale of at least ${MIN_GRID_SCALE}, got ${scale}`,
 		);
 	}

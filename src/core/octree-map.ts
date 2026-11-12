@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import type { Image, Rgba } from "./image.ts";
 
 const CHILDREN = 16;
@@ -186,7 +187,10 @@ export class OctreeMap {
 		levelDeep = 7,
 	): void {
 		if (image.mode !== "rgba") {
-			throw new RangeError(`Cannot quantize a ${image.mode} image`);
+			throw new CoreError(
+				"unsupported",
+				`Cannot quantize a ${image.mode} image`,
+			);
 		}
 		const { data } = image;
 		for (let i = 0; i < data.length; i += 4) {

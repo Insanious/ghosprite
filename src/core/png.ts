@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import { createImage, type Image } from "./image.ts";
 
 export type ZlibFn = (data: Uint8Array) => Uint8Array;
@@ -34,7 +35,10 @@ function chunk(type: string, data: Uint8Array): Uint8Array {
 
 export function encodePng(image: Image, deflate: ZlibFn): Uint8Array {
 	if (image.mode !== "rgba") {
-		throw new Error(`encodePng needs an rgba image, got ${image.mode}`);
+		throw new CoreError(
+			"unsupported",
+			`encodePng needs an rgba image, got ${image.mode}`,
+		);
 	}
 	const { width, height } = image;
 	const stride = width * 4;
@@ -85,7 +89,7 @@ function unfilter(
 ): Uint8Array {
 	const stride = width * channels;
 	if (raw.length !== (stride + 1) * height) {
-		throw new Error("PNG pixel data has the wrong length");
+		throw new CoreError("invalid_input", "PNG pixel data has the wrong length");
 	}
 	const out = new Uint8Array(stride * height);
 	for (let y = 0; y < height; y++) {
@@ -118,7 +122,10 @@ function unfilter(
 					value = x + paeth(a, b, c);
 					break;
 				default:
-					throw new Error(`Unknown PNG filter type ${filter}`);
+					throw new CoreError(
+						"invalid_input",
+						`Unknown PNG filter type ${filter}`,
+					);
 			}
 			out[row + i] = value & 0xff;
 		}
@@ -128,7 +135,7 @@ function unfilter(
 
 export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
 	if (bytes.length < 8 || SIGNATURE.some((b, i) => bytes[i] !== b)) {
-		throw new Error("Not a PNG file");
+		throw new CoreError("invalid_input", "Not a PNG file");
 	}
 	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 	let width = 0;
@@ -142,10 +149,12 @@ export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
 		const length = view.getUint32(offset);
 		const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
 		const data = bytes.subarray(offset + 8, offset + 8 + length);
-		if (data.length !== length) throw new Error("Truncated PNG chunk");
+		if (data.length !== length) {
+			throw new CoreError("invalid_input", "Truncated PNG chunk");
+		}
 		const stored = view.getUint32(offset + 8 + length);
 		if (crc32(bytes.subarray(offset + 4, offset + 8 + length)) !== stored) {
-			throw new Error(`Bad CRC in PNG chunk ${type}`);
+			throw new CoreError("invalid_input", `Bad CRC in PNG chunk ${type}`);
 		}
 		if (type === "IHDR") {
 			width = view.getUint32(offset + 8);
@@ -154,11 +163,14 @@ export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
 			const colorType = data[9];
 			const interlace = data[12];
 			if (depth !== 8 || (colorType !== 6 && colorType !== 2)) {
-				throw new Error(
+				throw new CoreError(
+					"unsupported",
 					`Unsupported PNG: bit depth ${depth}, colour type ${colorType} (need 8-bit colour type 2 or 6)`,
 				);
 			}
-			if (interlace !== 0) throw new Error("Interlaced PNGs are not supported");
+			if (interlace !== 0) {
+				throw new CoreError("unsupported", "Interlaced PNGs are not supported");
+			}
 			channels = colorType === 6 ? 4 : 3;
 		} else if (type === "IDAT") {
 			idat.push(data);
@@ -167,8 +179,12 @@ export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
 		}
 		offset += 12 + length;
 	}
-	if (channels === 0) throw new Error("PNG has no IHDR chunk");
-	if (idat.length === 0) throw new Error("PNG has no IDAT chunk");
+	if (channels === 0) {
+		throw new CoreError("invalid_input", "PNG has no IHDR chunk");
+	}
+	if (idat.length === 0) {
+		throw new CoreError("invalid_input", "PNG has no IDAT chunk");
+	}
 
 	const joined = new Uint8Array(idat.reduce((n, p) => n + p.length, 0));
 	let at = 0;

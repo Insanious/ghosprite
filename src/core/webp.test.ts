@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { decodeAnimation, decodeRGBA } from "wasm-webp";
+import { coded } from "../../tests/helpers/coded.ts";
 import { createImage, type Image } from "./image.ts";
 import { encodeAnimatedWebp, encodeWebp } from "./webp.ts";
 
@@ -71,7 +72,9 @@ describe("encodeWebp", () => {
 	});
 
 	test("rejects non-rgba images", () => {
-		expect(() => encodeWebp(createImage(2, 2, "indexed"))).toThrow();
+		expect(() => encodeWebp(createImage(2, 2, "indexed"))).toThrow(
+			coded("unsupported"),
+		);
 	});
 });
 
@@ -139,12 +142,12 @@ describe("encodeAnimatedWebp", () => {
 	});
 
 	test("rejects no frames and mismatched sizes", () => {
-		expect(() => encodeAnimatedWebp([])).toThrow();
+		expect(() => encodeAnimatedWebp([])).toThrow(coded("invalid_input"));
 		expect(() =>
 			encodeAnimatedWebp([
 				{ image: createImage(1, 1, "rgba"), duration: 1 },
 				{ image: createImage(2, 1, "rgba"), duration: 1 },
 			]),
-		).toThrow();
+		).toThrow(coded("invalid_input"));
 	});
 });

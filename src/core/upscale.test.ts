@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { coded } from "../../tests/helpers/coded.ts";
 import { createImage, getPixel, setPixel } from "./image.ts";
 import { upscale } from "./upscale.ts";
 
@@ -54,7 +55,8 @@ describe("upscale", () => {
 	});
 
 	test("throws for scale below 1 and for a grid below scale 4", () => {
-		expect(() => upscale(sample(), 0, false)).toThrow();
-		expect(() => upscale(sample(), 3, true)).toThrow();
+		expect(() => upscale(sample(), 0, false)).toThrow(coded("out_of_range"));
+		expect(() => upscale(sample(), 3, true)).toThrow(coded("out_of_range"));
+		expect(() => upscale(sample(), 1.5, false)).toThrow(coded("out_of_range"));
 	});
 });

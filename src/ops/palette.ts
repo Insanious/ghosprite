@@ -1,5 +1,6 @@
 import { extname } from "node:path";
 import { z } from "zod";
+import { CoreError } from "../core/errors.ts";
 import type { Rgba } from "../core/image.ts";
 import { paletteAt, setPalette } from "../core/palette.ts";
 import {
@@ -79,8 +80,11 @@ export const paletteLoad = defineOp({
 		try {
 			colors = format.read(text);
 		} catch (error) {
-			if (!(error instanceof RangeError)) throw error;
-			throw new OpError("invalid_input", error.message, { path: "path" });
+			if (!(error instanceof CoreError)) throw error;
+			throw new OpError(error.code, error.message, {
+				path: "path",
+				hint: error.hint,
+			});
 		}
 		if (colors.length === 0 || colors.length > MAX_COLORS) {
 			throw new OpError(

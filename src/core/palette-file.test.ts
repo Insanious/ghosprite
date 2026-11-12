@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { coded } from "../../tests/helpers/coded.ts";
 import {
 	readGpl,
 	readHex,
@@ -78,7 +79,8 @@ describe("errors", () => {
 	test("a missing header names the line", () => {
 		expect(() => readGpl("Palette\n1 2 3\n")).toThrow(/Line 1/);
 		expect(() => readPal("JASC-PAL\n0200\n1\n")).toThrow(/Line 2/);
-		expect(() => readPal("")).toThrow(RangeError);
+		expect(() => readPal("")).toThrow(coded("invalid_input"));
+		expect(() => readGpl("Palette\n1 2 3\n")).toThrow(coded("invalid_input"));
 	});
 	test("a wrong field count names the line", () => {
 		expect(() => readGpl("GIMP Palette\n#\n1 2\n")).toThrow(/Line 3/);
@@ -90,11 +92,13 @@ describe("errors", () => {
 	});
 	test("non-hex digits name the line", () => {
 		expect(() => readHex("ff0000\nzz0000\n")).toThrow(/Line 2/);
-		expect(() => readHex("ff00\n")).toThrow(RangeError);
+		expect(() => readHex("ff00\n")).toThrow(coded("invalid_input"));
 	});
 	test("a value over 255 names the line", () => {
 		expect(() => readGpl("GIMP Palette\n300 0 0\n")).toThrow(/Line 2/);
 		expect(() => readPal("JASC-PAL\n0100\n1\n0 0 256\n")).toThrow(/Line 4/);
-		expect(() => readPal("JASC-PAL\n0100\n1\n0 x 0\n")).toThrow(RangeError);
+		expect(() => readPal("JASC-PAL\n0100\n1\n0 x 0\n")).toThrow(
+			coded("invalid_input"),
+		);
 	});
 });

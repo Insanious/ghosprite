@@ -1,3 +1,4 @@
+import { CoreError } from "./errors.ts";
 import { createImage, type Image, type Rect } from "./image.ts";
 
 export type FrameDiff = {
@@ -22,7 +23,7 @@ function padTo(image: Image, width: number, height: number): Image {
 
 export function diffFrames(before: Image, after: Image): FrameDiff {
 	if (before.mode !== "rgba" || after.mode !== "rgba") {
-		throw new TypeError("diffFrames needs RGBA images");
+		throw new CoreError("unsupported", "diffFrames needs RGBA images");
 	}
 	const width = Math.max(before.width, after.width);
 	const height = Math.max(before.height, after.height);
