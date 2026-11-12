@@ -51,6 +51,36 @@ describe("startViewer", () => {
 		expect(await response.text()).toContain("<html");
 	});
 
+	test("names the run in the heading and title when given one", async () => {
+		const pictures = new StepPictures();
+		const viewer = startViewer(
+			new Session(),
+			pictures,
+			0,
+			"2026-01-02T03-04-05Z",
+		);
+		cleanups.push(viewer.stop);
+		const html = await (await fetch(viewer.url)).text();
+		expect(html).toContain('<h1 id="run">Run 2026-01-02T03-04-05Z</h1>');
+		expect(html).toContain(
+			"<title>2026-01-02T03-04-05Z · ghosprite viewer</title>",
+		);
+	});
+
+	test("has no run heading without a name", async () => {
+		const { viewer } = start();
+		const html = await (await fetch(viewer.url)).text();
+		expect(html).not.toContain('id="run"');
+		expect(html).toContain("<title>ghosprite viewer</title>");
+	});
+
+	test("escapes the run name", async () => {
+		const viewer = startViewer(new Session(), new StepPictures(), 0, '<b>&"x');
+		cleanups.push(viewer.stop);
+		const html = await (await fetch(viewer.url)).text();
+		expect(html).toContain("Run &lt;b&gt;&amp;&quot;x</h1>");
+	});
+
 	test("/log lists steps and moves with the path after an undo and a new step", async () => {
 		const { session, viewer } = start();
 		const created = create(session);

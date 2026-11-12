@@ -1,8 +1,15 @@
-export const PAGE = `<!doctype html>
+const escapeHtml = (text: string): string =>
+	text
+		.replaceAll("&", "&amp;")
+		.replaceAll("<", "&lt;")
+		.replaceAll(">", "&gt;")
+		.replaceAll('"', "&quot;");
+
+export const page = (runName?: string): string => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>ghosprite viewer</title>
+<title>${runName === undefined ? "" : `${escapeHtml(runName)} · `}ghosprite viewer</title>
 <style>
 body { font: 14px system-ui, sans-serif; margin: 16px; background: #222; color: #eee; }
 #timeline { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
@@ -21,7 +28,7 @@ pre { background: #111; padding: 8px; overflow: auto; }
 </style>
 </head>
 <body>
-<div id="timeline"></div>
+${runName === undefined ? "" : `<h1 id="run">Run ${escapeHtml(runName)}</h1>\n`}<div id="timeline"></div>
 <div id="detail"></div>
 <script>
 let entries = [];
