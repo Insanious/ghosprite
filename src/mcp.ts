@@ -5,7 +5,8 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { OpError, toOpError } from "./errors.ts";
-import { startRunLog } from "./run-log.ts";
+import { type RunLog, startRunLog } from "./run-log.ts";
+import { resumeTool } from "./run-resume.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
 import { StepPictures } from "./viewer/history.ts";
@@ -24,8 +25,13 @@ function viewerSentence(url: string): string {
 	return `A read-only viewer showing every step with its checkpoint number is at ${url}: give that address to the user when asked.`;
 }
 
-export function createMcpServer(session: Session, viewerUrl?: string): Server {
-	const tools = describeTools(session).map((tool) => ({
+export function createMcpServer(
+	session: Session,
+	viewerUrl?: string,
+	history?: { dir: string; log: RunLog },
+): Server {
+	const extraTools = [resumeTool(history)];
+	const tools = describeTools(session, extraTools).map((tool) => ({
 		...tool,
 		mcpName: tool.name.replaceAll(".", "_"),
 	}));
@@ -58,10 +64,13 @@ export function createMcpServer(session: Session, viewerUrl?: string): Server {
 				throw new OpError("unknown_op", `Unknown tool "${name}"`);
 			}
 			const images: Uint8Array[] = [];
-			const result = replaceImages(callTool(session, dotted, input), (png) => {
-				images.push(png);
-				return { key: "image", value: images.length - 1 };
-			});
+			const result = replaceImages(
+				callTool(session, dotted, input, extraTools),
+				(png) => {
+					images.push(png);
+					return { key: "image", value: images.length - 1 };
+				},
+			);
 			return {
 				content: [
 					{ type: "text" as const, text: JSON.stringify(result) },
@@ -101,7 +110,11 @@ export async function serveStdio(
 			? undefined
 			: startViewer(session, pictures, viewerPort, { runName: runLog?.name });
 	if (viewer !== undefined) process.stdin.once("end", viewer.stop);
-	await createMcpServer(session, viewer?.url).connect(
+	const history =
+		historyDir === undefined || runLog === undefined
+			? undefined
+			: { dir: historyDir, log: runLog };
+	await createMcpServer(session, viewer?.url, history).connect(
 		new StdioServerTransport(),
 	);
 }

@@ -21,7 +21,7 @@ export type ToolDescription = {
 	inputSchema: unknown;
 };
 
-function defineTool<S extends z.ZodObject>(tool: {
+export function defineTool<S extends z.ZodObject>(tool: {
 	name: string;
 	description: string;
 	schema: S;
@@ -156,16 +156,20 @@ export function callTool(
 	session: Session,
 	name: string,
 	input: unknown,
+	extraTools: Tool[] = [],
 ): unknown {
-	const tool = sessionTools.find((t) => t.name === name);
+	const tool = [...sessionTools, ...extraTools].find((t) => t.name === name);
 	if (!tool) return session.run(name, input);
 	return tool.run(session, parseInput(tool.schema, input) as never);
 }
 
-export function describeTools(session: Session): ToolDescription[] {
+export function describeTools(
+	session: Session,
+	extraTools: Tool[] = [],
+): ToolDescription[] {
 	return [
 		...session.registry.describeOps(),
-		...sessionTools.map((tool) => ({
+		...[...sessionTools, ...extraTools].map((tool) => ({
 			name: tool.name,
 			description: tool.description,
 			inputSchema: z.toJSONSchema(tool.schema, { io: "input" }),

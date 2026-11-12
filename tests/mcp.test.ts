@@ -25,7 +25,7 @@ function textOf(content: unknown) {
 describe("mcp server", () => {
 	test("lists tools with object input schemas", async () => {
 		const { tools } = await (await connect()).listTools();
-		for (const name of ["sprite_create", "session_apply"]) {
+		for (const name of ["sprite_create", "session_apply", "session_resume"]) {
 			const tool = tools.find((t) => t.name === name);
 			expect(tool?.inputSchema.type).toBe("object");
 		}
