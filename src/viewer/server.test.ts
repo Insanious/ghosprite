@@ -1,0 +1,104 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import { Session } from "../session.ts";
+import { StepPictures } from "./history.ts";
+import { startViewer } from "./server.ts";
+
+type Created = { spriteId: string; layerId: string };
+type LogItem = { kind: string; checkpointId: string; onPath?: boolean };
+
+const cleanups: (() => void)[] = [];
+afterEach(() => {
+	for (const cleanup of cleanups.splice(0)) cleanup();
+});
+
+function start(port = 0) {
+	const pictures = new StepPictures();
+	const session = new Session({
+		onStep: (entry, workspace) => pictures.record(entry, workspace),
+	});
+	const viewer = startViewer(session, pictures, port);
+	cleanups.push(viewer.stop);
+	return { session, pictures, viewer };
+}
+
+function paint(session: Session, created: Created, x: number) {
+	session.run("draw.rect", {
+		...created,
+		frame: 0,
+		rect: { x, y: 0, width: 1, height: 1 },
+		filled: true,
+		color: "#ff0000",
+	});
+}
+
+function create(session: Session) {
+	const { spriteId } = session.run("sprite.create", {
+		width: 4,
+		height: 3,
+	}) as unknown as { spriteId: string };
+	const { layerId } = session.run("layer.create", {
+		spriteId,
+		name: "L",
+	}) as unknown as { layerId: string };
+	return { spriteId, layerId };
+}
+
+describe("startViewer", () => {
+	test("serves the page at /", async () => {
+		const { viewer } = start();
+		const response = await fetch(viewer.url);
+		expect(response.headers.get("content-type")).toContain("text/html");
+		expect(await response.text()).toContain("<html");
+	});
+
+	test("/log lists steps and moves with the path after an undo and a new step", async () => {
+		const { session, viewer } = start();
+		const created = create(session);
+		paint(session, created, 0);
+		session.undo();
+		paint(session, created, 1);
+		const log = (await (await fetch(`${viewer.url}log`)).json()) as LogItem[];
+		expect(log.map((e) => [e.kind, e.checkpointId, e.onPath])).toEqual([
+			["step", "checkpoint-1", true],
+			["step", "checkpoint-2", true],
+			["step", "checkpoint-3", false],
+			["moved", "checkpoint-2", undefined],
+			["step", "checkpoint-4", true],
+		]);
+	});
+
+	test("/steps/<id>.png serves the stored picture and 404s unknown ids", async () => {
+		const { session, pictures, viewer } = start();
+		create(session);
+		const response = await fetch(`${viewer.url}steps/checkpoint-1.png`);
+		expect(response.headers.get("content-type")).toBe("image/png");
+		const body = new Uint8Array(await response.arrayBuffer());
+		expect(Array.from(body)).toEqual(
+			Array.from(pictures.get("checkpoint-1") ?? []),
+		);
+		const missing = await fetch(`${viewer.url}steps/checkpoint-9.png`);
+		expect(missing.status).toBe(404);
+	});
+
+	test("other methods get 405 and unknown paths 404, leaving the log alone", async () => {
+		const { session, viewer } = start();
+		create(session);
+		const before = session.stepLog();
+		expect((await fetch(viewer.url, { method: "POST" })).status).toBe(405);
+		expect((await fetch(`${viewer.url}nope`)).status).toBe(404);
+		expect(session.stepLog()).toEqual(before);
+	});
+
+	test("moves to the next port when the chosen one is taken", () => {
+		const held = Bun.serve({
+			hostname: "127.0.0.1",
+			port: 0,
+			fetch: () => new Response(""),
+		});
+		cleanups.push(() => held.stop(true));
+		const { viewer } = start(held.port);
+		expect(Number(new URL(viewer.url).port)).toBeGreaterThan(
+			held.port as number,
+		);
+	});
+});
