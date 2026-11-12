@@ -3,9 +3,8 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { version } from "../package.json";
 import { serveStdio } from "./mcp.ts";
-import { type Run, readRun, replayRun } from "./run-replay.ts";
+import { type Run, readRun, replayRun, versionWarning } from "./run-replay.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
 import { StepPictures } from "./viewer/history.ts";
@@ -135,11 +134,8 @@ async function view(args: string[]) {
 	const { stopped } = replayRun(session, folder, run.entries);
 
 	const warnings: string[] = [];
-	if (run.version !== version) {
-		warnings.push(
-			`This run was saved by ghosprite ${run.version}; this is ghosprite ${version}. Some steps may be drawn differently.`,
-		);
-	}
+	const versionNote = versionWarning(run.version);
+	if (versionNote !== undefined) warnings.push(versionNote);
 	if (stopped !== undefined) {
 		const step = stopped.checkpointId.replace(/^checkpoint-/, "");
 		const warning = `Replay stopped at step ${step}: ${stopped.message}`;

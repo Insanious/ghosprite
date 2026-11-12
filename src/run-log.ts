@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto";
 import {
 	appendFileSync,
+	copyFileSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
 	writeFileSync,
 } from "node:fs";
-import { basename, extname, join, resolve } from "node:path";
+import { basename, extname, isAbsolute, join, resolve } from "node:path";
 import { version } from "../package.json";
 import type { LogEntry } from "./session.ts";
 
@@ -14,6 +15,12 @@ export type RunLog = {
 	name: string;
 	folder: string;
 	append(entry: LogEntry): void;
+	resume(
+		source: string,
+		step: number,
+		entries: LogEntry[],
+		replay: () => void,
+	): void;
 };
 
 type LoadCall = {
@@ -114,12 +121,46 @@ export function startRunLog(dir: string, now = new Date()): RunLog {
 		return { ...entry, input, loadedFrom };
 	}
 
+	let muted = false;
+
+	function copyStoredFiles(source: string, entries: LogEntry[]): void {
+		for (const entry of entries) {
+			if (entry.kind !== "step") continue;
+			mapLoadCalls(entry.op, entry.input, (call) => {
+				const path = call.input.path;
+				if (!isAbsolute(path) && !existsSync(join(folder, path))) {
+					mkdirSync(join(folder, "files"), { recursive: true });
+					copyFileSync(join(source, path), join(folder, path));
+				}
+				return call;
+			});
+		}
+	}
+
 	return {
 		name: basename(folder),
 		folder,
 		append(entry) {
+			if (muted) return;
 			try {
 				appendFileSync(logPath, `${JSON.stringify(rewrite(entry))}\n`);
+			} catch (error) {
+				reportFailure(error);
+			}
+		},
+		resume(source, step, entries, replay) {
+			muted = true;
+			try {
+				replay();
+			} finally {
+				muted = false;
+			}
+			try {
+				const lines = [{ kind: "resumed", run: source, step }, ...entries].map(
+					(line) => `${JSON.stringify(line)}\n`,
+				);
+				copyStoredFiles(source, entries);
+				appendFileSync(logPath, lines.join(""));
 			} catch (error) {
 				reportFailure(error);
 			}

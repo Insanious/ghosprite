@@ -8,8 +8,9 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { version } from "../package.json";
 import { startRunLog } from "./run-log.ts";
-import { readRun, replayRun } from "./run-replay.ts";
+import { readRun, replayRun, versionWarning } from "./run-replay.ts";
 import { type LogEntry, Session } from "./session.ts";
 
 let root: string;
@@ -124,5 +125,83 @@ describe("readRun", () => {
 		const logPath = join(log.folder, "log.jsonl");
 		writeFileSync(logPath, `${readFileSync(logPath, "utf8")}{oops\n`);
 		expect(() => readRun(log.folder)).toThrow("line 2");
+	});
+
+	test("a resumed line is returned and left out of entries", () => {
+		const { log, session } = recorded();
+		session.run("sprite.create", { width: 2, height: 2 });
+		const logPath = join(log.folder, "log.jsonl");
+		const [run, ...rest] = readFileSync(logPath, "utf8").split("\n");
+		const resumed = JSON.stringify({ kind: "resumed", run: "/old", step: 4 });
+		writeFileSync(logPath, [run, resumed, ...rest].join("\n"));
+		const read = readRun(log.folder);
+		expect(read.resumedFrom).toEqual({ run: "/old", step: 4 });
+		expect(read.entries).toHaveLength(1);
+	});
+
+	test("a resumed line with wrong field types throws", () => {
+		const { log } = recorded();
+		const logPath = join(log.folder, "log.jsonl");
+		writeFileSync(
+			logPath,
+			`${readFileSync(logPath, "utf8")}{"kind":"resumed","run":1,"step":"x"}\n`,
+		);
+		expect(() => readRun(log.folder)).toThrow("line 2");
+	});
+
+	test("a resumed line on line 3 throws with its line number", () => {
+		const { log, session } = recorded();
+		session.run("sprite.create", { width: 2, height: 2 });
+		const logPath = join(log.folder, "log.jsonl");
+		writeFileSync(
+			logPath,
+			`${readFileSync(logPath, "utf8")}{"kind":"resumed","run":"/old","step":1}\n`,
+		);
+		expect(() => readRun(log.folder)).toThrow("line 3");
+	});
+});
+
+describe("versionWarning", () => {
+	test("is undefined for this version and names both otherwise", () => {
+		expect(versionWarning(version)).toBeUndefined();
+		const warning = versionWarning("0.0.0-old");
+		expect(warning).toContain("0.0.0-old");
+		expect(warning).toContain(version);
+	});
+});
+
+describe("resuming a run", () => {
+	test("a resumed run replays on its own to the same steps", () => {
+		const copy = join(root, "base.aseprite");
+		copyFileSync("tests/fixtures/doc/base.aseprite", copy);
+		const first = recorded();
+		const { spriteId } = first.session.run("sprite.load", {
+			path: copy,
+		}) as unknown as { spriteId: string };
+		first.session.run("sprite.flip", { spriteId, direction: "horizontal" });
+		rmSync(copy);
+
+		const { entries } = readRun(first.log.folder);
+		const log2 = startRunLog(join(root, "runs"));
+		const session2 = new Session({ onLog: (entry) => log2.append(entry) });
+		log2.resume(first.log.folder, 2, entries, () =>
+			replayRun(session2, first.log.folder, entries),
+		);
+		rmSync(first.log.folder, { recursive: true });
+
+		const second = readRun(log2.folder);
+		expect(second.resumedFrom).toEqual({ run: first.log.folder, step: 2 });
+		const session3 = new Session();
+		expect(replayRun(session3, log2.folder, second.entries)).toEqual({});
+
+		const kinds = (session: Session) =>
+			session
+				.stepLog()
+				.map((entry) => [entry.kind, entry.checkpointId] as const);
+		expect(kinds(session3)).toEqual(kinds(first.session));
+		expect(kinds(session2)).toEqual(kinds(first.session));
+		const describeSprite = (session: Session) =>
+			session.run("sprite.describe", { spriteId });
+		expect(describeSprite(session3)).toEqual(describeSprite(first.session));
 	});
 });

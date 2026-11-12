@@ -152,3 +152,90 @@ describe("append", () => {
 		expect(line).not.toHaveProperty("loadedFrom");
 	});
 });
+
+describe("resume", () => {
+	function source(): { folder: string; entries: LogEntry[] } {
+		const file = join(root, "hero.aseprite");
+		const palette = join(root, "pal.gpl");
+		writeFileSync(file, Buffer.from([9, 8, 7]));
+		writeFileSync(palette, Buffer.from([6, 5]));
+		const log = startRunLog(join(root, "old"), NOW);
+		log.append(step("sprite.load", { path: file }));
+		log.append(
+			step("session.apply", {
+				ops: [{ op: "palette.load", input: { path: palette } }],
+			}),
+		);
+		const entries = lines(log.folder)
+			.slice(1)
+			.map((line) => line as unknown as LogEntry);
+		return { folder: log.folder, entries };
+	}
+
+	test("writes the resumed line, then the entries byte for byte", () => {
+		const old = source();
+		const log = startRunLog(join(root, "new"), NOW);
+		log.resume(old.folder, 2, old.entries, () => {});
+
+		const text = readFileSync(join(log.folder, "log.jsonl"), "utf8");
+		const written = text.split("\n").slice(1, -1);
+		expect(written[0]).toBe(
+			JSON.stringify({ kind: "resumed", run: old.folder, step: 2 }),
+		);
+		expect(written.slice(1)).toEqual(
+			old.entries.map((entry) => JSON.stringify(entry)),
+		);
+		expect(lines(log.folder)[2]).toHaveProperty("loadedFrom");
+	});
+
+	test("ignores entries appended during replay and keeps appending after", () => {
+		const log = startRunLog(root, NOW);
+		log.resume("/old", 1, [], () => log.append(step("draw.rect", { x: 1 })));
+		log.append(step("draw.rect", { x: 2 }));
+		expect(lines(log.folder).slice(1)).toEqual([
+			{ kind: "resumed", run: "/old", step: 1 },
+			step("draw.rect", { x: 2 }),
+		]);
+	});
+
+	test("copies stored files, singly and inside a batch", () => {
+		const old = source();
+		const log = startRunLog(join(root, "new"), NOW);
+		log.resume(old.folder, 2, old.entries, () => {});
+		const stored = old.entries.map(
+			(entry) =>
+				Object.keys(
+					(entry as unknown as { loadedFrom: Record<string, string> })
+						.loadedFrom,
+				)[0] as string,
+		);
+		expect([...readFileSync(join(log.folder, stored[0] as string))]).toEqual([
+			9, 8, 7,
+		]);
+		expect([...readFileSync(join(log.folder, stored[1] as string))]).toEqual([
+			6, 5,
+		]);
+	});
+
+	test("an absolute load path copies nothing and does not throw", () => {
+		const log = startRunLog(root, NOW);
+		const entries = [
+			step("sprite.load", { path: join(root, "gone.aseprite") }),
+		];
+		log.resume("/old", 1, entries, () => {});
+		expect(existsSync(join(log.folder, "files"))).toBe(false);
+		expect(lines(log.folder)).toHaveLength(3);
+	});
+
+	test("a replay that throws writes nothing and unmutes the log", () => {
+		const log = startRunLog(root, NOW);
+		expect(() =>
+			log.resume("/old", 1, [step("draw.rect", {})], () => {
+				throw new Error("stopped");
+			}),
+		).toThrow("stopped");
+		expect(lines(log.folder)).toHaveLength(1);
+		log.append(step("draw.rect", { x: 3 }));
+		expect(lines(log.folder)).toHaveLength(2);
+	});
+});
