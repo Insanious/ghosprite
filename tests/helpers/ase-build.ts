@@ -1,8 +1,11 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { deflateSync, inflateSync } from "node:zlib";
-import { ByteReader, ByteWriter } from "../../src/core/ase-bytes.ts";
-import { readAseprite } from "../../src/core/ase-read.ts";
-import type { Layer } from "../../src/core/sprite.ts";
+import {
+	ByteReader,
+	ByteWriter,
+	type Layer,
+	readAseprite,
+} from "../../src/core/index.ts";
 
 export function read(bytes: Uint8Array) {
 	let next = 0;

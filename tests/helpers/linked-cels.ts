@@ -1,13 +1,14 @@
-import { createImage, setPixel } from "../../src/core/image.ts";
 import {
 	addLayer,
+	createImage,
 	createImageLayer,
 	createSprite,
+	createUserData,
 	type ImageLayer,
 	type Sprite,
 	setCel,
-} from "../../src/core/sprite.ts";
-import { createUserData } from "../../src/core/user-data.ts";
+	setPixel,
+} from "../../src/core/index.ts";
 
 /** A 3x2 RGBA sprite whose frames 0 and 1 share one cel: a single opaque pixel at (0, 0). */
 export function spriteWithLinkedCels(): { sprite: Sprite; layer: ImageLayer } {

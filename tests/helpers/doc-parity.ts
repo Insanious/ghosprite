@@ -4,14 +4,16 @@ import { tmpdir } from "node:os";
 import { extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
-import { copyImage, type Image, rgbaHex } from "../../src/core/image.ts";
-import { decodePng } from "../../src/core/png.ts";
 import {
+	copyImage,
+	decodePng,
 	framesSharingData,
+	type Image,
 	type Layer,
+	rgbaHex,
 	type Sprite,
 	walkRenderOrder,
-} from "../../src/core/sprite.ts";
+} from "../../src/core/index.ts";
 import { operations } from "../../src/ops/index.ts";
 import { createRegistry } from "../../src/ops/registry.ts";
 import { Workspace } from "../../src/workspace.ts";

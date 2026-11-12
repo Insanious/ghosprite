@@ -1,8 +1,6 @@
 import { expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
-import { readAseprite } from "../src/core/ase-read.ts";
-import { decodePng } from "../src/core/png.ts";
-import { renderFrame } from "../src/core/render.ts";
+import { decodePng, readAseprite, renderFrame } from "../src/core/index.ts";
 
 const BAND_HEIGHT = 13;
 const BLOCK_WIDTH = 28;

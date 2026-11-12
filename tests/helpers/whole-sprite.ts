@@ -1,16 +1,17 @@
-import { createImage, setPixel } from "../../src/core/image.ts";
-import { addSlice } from "../../src/core/slice.ts";
 import {
 	addLayer,
+	addSlice,
 	createGroupLayer,
+	createImage,
 	createImageLayer,
 	createSprite,
+	createUserData,
 	type ImageLayer,
+	insertTag,
 	type Sprite,
 	setCel,
-} from "../../src/core/sprite.ts";
-import { insertTag } from "../../src/core/tag.ts";
-import { createUserData } from "../../src/core/user-data.ts";
+	setPixel,
+} from "../../src/core/index.ts";
 
 function celData(
 	width: number,

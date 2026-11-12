@@ -1,6 +1,5 @@
 import { test } from "bun:test";
-import { applyInk, type InkName } from "../src/core/draw/ink.ts";
-import type { Rgba } from "../src/core/image.ts";
+import { applyInk, type InkName, type Rgba } from "../src/core/index.ts";
 import { imageLayer, readFixture } from "./helpers/ase-build.ts";
 
 const OPACITIES = [255, 128, 1, 0];

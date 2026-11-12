@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
-import { cloneSprite, imageLayers } from "../src/core/sprite.ts";
+import { cloneSprite, imageLayers } from "../src/core/index.ts";
 import { Session } from "../src/session.ts";
 import { expectSameSprite } from "./helpers/undo.ts";
 

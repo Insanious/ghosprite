@@ -1,18 +1,20 @@
 import { expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
-import { createImage, type Image, setPixel } from "../src/core/image.ts";
-import { decodePng } from "../src/core/png.ts";
-import { renderFrame } from "../src/core/render.ts";
 import {
 	addLayer,
 	createGroupLayer,
+	createImage,
 	createImageLayer,
 	createSprite,
+	createUserData,
+	decodePng,
 	type GroupLayer,
+	type Image,
 	type ImageLayer,
+	renderFrame,
 	setCel,
-} from "../src/core/sprite.ts";
-import { createUserData } from "../src/core/user-data.ts";
+	setPixel,
+} from "../src/core/index.ts";
 
 type ColourAt = (x: number, y: number) => [number, number, number, number];
 

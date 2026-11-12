@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { decodePng } from "../src/core/png.ts";
+import { decodePng } from "../src/core/index.ts";
 import { createMcpServer } from "../src/mcp.ts";
 import { Session } from "../src/session.ts";
 

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { getPixel } from "../src/core/image.ts";
+import { getPixel } from "../src/core/index.ts";
 import { Session } from "../src/session.ts";
 import { getImageLayer } from "../src/target.ts";
 import { drawParity } from "./helpers/draw-parity.ts";

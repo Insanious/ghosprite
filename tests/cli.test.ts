@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
-import { decodePng } from "../src/core/png.ts";
+import { decodePng } from "../src/core/index.ts";
 
 const scratch = mkdtempSync(join(tmpdir(), "ghosprite-cli-test-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));

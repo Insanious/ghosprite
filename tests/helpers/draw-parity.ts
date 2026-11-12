@@ -1,8 +1,11 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { createImage, type Image } from "../../src/core/image.ts";
-import type { CelDataInit } from "../../src/core/sprite.ts";
-import { createUserData } from "../../src/core/user-data.ts";
+import {
+	type CelDataInit,
+	createImage,
+	createUserData,
+	type Image,
+} from "../../src/core/index.ts";
 import { operations } from "../../src/ops/index.ts";
 import { createRegistry } from "../../src/ops/registry.ts";
 import { getImageLayer } from "../../src/target.ts";

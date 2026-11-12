@@ -1,15 +1,13 @@
 import { expect } from "bun:test";
 import {
 	beginStep,
-	endStep,
-	redoStep,
-	undoStep,
-} from "../../src/core/history.ts";
-import {
 	cloneSprite,
+	endStep,
 	imageLayers,
+	redoStep,
 	type Sprite,
-} from "../../src/core/sprite.ts";
+	undoStep,
+} from "../../src/core/index.ts";
 import { expectCelIdInvariant } from "./cel-ids.ts";
 
 export function expectSameSprite(actual: Sprite, expected: Sprite): void {

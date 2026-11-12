@@ -2,9 +2,7 @@ import { expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { inflateSync } from "node:zlib";
-import { readAseprite } from "../src/core/ase-read.ts";
-import { decodePng } from "../src/core/png.ts";
-import { renderFrame } from "../src/core/render.ts";
+import { decodePng, readAseprite, renderFrame } from "../src/core/index.ts";
 
 const fixtures = join(import.meta.dir, "fixtures");
 const spritesDir = join(fixtures, "sprites");

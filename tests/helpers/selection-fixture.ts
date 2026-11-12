@@ -1,13 +1,14 @@
-import { createImage, setPixel } from "../../src/core/image.ts";
-import { renderFrame } from "../../src/core/render.ts";
 import {
 	addLayer,
+	createImage,
 	createImageLayer,
 	createSprite,
+	createUserData,
+	renderFrame,
 	type Sprite,
 	setCel,
-} from "../../src/core/sprite.ts";
-import { createUserData } from "../../src/core/user-data.ts";
+	setPixel,
+} from "../../src/core/index.ts";
 
 const SHAPE = [
 	[1, 0],

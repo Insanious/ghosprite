@@ -3,7 +3,7 @@ import {
 	type CelData,
 	imageLayers,
 	type Sprite,
-} from "../../src/core/sprite.ts";
+} from "../../src/core/index.ts";
 
 /** Checks that, in every image layer, two cels have the same data id exactly when they hold the same `CelData`. */
 export function expectCelIdInvariant(sprite: Sprite): void {
