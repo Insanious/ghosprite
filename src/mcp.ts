@@ -7,6 +7,8 @@ import {
 import { OpError, toOpError } from "./errors.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
+import { StepPictures } from "./viewer/history.ts";
+import { startViewer } from "./viewer/server.ts";
 
 const INSTRUCTIONS =
 	"Ids are explicit: creating ops return them, and later calls pass them back. Frames are 0-based. " +
@@ -17,7 +19,11 @@ const INSTRUCTIONS =
 	"Pass a short `note` on every change saying what it is for, and a `label` on session_apply. " +
 	"session_* tools handle batches, undo and checkpoints. Tool names use _ where ops use . (session_apply takes dotted op names).";
 
-export function createMcpServer(session: Session): Server {
+function viewerSentence(url: string): string {
+	return `A read-only viewer showing every step with its checkpoint number is at ${url}: give that address to the user when asked.`;
+}
+
+export function createMcpServer(session: Session, viewerUrl?: string): Server {
 	const tools = describeTools(session).map((tool) => ({
 		...tool,
 		mcpName: tool.name.replaceAll(".", "_"),
@@ -26,7 +32,13 @@ export function createMcpServer(session: Session): Server {
 
 	const server = new Server(
 		{ name: "ghosprite", version: "0.0.0" },
-		{ capabilities: { tools: {} }, instructions: INSTRUCTIONS },
+		{
+			capabilities: { tools: {} },
+			instructions:
+				viewerUrl === undefined
+					? INSTRUCTIONS
+					: `${INSTRUCTIONS} ${viewerSentence(viewerUrl)}`,
+		},
 	);
 
 	server.setRequestHandler(ListToolsRequestSchema, () => ({
@@ -71,6 +83,18 @@ export function createMcpServer(session: Session): Server {
 	return server;
 }
 
-export async function serveStdio(): Promise<void> {
-	await createMcpServer(new Session()).connect(new StdioServerTransport());
+export async function serveStdio(viewerPort?: number): Promise<void> {
+	if (viewerPort === undefined) {
+		await createMcpServer(new Session()).connect(new StdioServerTransport());
+		return;
+	}
+	const pictures = new StepPictures();
+	const session = new Session({
+		onStep: (entry, workspace) => pictures.record(entry, workspace),
+	});
+	const viewer = startViewer(session, pictures, viewerPort);
+	process.stdin.once("end", viewer.stop);
+	await createMcpServer(session, viewer.url).connect(
+		new StdioServerTransport(),
+	);
 }

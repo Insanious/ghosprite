@@ -6,10 +6,10 @@ import { decodePng } from "../src/core/index.ts";
 import { createMcpServer } from "../src/mcp.ts";
 import { Session } from "../src/session.ts";
 
-async function connect() {
+async function connect(viewerUrl?: string) {
 	const [clientTransport, serverTransport] =
 		InMemoryTransport.createLinkedPair();
-	await createMcpServer(new Session()).connect(serverTransport);
+	await createMcpServer(new Session(), viewerUrl).connect(serverTransport);
 	const client = new Client({ name: "test", version: "0" });
 	await client.connect(clientTransport);
 	return client;
@@ -31,8 +31,14 @@ describe("mcp server", () => {
 		}
 	});
 
+	test("the instructions name the viewer only when given its URL", async () => {
+		const url = "http://127.0.0.1:7357/";
+		expect((await connect(url)).getInstructions()).toContain(url);
+		expect((await connect()).getInstructions()).not.toContain("http");
+	});
+
 	test("every tool the instructions name exists", async () => {
-		const client = await connect();
+		const client = await connect("http://127.0.0.1:7357/");
 		const { tools } = await client.listTools();
 		const names = new Set(tools.map((t) => t.name));
 		const mentioned = client.getInstructions()?.match(/\b[a-z]+_[a-zA-Z]+\b/g);

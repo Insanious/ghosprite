@@ -182,6 +182,33 @@ describe("cli run", () => {
 	});
 });
 
+describe("cli mcp", () => {
+	for (const args of [
+		["--viewer", "abc"],
+		["--viewer", "0"],
+		["--viewer", "7357", "extra"],
+		["--other"],
+	]) {
+		test(`mcp ${args.join(" ")} is a usage error`, () => {
+			expect(cli(["mcp", ...args]).status).toBe(2);
+		});
+	}
+
+	test("--viewer exits when stdin closes", async () => {
+		const probe = Bun.serve({ port: 0, fetch: () => new Response() });
+		const port = probe.port;
+		await probe.stop(true);
+		const proc = Bun.spawnSync(
+			["bun", "src/cli.ts", "mcp", "--viewer", `${port}`],
+			{
+				stdin: new TextEncoder().encode(""),
+				timeout: 10_000,
+			},
+		);
+		expect(proc.exitCode).toBe(0);
+	});
+});
+
 describe("cli ops", () => {
 	test("lists the ops and the session tools", () => {
 		const proc = Bun.spawnSync(["bun", "src/cli.ts", "ops"]);
