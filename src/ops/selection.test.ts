@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { renderFrame } from "../core/render.ts";
+import { renderFrame } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { type Call, Session } from "../session.ts";
 

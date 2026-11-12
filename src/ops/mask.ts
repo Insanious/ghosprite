@@ -1,23 +1,21 @@
 import { z } from "zod";
 import {
-	maskFromBits,
-	maskFromPolygon,
-	maskFromRect,
-} from "../core/draw/mask.ts";
-import type { Mask } from "../core/draw/spans.ts";
-import { paletteAt } from "../core/palette.ts";
-import {
 	combineMasks,
 	emptyMask,
+	type Mask,
+	maskFromBits,
 	maskFromColor,
 	maskFromContent,
 	maskFromEllipse,
+	maskFromPolygon,
+	maskFromRect,
 	maskFromWand,
 	maskPixelCount,
+	paletteAt,
+	type Sprite,
 	setSelection,
 	trimMask,
-} from "../core/selection.ts";
-import type { Sprite } from "../core/sprite.ts";
+} from "../core/index.ts";
 import { checkPoint, resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { colorSchema, toRgba } from "./color.ts";

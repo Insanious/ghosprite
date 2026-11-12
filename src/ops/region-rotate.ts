@@ -1,7 +1,11 @@
 import { z } from "zod";
-import type { Image, Rect } from "../core/image.ts";
-import { turnImage } from "../core/region.ts";
-import { type RotateAngle, rotateImage } from "../core/rotate.ts";
+import {
+	type Image,
+	type Rect,
+	type RotateAngle,
+	rotateImage,
+	turnImage,
+} from "../core/index.ts";
 import { regionFields, runRegion } from "./region.ts";
 import { defineOp } from "./registry.ts";
 

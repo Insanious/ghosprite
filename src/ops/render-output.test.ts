@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
-import { createImage } from "../core/image.ts";
-import { decodePng } from "../core/png.ts";
+import { createImage, decodePng } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { renderPng } from "./render-output.ts";
 

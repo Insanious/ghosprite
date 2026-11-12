@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { removeTag } from "../core/tag.ts";
+import { removeTag } from "../core/index.ts";
 import { indexOfNamed } from "./named.ts";
 import { defineOp } from "./registry.ts";
 

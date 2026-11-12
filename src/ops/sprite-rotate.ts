@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { rotateSprite } from "../core/rotate.ts";
+import { rotateSprite } from "../core/index.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 

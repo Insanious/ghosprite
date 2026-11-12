@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { modifyMask } from "../core/modify-selection.ts";
+import { modifyMask } from "../core/index.ts";
 import { storeSelection } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 

@@ -5,7 +5,7 @@ import {
 	type Image,
 	type Rgba,
 	setPixel,
-} from "../core/image.ts";
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { imageFromRows, rowsFromImage } from "./rows.ts";
 

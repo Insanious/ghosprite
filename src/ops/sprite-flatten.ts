@@ -1,6 +1,9 @@
 import { z } from "zod";
-import { flattenSprite } from "../core/merge.ts";
-import { createImageLayer, findBackground } from "../core/sprite.ts";
+import {
+	createImageLayer,
+	findBackground,
+	flattenSprite,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { requireRgba } from "../target.ts";
 import { newLayerUuid } from "./layer-uuid.ts";

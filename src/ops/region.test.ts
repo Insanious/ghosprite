@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { getPixel } from "../core/image.ts";
-import { renderFrame } from "../core/render.ts";
+import { getPixel, renderFrame } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Session } from "../session.ts";
 import { getImageLayer } from "../target.ts";

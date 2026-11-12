@@ -1,7 +1,6 @@
 import { inflateSync } from "node:zlib";
 import { z } from "zod";
-import { readAseprite } from "../core/ase-read.ts";
-import { CoreError } from "../core/errors.ts";
+import { CoreError, readAseprite } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { readFile } from "./file.ts";
 import { defineOp } from "./registry.ts";

@@ -1,9 +1,7 @@
 import { basename } from "node:path";
 import { deflateSync } from "node:zlib";
 import { z } from "zod";
-import { encodePng } from "../core/png.ts";
-import { layoutSheet } from "../core/sheet.ts";
-import { buildSheetJson } from "../core/sheet-json.ts";
+import { buildSheetJson, encodePng, layoutSheet } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { requireRgba } from "../target.ts";
 import { writeFile } from "./file.ts";

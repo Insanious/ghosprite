@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { addSlice } from "../core/slice.ts";
-import { createUserData } from "../core/user-data.ts";
+import { addSlice, createUserData } from "../core/index.ts";
 import { pointSchema, rectSchema } from "./geometry.ts";
 import { assertNameFree } from "./named.ts";
 import { defineOp } from "./registry.ts";

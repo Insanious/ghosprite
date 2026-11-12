@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { deleteSelection } from "../core/selection.ts";
+import { deleteSelection } from "../core/index.ts";
 import { defineOp } from "./registry.ts";
 
 export const selectionDelete = defineOp({

@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { setPalette } from "../core/palette.ts";
-import { quantizeSprite } from "../core/quantize-sprite.ts";
+import { quantizeSprite, setPalette } from "../core/index.ts";
 import { requireRgba } from "../target.ts";
 import { MAX_COLORS } from "./palette.ts";
 import { defineOp } from "./registry.ts";

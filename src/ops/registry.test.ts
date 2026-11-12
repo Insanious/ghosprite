@@ -1,9 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
 import { z } from "zod";
-import { CoreError } from "../core/errors.ts";
-import { decodePng } from "../core/png.ts";
-import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
+import {
+	addLayer,
+	CoreError,
+	createImageLayer,
+	createSprite,
+	decodePng,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { createRegistry, defineOp } from "./registry.ts";

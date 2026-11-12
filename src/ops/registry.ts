@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Rect } from "../core/image.ts";
+import type { Rect } from "../core/index.ts";
 import { OpError, toOpError } from "../errors.ts";
 import type { Workspace } from "../workspace.ts";
 import {

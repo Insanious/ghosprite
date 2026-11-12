@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { copyImage } from "../core/image.ts";
-import { imageLayers } from "../core/sprite.ts";
+import { copyImage, imageLayers } from "../core/index.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
 import { createRegistry } from "./registry.ts";

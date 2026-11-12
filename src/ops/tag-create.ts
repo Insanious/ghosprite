@@ -1,7 +1,10 @@
 import { z } from "zod";
-import { paletteAt } from "../core/palette.ts";
-import { insertTag, TAG_DIRECTIONS } from "../core/tag.ts";
-import { createUserData } from "../core/user-data.ts";
+import {
+	createUserData,
+	insertTag,
+	paletteAt,
+	TAG_DIRECTIONS,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { checkFrame } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";

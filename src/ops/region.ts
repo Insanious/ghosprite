@@ -1,14 +1,17 @@
 import { z } from "zod";
-import type { Mask } from "../core/draw/spans.ts";
-import { isEmptyRect, unionRects } from "../core/image.ts";
-import { paletteAt } from "../core/palette.ts";
 import {
 	dropRegion,
+	emptyMask,
 	growCanvas,
+	isEmptyRect,
 	liftRegion,
+	type Mask,
+	maskAsImage,
+	paletteAt,
 	type RegionTransform,
-} from "../core/region.ts";
-import { emptyMask, maskAsImage, trimMask } from "../core/selection.ts";
+	trimMask,
+	unionRects,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";

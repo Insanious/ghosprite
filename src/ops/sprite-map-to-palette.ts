@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { bayerMatrix } from "../core/dither.ts";
-import { mapSpriteToPalette } from "../core/map-to-palette.ts";
+import { bayerMatrix, mapSpriteToPalette } from "../core/index.ts";
 import { requireRgba } from "../target.ts";
 import { defineOp } from "./registry.ts";
 

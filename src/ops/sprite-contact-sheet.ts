@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { renderFrame } from "../core/render.ts";
+import { renderFrame } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { checkFrames } from "../target.ts";
 import { defineOp } from "./registry.ts";

@@ -1,12 +1,15 @@
 import { deflateSync } from "node:zlib";
-import { withBackground } from "../core/background.ts";
-import { tileImages } from "../core/contact-sheet.ts";
-import type { Mask } from "../core/draw/spans.ts";
-import type { Image, Rect } from "../core/image.ts";
-import type { Palette } from "../core/palette.ts";
-import { encodePng } from "../core/png.ts";
-import { highlightMask } from "../core/selection.ts";
-import { upscale } from "../core/upscale.ts";
+import {
+	encodePng,
+	highlightMask,
+	type Image,
+	type Mask,
+	type Palette,
+	type Rect,
+	tileImages,
+	upscale,
+	withBackground,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { toRgba } from "./color.ts";
 import type { RenderBackground } from "./render.ts";

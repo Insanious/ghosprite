@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { paletteAt } from "../core/palette.ts";
+import { paletteAt } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Session } from "../session.ts";
 import { Workspace } from "../workspace.ts";

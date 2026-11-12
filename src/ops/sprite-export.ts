@@ -1,13 +1,16 @@
 import { extname } from "node:path";
 import { deflateSync } from "node:zlib";
 import { z } from "zod";
-import { encodeGif } from "../core/gif.ts";
-import type { Image } from "../core/image.ts";
-import { encodePng } from "../core/png.ts";
-import { renderFrame } from "../core/render.ts";
-import type { Sprite } from "../core/sprite.ts";
-import { upscale } from "../core/upscale.ts";
-import { encodeAnimatedWebp, encodeWebp } from "../core/webp.ts";
+import {
+	encodeAnimatedWebp,
+	encodeGif,
+	encodePng,
+	encodeWebp,
+	type Image,
+	renderFrame,
+	type Sprite,
+	upscale,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { checkFrame } from "../target.ts";
 import { writeFile } from "./file.ts";

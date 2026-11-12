@@ -1,8 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { maskFromRect } from "../core/draw/mask.ts";
-import type { Rect } from "../core/image.ts";
-import { trimMask } from "../core/selection.ts";
-import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
+import {
+	addLayer,
+	createImageLayer,
+	createSprite,
+	maskFromRect,
+	type Rect,
+	trimMask,
+} from "../core/index.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
 import { createRegistry } from "./registry.ts";

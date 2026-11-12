@@ -1,7 +1,5 @@
 import { z } from "zod";
-import type { Mask } from "../core/draw/spans.ts";
-import { renderFrame } from "../core/render.ts";
-import type { Sprite } from "../core/sprite.ts";
+import { type Mask, renderFrame, type Sprite } from "../core/index.ts";
 import { checkFrames } from "../target.ts";
 import { literalColorSchema } from "./color.ts";
 import { renderPng } from "./render-output.ts";

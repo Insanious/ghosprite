@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { cropSprite, trimmedBounds } from "../core/crop.ts";
+import { cropSprite, trimmedBounds } from "../core/index.ts";
 import { requireRgba } from "../target.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";

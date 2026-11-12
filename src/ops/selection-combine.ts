@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { combineMasks } from "../core/selection.ts";
+import { combineMasks } from "../core/index.ts";
 import { resolveMask, selectionShapeSchema, storeSelection } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { flipImage } from "../core/flip.ts";
+import { flipImage } from "../core/index.ts";
 import { regionFields, runRegion } from "./region.ts";
 import { defineOp } from "./registry.ts";
 

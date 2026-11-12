@@ -3,9 +3,9 @@ import {
 	colorIndices,
 	type Image,
 	imageFromIndices,
+	type Palette,
 	type Rgba,
-} from "../core/image.ts";
-import type { Palette } from "../core/palette.ts";
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { type ColorInput, colorSchema, toRgba } from "./color.ts";
 

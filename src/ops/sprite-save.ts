@@ -1,7 +1,6 @@
 import { deflateSync } from "node:zlib";
 import { z } from "zod";
-import { writeAseprite } from "../core/ase-write.ts";
-import { CoreError } from "../core/errors.ts";
+import { CoreError, writeAseprite } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { writeFile } from "./file.ts";
 import { defineOp } from "./registry.ts";

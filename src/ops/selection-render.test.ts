@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
-import { decodePng } from "../core/png.ts";
+import { decodePng } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Session } from "../session.ts";
 

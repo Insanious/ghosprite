@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { removeSlice } from "../core/slice.ts";
+import { removeSlice } from "../core/index.ts";
 import { indexOfNamed } from "./named.ts";
 import { defineOp } from "./registry.ts";
 

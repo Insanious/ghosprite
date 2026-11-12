@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { flipSprite } from "../core/flip.ts";
+import { flipSprite } from "../core/index.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 

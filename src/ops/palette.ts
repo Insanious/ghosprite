@@ -1,16 +1,17 @@
 import { extname } from "node:path";
 import { z } from "zod";
-import { CoreError } from "../core/errors.ts";
-import type { Rgba } from "../core/image.ts";
-import { paletteAt, setPalette } from "../core/palette.ts";
 import {
+	CoreError,
+	paletteAt,
+	type Rgba,
 	readGpl,
 	readHex,
 	readPal,
+	setPalette,
 	writeGpl,
 	writeHex,
 	writePal,
-} from "../core/palette-file.ts";
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { checkFrame, requireRgba } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";

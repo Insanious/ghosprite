@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { resizeSprite } from "../core/resize.ts";
+import { resizeSprite } from "../core/index.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";
 

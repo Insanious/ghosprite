@@ -1,17 +1,15 @@
 import { z } from "zod";
-import { rgbaHex } from "../core/image.ts";
-import { hasUserData } from "../core/sheet-json.ts";
 import {
 	type Cel,
 	framesSharingData,
+	hasUserData,
 	type ImageLayer,
 	type Layer,
-} from "../core/sprite.ts";
-import type {
-	PropertiesMap,
-	PropertyValue,
-	UserData,
-} from "../core/user-data.ts";
+	type PropertiesMap,
+	type PropertyValue,
+	rgbaHex,
+	type UserData,
+} from "../core/index.ts";
 import { maskSummary } from "./mask.ts";
 import { defineOp } from "./registry.ts";
 

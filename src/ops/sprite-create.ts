@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createSprite } from "../core/sprite.ts";
+import { createSprite } from "../core/index.ts";
 import { defineOp } from "./registry.ts";
 
 export const spriteCreate = defineOp({

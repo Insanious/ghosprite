@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { resizeImage } from "../core/resize.ts";
+import { resizeImage } from "../core/index.ts";
 import { regionFields, runRegion } from "./region.ts";
 import { defineOp } from "./registry.ts";
 
