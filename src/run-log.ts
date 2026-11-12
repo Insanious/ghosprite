@@ -35,6 +35,22 @@ function isLoadCall(call: unknown): call is LoadCall {
 	);
 }
 
+export function mapLoadCalls(
+	op: string,
+	input: unknown,
+	map: (call: LoadCall) => LoadCall,
+): unknown {
+	const self = { op, input };
+	if (isLoadCall(self)) return map(self).input;
+	if (op !== "session.apply") return input;
+	const ops = (input as { ops?: unknown }).ops;
+	if (!Array.isArray(ops)) return input;
+	return {
+		...(input as object),
+		ops: ops.map((call) => (isLoadCall(call) ? map(call) : call)),
+	};
+}
+
 function createRunFolder(dir: string, now: Date): string {
 	mkdirSync(dir, { recursive: true });
 	const base = now.toISOString().slice(0, 19).replaceAll(":", "-");
@@ -91,20 +107,9 @@ export function startRunLog(dir: string, now = new Date()): RunLog {
 	function rewrite(entry: LogEntry): object {
 		if (entry.kind !== "step") return entry;
 		const loadedFrom: Record<string, string> = {};
-		let input = entry.input;
-		if (isLoadCall(entry)) {
-			input = rewriteLoad(entry, loadedFrom).input;
-		} else if (entry.op === "session.apply") {
-			const ops = (entry.input as { ops?: unknown }).ops;
-			if (Array.isArray(ops)) {
-				input = {
-					...(entry.input as object),
-					ops: ops.map((call) =>
-						isLoadCall(call) ? rewriteLoad(call, loadedFrom) : call,
-					),
-				};
-			}
-		}
+		const input = mapLoadCalls(entry.op, entry.input, (call) =>
+			rewriteLoad(call, loadedFrom),
+		);
 		if (Object.keys(loadedFrom).length === 0) return entry;
 		return { ...entry, input, loadedFrom };
 	}
