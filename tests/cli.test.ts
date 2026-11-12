@@ -1,8 +1,16 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+	copyFileSync,
+	existsSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
+import { LATEST_PROTOCOL_VERSION } from "@modelcontextprotocol/sdk/types.js";
 import { decodePng } from "../src/core/index.ts";
 
 const scratch = mkdtempSync(join(tmpdir(), "ghosprite-cli-test-"));
@@ -188,6 +196,10 @@ describe("cli mcp", () => {
 		["--viewer", "0"],
 		["--viewer", "7357", "extra"],
 		["--other"],
+		["--history"],
+		["--history", "--viewer"],
+		["--history", "a", "--history", "b"],
+		["--history", "a", "extra"],
 	]) {
 		test(`mcp ${args.join(" ")} is a usage error`, () => {
 			expect(cli(["mcp", ...args]).status).toBe(2);
@@ -206,6 +218,92 @@ describe("cli mcp", () => {
 			},
 		);
 		expect(proc.exitCode).toBe(0);
+	});
+
+	test("--viewer with --history leaves a run folder holding the version line", async () => {
+		const probe = Bun.serve({ port: 0, fetch: () => new Response() });
+		const port = probe.port;
+		await probe.stop(true);
+		const dir = join(scratch, "history-viewer");
+		const proc = Bun.spawnSync(
+			["bun", "src/cli.ts", "mcp", "--viewer", `${port}`, "--history", dir],
+			{ stdin: new TextEncoder().encode(""), timeout: 10_000 },
+		);
+		expect(proc.exitCode).toBe(0);
+		const runs = readdirSync(dir);
+		expect(runs).toHaveLength(1);
+		const lines = readFileSync(
+			join(dir, runs[0] as string, "log.jsonl"),
+			"utf8",
+		)
+			.trim()
+			.split("\n");
+		expect(lines).toHaveLength(1);
+		expect(JSON.parse(lines[0] as string).kind).toBe("run");
+	});
+
+	test("--history records loads, notes and moves, and skips saves", () => {
+		const dir = join(scratch, "history-e2e");
+		const source = join(scratch, "e2e-source.aseprite");
+		copyFileSync("tests/fixtures/doc/base.aseprite", source);
+		const saved = join(scratch, "e2e-saved.aseprite");
+		const call = (id: number, name: string, args: object) => ({
+			jsonrpc: "2.0",
+			id,
+			method: "tools/call",
+			params: { name, arguments: args },
+		});
+		const messages = [
+			{
+				jsonrpc: "2.0",
+				id: 1,
+				method: "initialize",
+				params: {
+					protocolVersion: LATEST_PROTOCOL_VERSION,
+					capabilities: {},
+					clientInfo: { name: "test", version: "0" },
+				},
+			},
+			{ jsonrpc: "2.0", method: "notifications/initialized" },
+			call(2, "sprite_load", { path: source }),
+			call(3, "draw_rect", {
+				spriteId: "sprite-1",
+				layerId: "layer-2",
+				frame: 0,
+				color: "#ff0000",
+				rect: { x: 0, y: 0, width: 1, height: 1 },
+				filled: true,
+				note: "dot",
+			}),
+			call(4, "session_undo", {}),
+			call(5, "sprite_save", { spriteId: "sprite-1", path: saved }),
+		];
+		const proc = Bun.spawnSync(["bun", "src/cli.ts", "mcp", "--history", dir], {
+			stdin: new TextEncoder().encode(
+				`${messages.map((m) => JSON.stringify(m)).join("\n")}\n`,
+			),
+			timeout: 10_000,
+		});
+		expect(proc.exitCode).toBe(0);
+		const runs = readdirSync(dir);
+		expect(runs).toHaveLength(1);
+		const folder = join(dir, runs[0] as string);
+		const lines = readFileSync(join(folder, "log.jsonl"), "utf8")
+			.trim()
+			.split("\n")
+			.map((line) => JSON.parse(line));
+		expect(lines[0].kind).toBe("run");
+		const load = lines.find((l) => l.op === "sprite.load");
+		expect(readFileSync(join(folder, load.input.path))).toEqual(
+			readFileSync(source),
+		);
+		expect(load.loadedFrom).toEqual({ [load.input.path]: source });
+		expect(lines.find((l) => l.op === "draw.rect").note).toBe("dot");
+		expect(lines).toContainEqual({
+			kind: "moved",
+			checkpointId: "checkpoint-1",
+		});
+		expect(lines.some((l) => l.op === "sprite.save")).toBe(false);
 	});
 });
 

@@ -59,6 +59,7 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - A journal of operations that can be replayed.
 - The session keeps a step log in memory that never discards anything: each change (a mutating call or one `apply` batch) with its checkpoint id, op, input, note and the sprites it changed, plus an entry each time undo, redo or restore moves to another checkpoint. Step N is `checkpoint-N`.
 - `ghosprite mcp --viewer [port]` serves a read-only localhost page showing the session's steps as a timeline of pictures, each drawn once when its step happens. Moves between checkpoints appear as markers, and steps off the current path are greyed out. The human steers by telling the agent a checkpoint.
+- `ghosprite mcp --history <dir>` writes each server run to its own folder inside `<dir>`, named by its start time: a `log.jsonl` that is only appended to, holding a version line and then every step-log entry as it happens, plus copies of loaded files named by content hash, which the log's load calls point to by relative path (the original path is kept for display). Readers drop an unfinished last line. Written files are not logged or stored. Nothing is cleaned up. With `--viewer` on too, the page shows the folder name. This is not crash recovery: only the log is saved and nothing is restored on start.
 - `describe(sprite)` returns the whole document's structure as JSON.
 
 ## API conventions
@@ -87,7 +88,7 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - Any interactive editor: canvas, an editor's frame timeline (not the read-only step timeline of the session viewer), mouse tools, dialogs, themes, preferences, plugins.
 - Legacy formats: FLI, PCX, BMP, CSS, and PSD import.
 - ICC colour management.
-- Aseprite's crash recovery, updater and extension system.
+- Aseprite's crash recovery (`--history` saves a log, not a recovery point), updater and extension system.
 
 ## Not yet
 

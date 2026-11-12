@@ -5,6 +5,7 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { OpError, toOpError } from "./errors.ts";
+import { startRunLog } from "./run-log.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
 import { StepPictures } from "./viewer/history.ts";
@@ -83,18 +84,24 @@ export function createMcpServer(session: Session, viewerUrl?: string): Server {
 	return server;
 }
 
-export async function serveStdio(viewerPort?: number): Promise<void> {
-	if (viewerPort === undefined) {
-		await createMcpServer(new Session()).connect(new StdioServerTransport());
-		return;
-	}
+export async function serveStdio(
+	options: { viewerPort?: number; historyDir?: string } = {},
+): Promise<void> {
+	const { viewerPort, historyDir } = options;
+	const runLog = historyDir === undefined ? undefined : startRunLog(historyDir);
 	const pictures = new StepPictures();
 	const session = new Session({
-		onLog: (entry, workspace) => pictures.record(entry, workspace),
+		onLog: (entry, workspace) => {
+			if (viewerPort !== undefined) pictures.record(entry, workspace);
+			runLog?.append(entry);
+		},
 	});
-	const viewer = startViewer(session, pictures, viewerPort);
-	process.stdin.once("end", viewer.stop);
-	await createMcpServer(session, viewer.url).connect(
+	const viewer =
+		viewerPort === undefined
+			? undefined
+			: startViewer(session, pictures, viewerPort, runLog?.name);
+	if (viewer !== undefined) process.stdin.once("end", viewer.stop);
+	await createMcpServer(session, viewer?.url).connect(
 		new StdioServerTransport(),
 	);
 }

@@ -10,8 +10,10 @@ import { callTool, describeTools, replaceImages } from "./tools.ts";
 const USAGE = `Usage:
   ghosprite run [file] [--out <dir>]   run a JSON array of {op, input} calls (stdin if no file or "-")
   ghosprite ops                        print every operation and its input schema as JSON
-  ghosprite mcp [--viewer [port]]      serve every operation and session tool over MCP on stdio;
-                                       --viewer also serves a read-only step timeline on localhost (default port 7357)`;
+  ghosprite mcp [--viewer [port]] [--history <dir>]
+                                       serve every operation and session tool over MCP on stdio;
+                                       --viewer also serves a read-only step timeline on localhost (default port 7357);
+                                       --history writes the run's step log and loaded files to a new folder in <dir>`;
 
 function usageError(message: string): never {
 	process.stderr.write(`${message}\n${USAGE}\n`);
@@ -83,17 +85,39 @@ async function run(args: string[]) {
 
 const DEFAULT_VIEWER_PORT = 7357;
 
-function parseViewerPort(args: string[]): number | undefined {
-	if (args.length === 0) return undefined;
-	if (args[0] !== "--viewer" || args.length > 2) {
-		return usageError("ghosprite mcp takes only --viewer [port]");
+function parseMcpArgs(args: string[]): {
+	viewerPort?: number;
+	historyDir?: string;
+} {
+	const options: { viewerPort?: number; historyDir?: string } = {};
+	const isValue = (arg: string | undefined): arg is string =>
+		arg !== undefined && !arg.startsWith("--");
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i];
+		if (arg === "--viewer" && options.viewerPort === undefined) {
+			const value = args[i + 1];
+			if (!isValue(value)) {
+				options.viewerPort = DEFAULT_VIEWER_PORT;
+				continue;
+			}
+			i++;
+			const port = Number(value);
+			if (!/^\d+$/.test(value) || port < 1 || port > 65535) {
+				return usageError("The viewer port must be an integer from 1 to 65535");
+			}
+			options.viewerPort = port;
+		} else if (arg === "--history" && options.historyDir === undefined) {
+			const value = args[i + 1];
+			if (!isValue(value)) return usageError("--history needs a directory");
+			i++;
+			options.historyDir = value;
+		} else {
+			return usageError(
+				"ghosprite mcp takes only --viewer [port] and --history <dir>, each once",
+			);
+		}
 	}
-	if (args.length === 1) return DEFAULT_VIEWER_PORT;
-	const port = Number(args[1]);
-	if (!/^\d+$/.test(args[1] as string) || port < 1 || port > 65535) {
-		return usageError("The viewer port must be an integer from 1 to 65535");
-	}
-	return port;
+	return options;
 }
 
 const [command, ...rest] = process.argv.slice(2);
@@ -102,7 +126,7 @@ if (command === "run") {
 } else if (command === "ops" && rest.length === 0) {
 	console.log(JSON.stringify(describeTools(new Session()), null, 2));
 } else if (command === "mcp") {
-	await serveStdio(parseViewerPort(rest));
+	await serveStdio(parseMcpArgs(rest));
 } else {
 	usageError(command ? `Unknown command "${command}"` : "Missing command");
 }
