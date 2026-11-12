@@ -5,7 +5,7 @@ import {
 	createImageLayer,
 	type Sprite,
 	walkRenderOrder,
-} from "../core/sprite.ts";
+} from "../core/index.ts";
 import { layerPositionShape, resolveLayerPosition } from "./layer-position.ts";
 import { newLayerUuid } from "./layer-uuid.ts";
 import { defineOp } from "./registry.ts";

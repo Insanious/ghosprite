@@ -4,8 +4,9 @@ import {
 	type Channels,
 	type Filter,
 	filterCanvas,
-} from "../core/filter/filter.ts";
-import { intersectRects, isEmptyRect } from "../core/image.ts";
+	intersectRects,
+	isEmptyRect,
+} from "../core/index.ts";
 import { resolveTargetFrames } from "../target.ts";
 import type { Workspace } from "../workspace.ts";
 import { editCels } from "./cel-edit.ts";

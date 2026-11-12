@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { convolution } from "../core/filter/convolution.ts";
-import { convolutionMatrices } from "../core/filter/convolution-matrices.ts";
+import { convolution, convolutionMatrices } from "../core/index.ts";
 import { tiledSchema } from "./draw-options.ts";
 import { filterFields, runFilter } from "./filter.ts";
 import { defineOp } from "./registry.ts";

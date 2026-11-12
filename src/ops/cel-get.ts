@@ -1,8 +1,11 @@
 import { z } from "zod";
-import { cropImage } from "../core/crop.ts";
-import { createImage, type Image } from "../core/image.ts";
-import { paletteAt } from "../core/palette.ts";
-import { renderFrame } from "../core/render.ts";
+import {
+	createImage,
+	cropImage,
+	type Image,
+	paletteAt,
+	renderFrame,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { checkFrame, resolveTarget } from "../target.ts";
 import { rectSchema } from "./geometry.ts";

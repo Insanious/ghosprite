@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { renderFrame } from "../core/render.ts";
 import {
 	addLayer,
 	createGroupLayer,
 	createImageLayer,
 	createSprite,
-} from "../core/sprite.ts";
+	renderFrame,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { drawLine } from "./draw-line.ts";

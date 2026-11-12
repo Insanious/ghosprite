@@ -7,7 +7,7 @@ import {
 	type Layer,
 	type Sprite,
 	walkRenderOrder,
-} from "../core/sprite.ts";
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 
 export const layerPositionShape = {

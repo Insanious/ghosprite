@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { getPixel } from "../core/image.ts";
+import { getPixel } from "../core/index.ts";
 import { getImageLayer } from "../target.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";

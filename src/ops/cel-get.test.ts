@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { getPixel } from "../core/image.ts";
-import { renderFrame } from "../core/render.ts";
 import {
 	addLayer,
 	createGroupLayer,
 	createImageLayer,
 	createSprite,
+	getPixel,
 	type LayerInit,
-} from "../core/sprite.ts";
+	renderFrame,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { celGet } from "./cel-get.ts";

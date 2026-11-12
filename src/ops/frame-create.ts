@@ -1,7 +1,5 @@
 import { z } from "zod";
-import { createFrame } from "../core/frames.ts";
-import { paletteAt } from "../core/palette.ts";
-import { findBackground } from "../core/sprite.ts";
+import { createFrame, findBackground, paletteAt } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { requireRgba } from "../target.ts";
 import { colorSchema, toRgba } from "./color.ts";

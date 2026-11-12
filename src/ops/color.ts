@@ -1,6 +1,5 @@
 import { z } from "zod";
-import type { Rgba } from "../core/image.ts";
-import type { Palette } from "../core/palette.ts";
+import type { Palette, Rgba } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 
 const byte = z.number().int().min(0).max(255);

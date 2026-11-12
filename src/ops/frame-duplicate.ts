@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { duplicateFrame } from "../core/frames.ts";
+import { duplicateFrame } from "../core/index.ts";
 import { checkFrame } from "../target.ts";
 import { wholeCanvas } from "./frame-changed.ts";
 import { defineOp } from "./registry.ts";

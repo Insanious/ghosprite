@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { isEmptyRect } from "../core/image.ts";
-import { celCanvasRect, removeCel } from "../core/sprite.ts";
+import { celCanvasRect, isEmptyRect, removeCel } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { resolveTarget } from "../target.ts";
 import { defineOp } from "./registry.ts";

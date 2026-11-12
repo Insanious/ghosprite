@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { addLayer, removeLayer } from "../core/sprite.ts";
+import { addLayer, removeLayer } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { layerChanged } from "./layer-changed.ts";
 import { layerPositionShape, resolveLayerPosition } from "./layer-position.ts";

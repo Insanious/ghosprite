@@ -4,7 +4,7 @@ import {
 	createGroupLayer,
 	createImageLayer,
 	createSprite,
-} from "../core/sprite.ts";
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { celLink } from "./cel-link.ts";

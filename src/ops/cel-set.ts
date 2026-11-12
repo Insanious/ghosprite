@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paletteAt } from "../core/palette.ts";
+import { paletteAt } from "../core/index.ts";
 import { resolveTarget } from "../target.ts";
 import { editCel } from "./cel-edit.ts";
 import { defineOp } from "./registry.ts";

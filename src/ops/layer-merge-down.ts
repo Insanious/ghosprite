@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { mergeLayerDown } from "../core/merge.ts";
-import { findParent } from "../core/sprite.ts";
+import { findParent, mergeLayerDown } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { requireRgba } from "../target.ts";
 import { defineOp } from "./registry.ts";

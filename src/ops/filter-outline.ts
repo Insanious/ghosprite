@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { outline } from "../core/filter/outline.ts";
-import { paletteAt } from "../core/palette.ts";
+import { outline, paletteAt } from "../core/index.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { tiledSchema } from "./draw-options.ts";
 import { filterFields, runFilter } from "./filter.ts";

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { unlinkCel } from "../core/sprite.ts";
+import { unlinkCel } from "../core/index.ts";
 import { resolveTarget } from "../target.ts";
 import { defineOp } from "./registry.ts";
 

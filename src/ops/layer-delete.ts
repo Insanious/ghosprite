@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { removeLayer } from "../core/sprite.ts";
+import { removeLayer } from "../core/index.ts";
 import { layerChanged } from "./layer-changed.ts";
 import { defineOp } from "./registry.ts";
 

@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { isEmptyRect, unionRects } from "../core/image.ts";
-import { celCanvasRect, linkCels } from "../core/sprite.ts";
+import {
+	celCanvasRect,
+	isEmptyRect,
+	linkCels,
+	unionRects,
+} from "../core/index.ts";
 import { resolveTargetFrames } from "../target.ts";
 import { defineOp } from "./registry.ts";
 

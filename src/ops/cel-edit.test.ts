@@ -1,15 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import type { CelCanvas } from "../core/cel-edit.ts";
-import { createImage, getPixel, setPixel } from "../core/image.ts";
-import { growCanvas } from "../core/region.ts";
 import {
 	addLayer,
+	type CelCanvas,
+	createImage,
 	createImageLayer,
 	createSprite,
+	createUserData,
+	getPixel,
+	growCanvas,
 	linkCels,
 	setCel,
-} from "../core/sprite.ts";
-import { createUserData } from "../core/user-data.ts";
+	setPixel,
+} from "../core/index.ts";
 import { resolveTarget, resolveTargetFrames } from "../target.ts";
 import { Workspace } from "../workspace.ts";
 import { editCel, editCels } from "./cel-edit.ts";

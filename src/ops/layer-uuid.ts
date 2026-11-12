@@ -1,4 +1,4 @@
-import { type Sprite, walkRenderOrder } from "../core/sprite.ts";
+import { type Sprite, walkRenderOrder } from "../core/index.ts";
 
 /** A new layer gets a uuid only if the sprite's layers have them. */
 export function newLayerUuid(sprite: Sprite): { uuid?: string } {

@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { getPixel } from "../core/image.ts";
-import { findLayer, type ImageLayer } from "../core/sprite.ts";
+import { findLayer, getPixel, type ImageLayer } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";

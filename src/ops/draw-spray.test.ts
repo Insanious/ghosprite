@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { renderFrame } from "../core/render.ts";
-import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
+import {
+	addLayer,
+	createImageLayer,
+	createSprite,
+	renderFrame,
+} from "../core/index.ts";
 import { Workspace } from "../workspace.ts";
 import { drawSpray } from "./draw-spray.ts";
 import { createRegistry } from "./registry.ts";

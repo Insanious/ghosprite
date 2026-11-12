@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { createImage } from "../core/image.ts";
 import {
 	addLayer,
+	createImage,
 	createImageLayer,
 	createSprite,
+	createUserData,
 	setCel,
-} from "../core/sprite.ts";
-import { createUserData } from "../core/user-data.ts";
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { frameCreate } from "./frame-create.ts";

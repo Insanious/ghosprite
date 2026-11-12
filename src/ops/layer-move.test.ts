@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { layerNamed } from "../../tests/helpers/ase-build.ts";
-import { type GroupLayer, walkRenderOrder } from "../core/sprite.ts";
+import { type GroupLayer, walkRenderOrder } from "../core/index.ts";
 import { OpError, type OpErrorCode } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";

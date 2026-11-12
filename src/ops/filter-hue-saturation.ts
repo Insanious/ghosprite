@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { hueSaturation } from "../core/filter/hue-saturation.ts";
+import { hueSaturation } from "../core/index.ts";
 import { filterFields, runFilter } from "./filter.ts";
 import { defineOp } from "./registry.ts";
 

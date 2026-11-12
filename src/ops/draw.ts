@@ -1,8 +1,15 @@
 import type { z } from "zod";
-import { type Brush, createBrush, imageBrush } from "../core/draw/brush.ts";
-import { drawShape, type Shape, type SprayShape } from "../core/draw/stroke.ts";
-import type { Image } from "../core/image.ts";
-import { type Palette, paletteAt } from "../core/palette.ts";
+import {
+	type Brush,
+	createBrush,
+	drawShape,
+	type Image,
+	imageBrush,
+	type Palette,
+	paletteAt,
+	type Shape,
+	type SprayShape,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { resolveTarget } from "../target.ts";
 import type { Workspace } from "../workspace.ts";

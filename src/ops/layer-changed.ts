@@ -1,10 +1,10 @@
-import { isEmptyRect } from "../core/image.ts";
 import {
 	celCanvasRect,
 	imageLayers,
+	isEmptyRect,
 	type Layer,
 	type Sprite,
-} from "../core/sprite.ts";
+} from "../core/index.ts";
 import type { ChangedRect } from "./registry.ts";
 
 /** Every non-empty cel of an image layer, or of every image layer in a group. */

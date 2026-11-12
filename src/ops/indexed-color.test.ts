@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { renderFrame } from "../core/render.ts";
-import { addLayer, createImageLayer, createSprite } from "../core/sprite.ts";
+import {
+	addLayer,
+	createImageLayer,
+	createSprite,
+	renderFrame,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";

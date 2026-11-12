@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { despeckle } from "../core/filter/despeckle.ts";
+import { despeckle } from "../core/index.ts";
 import { tiledSchema } from "./draw-options.ts";
 import { filterFields, runFilter } from "./filter.ts";
 import { defineOp } from "./registry.ts";

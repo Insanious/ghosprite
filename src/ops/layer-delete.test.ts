@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { findLayer } from "../core/sprite.ts";
+import { findLayer } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";

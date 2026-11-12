@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { colorCurve } from "../core/filter/color-curve.ts";
+import { colorCurve } from "../core/index.ts";
 import { filterFields, runFilter } from "./filter.ts";
 import { defineOp } from "./registry.ts";
 

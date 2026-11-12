@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { deleteFrame } from "../core/frames.ts";
+import { deleteFrame } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { checkFrame } from "../target.ts";
 import { wholeCanvas } from "./frame-changed.ts";

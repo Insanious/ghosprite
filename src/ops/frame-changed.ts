@@ -1,4 +1,4 @@
-import { imageLayers, type Sprite } from "../core/sprite.ts";
+import { imageLayers, type Sprite } from "../core/index.ts";
 import type { ChangedRect } from "./registry.ts";
 
 /** The whole canvas of every image layer at each frame from `first` to `last`. */

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { setCel } from "../core/sprite.ts";
+import { setCel } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { getImageLayer } from "../target.ts";
 import { Workspace } from "../workspace.ts";

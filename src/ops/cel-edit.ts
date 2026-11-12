@@ -1,17 +1,17 @@
 import {
 	type CelCanvas,
 	type CelCommit,
-	celCanvas,
-	commitCel,
-} from "../core/cel-edit.ts";
-import { isEmptyRect, type Rect, unionRects } from "../core/image.ts";
-import {
 	type CelDataId,
+	celCanvas,
 	celCanvasRect,
+	commitCel,
 	type ImageLayer,
+	isEmptyRect,
+	type Rect,
 	type Sprite,
 	setCelOpacity,
-} from "../core/sprite.ts";
+	unionRects,
+} from "../core/index.ts";
 import type { ChangedRect } from "./registry.ts";
 
 /** Receives the cel's pixels and returns the canvas to commit, edited in place or a different one. */

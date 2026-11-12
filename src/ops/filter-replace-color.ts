@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { replaceColor } from "../core/filter/replace-color.ts";
-import { paletteAt } from "../core/palette.ts";
+import { paletteAt, replaceColor } from "../core/index.ts";
 import { colorSchema, toRgba } from "./color.ts";
 import { filterFields, runFilter } from "./filter.ts";
 import { defineOp } from "./registry.ts";
