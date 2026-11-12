@@ -98,6 +98,14 @@ export function defineOp(
 ): Operation {
 	const withRender = definition.renderOption !== false;
 	const renderField = { render: renderOptionSchema.optional() };
+	const noteField = {
+		note: z
+			.string()
+			.optional()
+			.describe(
+				'What this change is for, for example "helmet" or "shade left side".',
+			),
+	};
 
 	function finish(
 		workspace: Workspace,
@@ -135,9 +143,8 @@ export function defineOp(
 	}
 
 	if (definition.sprite === "creates") {
-		const schema = withRender
-			? definition.input.extend(renderField)
-			: definition.input;
+		const withNote = definition.input.extend(noteField);
+		const schema = withRender ? withNote.extend(renderField) : withNote;
 		return {
 			name: definition.name,
 			description: definition.description,
@@ -167,9 +174,9 @@ export function defineOp(
 	}
 
 	const sprite = definition.sprite;
-	const schema = withRender
-		? definition.input.extend(renderField)
-		: definition.input;
+	const withNote =
+		sprite === "edits" ? definition.input.extend(noteField) : definition.input;
+	const schema = withRender ? withNote.extend(renderField) : withNote;
 	return {
 		name: definition.name,
 		description: definition.description,

@@ -174,6 +174,19 @@ describe("sprite.render", () => {
 	});
 });
 
+describe("note field", () => {
+	test("every op that is not a reads op has a note, and reads ops have none", () => {
+		for (const op of registry.describeOps()) {
+			const properties = op.inputSchema.properties ?? {};
+			if (registry.spriteUse(op.name) === "reads") {
+				expect(properties).not.toHaveProperty("note");
+			} else {
+				expect(properties).toHaveProperty("note");
+			}
+		}
+	});
+});
+
 describe("legend rows schemas", () => {
 	test("cel.set and the draw.line image brush carry the legend description", () => {
 		const described = registry.describeOps();

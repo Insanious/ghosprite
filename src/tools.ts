@@ -44,7 +44,12 @@ export const sessionTools: Tool[] = [
 		description:
 			"Run several operations as one atomic transaction and one undo step. If any fails, nothing changes. Ops keep their dotted names, for example sprite.create.",
 		schema: z.object({
-			label: z.string().optional(),
+			label: z
+				.string()
+				.optional()
+				.describe(
+					'The note for the whole batch: what these changes are for, for example "helmet".',
+				),
 			ops: z.array(z.object({ op: z.string(), input: z.unknown() })).min(1),
 		}),
 		run: (session, input) => session.apply(input.ops, input.label),

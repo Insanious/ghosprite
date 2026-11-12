@@ -397,6 +397,54 @@ describe("Session checkpoints, restore and journal", () => {
 		).toBe(true);
 	});
 
+	test("notes and labels appear in the journal and replay without error", () => {
+		const { session, spriteId, layerId } = setup();
+		session.run("draw.rect", {
+			spriteId,
+			layerId,
+			frame: 0,
+			rect: { x: 0, y: 0, width: 1, height: 1 },
+			filled: true,
+			color: "#ff0000",
+			note: "helmet",
+		});
+		session.apply(
+			[
+				{
+					op: "draw.rect",
+					input: {
+						spriteId,
+						layerId,
+						frame: 0,
+						rect: { x: 1, y: 0, width: 1, height: 1 },
+						filled: true,
+						color: "#00ff00",
+						note: "visor",
+					},
+				},
+			],
+			"shading",
+		);
+		const journal = session.journal();
+		const single = journal[2]?.input as { note?: string };
+		expect(single.note).toBe("helmet");
+		const batch = journal[3]?.input as { label?: string; ops: Call[] };
+		expect(batch.label).toBe("shading");
+		const inner = batch.ops[0]?.input as { note?: string };
+		expect(inner.note).toBe("visor");
+
+		const replay = new Session();
+		for (const { op, input } of journal) {
+			if (op === "session.apply") {
+				const b = input as { label?: string; ops: Call[] };
+				replay.apply(b.ops, b.label);
+			} else {
+				replay.run(op, input);
+			}
+		}
+		expect(replay.journal()).toEqual(journal);
+	});
+
 	test("the journal drops render keys and omits a missing label", () => {
 		const session = new Session();
 		session.run("sprite.create", {

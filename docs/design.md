@@ -66,6 +66,7 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - Colours are accepted as `"#rrggbb"`, `"#rrggbbaa"`, `{r,g,b,a}` or `{index:n}`. The public API never uses packed integers.
 - Every mutating operation returns `{ changed: [{layerId, frame, rect}], checkpointId?, warnings[] }`. `cel.set` and the `draw.*` ops also return `cel`, the bounds of the cel they leave behind, or `null` when no cel is left.
 - Any operation accepts an optional `render: { scale?, grid?, frames?, background? }` (`background` only changes the returned picture, never the sprite). When it's given, the result also includes `render`: a PNG of the affected frames, defaulting to the frames in `changed`. `render` holds PNG bytes and each front end decides how to return them: the CLI writes files and returns their paths, and the MCP server returns image blocks.
+- Every mutating operation accepts an optional `note`, a short text saying what the change is for. Read-only operations don't take one. For `session.apply` the `label` is the note. Notes are kept in the journal.
 - Errors are structured: `{ code, message, path, hint }`.
 - Colour is treated as sRGB. Any ICC profile in a file is passed through unchanged.
 

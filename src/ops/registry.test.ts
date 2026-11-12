@@ -78,7 +78,16 @@ const reject = defineOp({
 	},
 });
 
-const registry = createRegistry([touch, bare, explode, reject, creates]);
+const read = defineOp({
+	name: "test.read",
+	sprite: "reads",
+	description: "Reads a sprite.",
+	input: z.object({ spriteId: z.string() }),
+	renderOption: false,
+	run: () => ({}),
+});
+
+const registry = createRegistry([touch, bare, explode, reject, creates, read]);
 
 function setup() {
 	const workspace = new Workspace();
@@ -327,6 +336,34 @@ describe("describeOps", () => {
 			required?: string[];
 		};
 		expect(render.required ?? []).not.toContain("scale");
+	});
+
+	test("lists note on ops that edit or create, with or without render, and not on a reads op", () => {
+		const described = registry.describeOps();
+		const propertiesOf = (name: string): Record<string, unknown> => {
+			const schema = described.find((op) => op.name === name)?.inputSchema;
+			return (schema?.properties ?? {}) as Record<string, unknown>;
+		};
+		expect(propertiesOf("test.touch")).toHaveProperty("note");
+		expect(propertiesOf("test.creates")).toHaveProperty("note");
+		expect(propertiesOf("test.bare")).toHaveProperty("note");
+		expect(propertiesOf("test.read")).not.toHaveProperty("note");
+	});
+});
+
+describe("note", () => {
+	test("a string note is accepted", () => {
+		const { workspace, spriteId } = setup();
+		expect(() =>
+			registry.callOp(workspace, "test.touch", { spriteId, note: "helmet" }),
+		).not.toThrow();
+	});
+
+	test("a non-string note is invalid_input at note", () => {
+		const { workspace, spriteId } = setup();
+		expect(() =>
+			registry.callOp(workspace, "test.touch", { spriteId, note: 5 }),
+		).toThrow(expect.objectContaining({ code: "invalid_input", path: "note" }));
 	});
 });
 
