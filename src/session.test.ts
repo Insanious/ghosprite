@@ -644,3 +644,140 @@ describe("Session over the change log", () => {
 		expectSameSprite(past, pastCopy);
 	});
 });
+
+describe("Session step log", () => {
+	function noted(
+		session: Session,
+		spriteId: string,
+		layerId: string,
+		x: number,
+		note: string,
+	) {
+		return session.run("draw.rect", {
+			spriteId,
+			layerId,
+			frame: 0,
+			rect: { x, y: 0, width: 1, height: 1 },
+			filled: true,
+			color: "#ff0000",
+			note,
+		});
+	}
+
+	test("keeps undone steps and logs moves", () => {
+		const { session, spriteId, layerId } = setup();
+		noted(session, spriteId, layerId, 0, "a");
+		noted(session, spriteId, layerId, 1, "b");
+		noted(session, spriteId, layerId, 2, "c");
+		session.undo(2);
+		const { checkpointId } = draw(session, spriteId, layerId, 3, "#00ff00");
+		const log = session.stepLog();
+		expect(log).toHaveLength(7);
+		expect(log.slice(0, 5).map((e) => e.checkpointId)).toEqual([
+			"checkpoint-1",
+			"checkpoint-2",
+			"checkpoint-3",
+			"checkpoint-4",
+			"checkpoint-5",
+		]);
+		expect(log[0]).toMatchObject({
+			kind: "step",
+			op: "sprite.create",
+			sprites: [spriteId],
+		});
+		expect(log[3]).toMatchObject({ op: "draw.rect", note: "b" });
+		expect(log[4]).toMatchObject({ note: "c" });
+		expect(log[5]).toEqual({ kind: "moved", checkpointId: "checkpoint-3" });
+		expect(log[6]).toMatchObject({ kind: "step", checkpointId });
+		expect(checkpointId).toBe("checkpoint-6");
+	});
+
+	test("logs one entry per move and none for no-ops", () => {
+		const { session, spriteId, layerId } = setup();
+		session.checkpoint("start");
+		noted(session, spriteId, layerId, 0, "a");
+		noted(session, spriteId, layerId, 1, "b");
+		const base = session.stepLog().length;
+		session.restore("start");
+		expect(session.stepLog()).toHaveLength(base + 1);
+		session.redo(2);
+		expect(session.stepLog()).toHaveLength(base + 2);
+		session.undo(2);
+		expect(session.stepLog()).toHaveLength(base + 3);
+		const after = session.stepLog();
+		session.restore(session.checkpoint("here").checkpointId);
+		expect(thrown(() => session.undo(9)).code).toBe("out_of_range");
+		expect(thrown(() => session.restore("nope")).code).toBe("not_found");
+		expect(session.stepLog()).toEqual(after);
+	});
+
+	test("spriteAt leaves the log unchanged", () => {
+		const { session, spriteId, layerId } = setup();
+		noted(session, spriteId, layerId, 0, "a");
+		noted(session, spriteId, layerId, 1, "b");
+		const before = session.stepLog();
+		session.spriteAt("checkpoint-2", spriteId);
+		expect(session.stepLog()).toEqual(before);
+		session.undo(2);
+		const afterUndo = session.stepLog();
+		session.spriteAt("checkpoint-4", spriteId);
+		expect(session.stepLog()).toEqual(afterUndo);
+	});
+
+	test("logs nothing for failed, read-only and all-reads calls", () => {
+		const { session, spriteId } = setup();
+		const before = session.stepLog();
+		expect(() => session.run("draw.rect", { spriteId })).toThrow();
+		expect(() =>
+			session.apply([
+				{ op: "sprite.create", input: { width: 1, height: 1 } },
+				{ op: "nope", input: {} },
+			]),
+		).toThrow();
+		session.run("sprite.render", { spriteId, frames: [0] });
+		session.apply([{ op: "sprite.render", input: { spriteId, frames: [0] } }]);
+		expect(session.stepLog()).toEqual(before);
+	});
+
+	test("a batch logs its label as note and every sprite it touched", () => {
+		const { session, spriteId, layerId } = setup();
+		const { checkpointId } = session.apply(
+			[
+				{ op: "sprite.create", input: { width: 2, height: 2 } },
+				{
+					op: "draw.rect",
+					input: {
+						spriteId,
+						layerId,
+						frame: 0,
+						rect: { x: 0, y: 0, width: 1, height: 1 },
+						filled: true,
+						color: "#ff0000",
+					},
+				},
+			],
+			"both",
+		);
+		const entry = session.stepLog().at(-1);
+		expect(entry).toMatchObject({
+			kind: "step",
+			checkpointId,
+			op: "session.apply",
+			note: "both",
+		});
+		expect(entry).toHaveProperty("sprites", [
+			expect.stringMatching(/^sprite-/),
+			spriteId,
+		]);
+		draw(session, spriteId, layerId, 2, "#00ff00");
+		expect(session.stepLog().at(-1)).not.toHaveProperty("note");
+	});
+
+	test("the returned log is a copy", () => {
+		const { session } = setup();
+		session.stepLog().length = 0;
+		(session.stepLog()[0] as { op: string }).op = "x";
+		expect(session.stepLog()).toHaveLength(2);
+		expect(session.stepLog()[0]).toMatchObject({ op: "sprite.create" });
+	});
+});

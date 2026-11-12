@@ -35,10 +35,28 @@ function journalInput(input: unknown): unknown {
 
 export type HistoryMove = { checkpointId: string; sprites: string[] };
 
+export type LogEntry =
+	| {
+			kind: "step";
+			checkpointId: string;
+			op: string;
+			input: unknown;
+			note?: string;
+			sprites: string[];
+	  }
+	| { kind: "moved"; checkpointId: string };
+
+function singleCallNote(input: unknown): string | undefined {
+	if (typeof input !== "object" || input === null) return undefined;
+	const { note } = input as { note?: unknown };
+	return typeof note === "string" ? note : undefined;
+}
+
 export class Session {
 	readonly workspace = new Workspace();
 	readonly registry = createRegistry(operations);
 	private readonly steps: Step[] = [];
+	private readonly log: LogEntry[] = [];
 	private position = 0;
 	private lastCheckpoint = 0;
 	private readonly names = new Map<string, string>();
@@ -65,9 +83,24 @@ export class Session {
 	}
 
 	restore(checkpoint: string): HistoryMove {
+		const before = this.position;
+		const move = this.restoreQuietly(checkpoint);
+		if (this.position !== before) this.logMove(move);
+		return move;
+	}
+
+	stepLog(): LogEntry[] {
+		return structuredClone(this.log);
+	}
+
+	private logMove(move: HistoryMove): void {
+		this.log.push({ kind: "moved", checkpointId: move.checkpointId });
+	}
+
+	private restoreQuietly(checkpoint: string): HistoryMove {
 		const target = this.positionOf(checkpoint);
-		if (target < this.position) return this.undo(this.position - target);
-		if (target > this.position) return this.redo(target - this.position);
+		if (target < this.position) return this.undoQuietly(this.position - target);
+		if (target > this.position) return this.redoQuietly(target - this.position);
 		return { checkpointId: this.currentCheckpointId(), sprites: [] };
 	}
 
@@ -81,7 +114,7 @@ export class Session {
 		const target = this.positionOf(checkpoint);
 		if (target === this.position) return this.workspace.getSprite(spriteId);
 		const remembered = this.position;
-		this.restore(checkpoint);
+		this.restoreQuietly(checkpoint);
 		try {
 			if (!this.workspace.hasSprite(spriteId)) {
 				throw new OpError(
@@ -92,9 +125,10 @@ export class Session {
 			}
 			return cloneSprite(this.workspace.getSprite(spriteId));
 		} finally {
-			if (remembered < this.position) this.undo(this.position - remembered);
-			else if (remembered > this.position) {
-				this.redo(remembered - this.position);
+			if (remembered < this.position) {
+				this.undoQuietly(this.position - remembered);
+			} else if (remembered > this.position) {
+				this.redoQuietly(remembered - this.position);
 			}
 		}
 	}
@@ -119,6 +153,18 @@ export class Session {
 	}
 
 	undo(steps = 1): HistoryMove {
+		const move = this.undoQuietly(steps);
+		this.logMove(move);
+		return move;
+	}
+
+	redo(steps = 1): HistoryMove {
+		const move = this.redoQuietly(steps);
+		this.logMove(move);
+		return move;
+	}
+
+	private undoQuietly(steps: number): HistoryMove {
 		this.checkSteps(steps, this.position);
 		const sprites = new Set<string>();
 		for (let i = 0; i < steps; i++) {
@@ -134,7 +180,7 @@ export class Session {
 		return { checkpointId: this.currentCheckpointId(), sprites: [...sprites] };
 	}
 
-	redo(steps = 1): HistoryMove {
+	private redoQuietly(steps: number): HistoryMove {
 		this.checkSteps(steps, this.steps.length - this.position);
 		const sprites = new Set<string>();
 		for (let i = 0; i < steps; i++) {
@@ -255,6 +301,15 @@ export class Session {
 		}
 		this.steps.push(step);
 		this.position++;
+		const note = isBatch ? label : singleCallNote(recorded[0]?.input);
+		this.log.push({
+			kind: "step",
+			checkpointId: step.checkpointId,
+			op: step.journalEntry.op,
+			input: structuredClone(step.journalEntry.input),
+			...(note === undefined ? {} : { note }),
+			sprites: [...touched.keys()],
+		});
 		return { results, checkpointId: step.checkpointId };
 	}
 

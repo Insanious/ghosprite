@@ -57,6 +57,7 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - `apply([...ops], label)` is one atomic transaction: all-or-nothing, and one undo step.
 - Named checkpoints, undo and redo. Undo restores the changed cels from snapshots taken before each change.
 - A journal of operations that can be replayed.
+- The session keeps a step log in memory that never discards anything: each change (a mutating call or one `apply` batch) with its checkpoint id, op, input, note and the sprites it changed, plus an entry each time undo, redo or restore moves to another checkpoint. Step N is `checkpoint-N`.
 - `describe(sprite)` returns the whole document's structure as JSON.
 
 ## API conventions
