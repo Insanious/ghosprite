@@ -2,16 +2,22 @@ import { afterAll, describe, expect, test } from "bun:test";
 import {
 	copyFileSync,
 	existsSync,
+	mkdirSync,
 	mkdtempSync,
 	readdirSync,
 	readFileSync,
 	rmSync,
+	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { inflateSync } from "node:zlib";
 import { LATEST_PROTOCOL_VERSION } from "@modelcontextprotocol/sdk/types.js";
+import { version } from "../package.json";
 import { decodePng } from "../src/core/index.ts";
+import { startRunLog } from "../src/run-log.ts";
+import { Session } from "../src/session.ts";
+import { callTool } from "../src/tools.ts";
 
 const scratch = mkdtempSync(join(tmpdir(), "ghosprite-cli-test-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
@@ -304,6 +310,108 @@ describe("cli mcp", () => {
 			checkpointId: "checkpoint-1",
 		});
 		expect(lines.some((l) => l.op === "sprite.save")).toBe(false);
+	});
+});
+
+describe("cli view", () => {
+	function savedRun(name: string): string {
+		const dir = join(scratch, name);
+		const source = join(scratch, `${name}-source.aseprite`);
+		copyFileSync("tests/fixtures/doc/base.aseprite", source);
+		const runLog = startRunLog(dir);
+		const session = new Session({ onLog: (entry) => runLog.append(entry) });
+		callTool(session, "sprite.load", { path: source });
+		callTool(session, "draw.rect", {
+			spriteId: "sprite-1",
+			layerId: "layer-2",
+			frame: 0,
+			color: "#ff0000",
+			rect: { x: 0, y: 0, width: 1, height: 1 },
+			filled: true,
+		});
+		session.undo();
+		return join(dir, runLog.name);
+	}
+
+	async function serve<T>(
+		args: string[],
+		use: (url: string) => Promise<T>,
+	): Promise<T> {
+		const probe = Bun.serve({ port: 0, fetch: () => new Response() });
+		const port = probe.port;
+		await probe.stop(true);
+		const proc = Bun.spawn(
+			["bun", "src/cli.ts", "view", ...args, "--port", `${port}`],
+			{ stdout: "pipe", stderr: "pipe" },
+		);
+		try {
+			const reader = proc.stdout.getReader();
+			const { value } = await reader.read();
+			return await use(new TextDecoder().decode(value).trim());
+		} finally {
+			proc.kill();
+			await proc.exited;
+		}
+	}
+
+	test("serves the saved run with pictures and the abandoned step off the path", async () => {
+		const folder = savedRun("view-run");
+		await serve([folder], async (url) => {
+			const log = (await (await fetch(`${url}log`)).json()) as {
+				kind: string;
+				checkpointId: string;
+				op?: string;
+				onPath?: boolean;
+				hasPicture?: boolean;
+			}[];
+			expect(log.map((e) => [e.kind, e.checkpointId, e.op])).toEqual([
+				["step", "checkpoint-1", "sprite.load"],
+				["step", "checkpoint-2", "draw.rect"],
+				["moved", "checkpoint-1", undefined],
+			]);
+			const steps = log.filter((e) => e.kind === "step");
+			expect(steps.map((e) => e.hasPicture)).toEqual([true, true]);
+			expect(steps.map((e) => e.onPath)).toEqual([true, false]);
+			const html = await (await fetch(url)).text();
+			expect(html).toContain(basename(folder));
+			expect(html).not.toContain("saved by ghosprite");
+		});
+	});
+
+	test("a log from another version puts both versions on the page", async () => {
+		const folder = savedRun("view-version");
+		const path = join(folder, "log.jsonl");
+		const lines = readFileSync(path, "utf8").split("\n");
+		lines[0] = JSON.stringify({
+			...JSON.parse(lines[0] as string),
+			version: "9.9.9",
+		});
+		writeFileSync(path, lines.join("\n"));
+		await serve([`${folder}/`], async (url) => {
+			const html = await (await fetch(url)).text();
+			expect(html).toContain("ghosprite 9.9.9");
+			expect(html).toContain(`this is ghosprite ${version}`);
+			expect(html).toContain(basename(folder));
+		});
+	});
+
+	for (const args of [
+		[],
+		["a", "b"],
+		["a", "--port", "abc"],
+		["a", "--port", "0"],
+	]) {
+		test(`view ${args.join(" ")} is a usage error`, () => {
+			expect(cli(["view", ...args]).status).toBe(2);
+		});
+	}
+
+	test("a folder with no log.jsonl exits 1", () => {
+		const empty = join(scratch, "view-empty");
+		mkdirSync(empty);
+		const { status, stderr } = cli(["view", empty]);
+		expect(status).toBe(1);
+		expect(stderr).toContain(empty);
 	});
 });
 

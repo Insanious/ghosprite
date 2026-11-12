@@ -1,11 +1,15 @@
 #!/usr/bin/env bun
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { version } from "../package.json";
 import { serveStdio } from "./mcp.ts";
+import { type Run, readRun, replayRun } from "./run-replay.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
+import { StepPictures } from "./viewer/history.ts";
+import { startViewer } from "./viewer/server.ts";
 
 const USAGE = `Usage:
   ghosprite run [file] [--out <dir>]   run a JSON array of {op, input} calls (stdin if no file or "-")
@@ -13,7 +17,10 @@ const USAGE = `Usage:
   ghosprite mcp [--viewer [port]] [--history <dir>]
                                        serve every operation and session tool over MCP on stdio;
                                        --viewer also serves a read-only step timeline on localhost (default port 7357);
-                                       --history writes the run's step log and loaded files to a new folder in <dir>`;
+                                       --history writes the run's step log and loaded files to a new folder in <dir>
+  ghosprite view <run folder> [--port <n>]
+                                       replay a run saved with --history and serve its read-only step timeline
+                                       on localhost (default port 7357)`;
 
 function usageError(message: string): never {
 	process.stderr.write(`${message}\n${USAGE}\n`);
@@ -85,6 +92,67 @@ async function run(args: string[]) {
 
 const DEFAULT_VIEWER_PORT = 7357;
 
+function parsePort(value: string): number {
+	const port = Number(value);
+	if (!/^\d+$/.test(value) || port < 1 || port > 65535) {
+		return usageError("The viewer port must be an integer from 1 to 65535");
+	}
+	return port;
+}
+
+async function view(args: string[]) {
+	let values: { port?: string };
+	let positionals: string[];
+	try {
+		({ values, positionals } = parseArgs({
+			args,
+			options: { port: { type: "string" } },
+			allowPositionals: true,
+		}));
+	} catch (error) {
+		return usageError((error as Error).message);
+	}
+	const [folderArg] = positionals;
+	if (folderArg === undefined || positionals.length > 1) {
+		return usageError("ghosprite view takes exactly one run folder");
+	}
+	const port =
+		values.port === undefined ? DEFAULT_VIEWER_PORT : parsePort(values.port);
+	const folder = resolve(folderArg);
+
+	let run: Run;
+	try {
+		run = readRun(folder);
+	} catch (error) {
+		process.stderr.write(`${(error as Error).message}\n`);
+		process.exit(1);
+	}
+
+	const pictures = new StepPictures();
+	const session = new Session({
+		onLog: (entry, workspace) => pictures.record(entry, workspace),
+	});
+	const { stopped } = replayRun(session, folder, run.entries);
+
+	const warnings: string[] = [];
+	if (run.version !== version) {
+		warnings.push(
+			`This run was saved by ghosprite ${run.version}; this is ghosprite ${version}. Some steps may be drawn differently.`,
+		);
+	}
+	if (stopped !== undefined) {
+		const step = stopped.checkpointId.replace(/^checkpoint-/, "");
+		const warning = `Replay stopped at step ${step}: ${stopped.message}`;
+		warnings.push(warning);
+		process.stderr.write(`${warning}\n`);
+	}
+	const viewer = startViewer(session, pictures, port, {
+		runName: basename(folder),
+		warnings,
+	});
+	console.log(viewer.url);
+}
+
 function parseMcpArgs(args: string[]): {
 	viewerPort?: number;
 	historyDir?: string;
@@ -101,11 +169,7 @@ function parseMcpArgs(args: string[]): {
 				continue;
 			}
 			i++;
-			const port = Number(value);
-			if (!/^\d+$/.test(value) || port < 1 || port > 65535) {
-				return usageError("The viewer port must be an integer from 1 to 65535");
-			}
-			options.viewerPort = port;
+			options.viewerPort = parsePort(value);
 		} else if (arg === "--history" && options.historyDir === undefined) {
 			const value = args[i + 1];
 			if (!isValue(value)) return usageError("--history needs a directory");
@@ -127,6 +191,8 @@ if (command === "run") {
 	console.log(JSON.stringify(describeTools(new Session()), null, 2));
 } else if (command === "mcp") {
 	await serveStdio(parseMcpArgs(rest));
+} else if (command === "view") {
+	await view(rest);
 } else {
 	usageError(command ? `Unknown command "${command}"` : "Missing command");
 }
