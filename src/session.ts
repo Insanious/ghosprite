@@ -52,10 +52,8 @@ function singleCallNote(input: unknown): string | undefined {
 	return typeof note === "string" ? note : undefined;
 }
 
-export type StepEntry = Extract<LogEntry, { kind: "step" }>;
-
 type SessionOptions = {
-	onStep?: (entry: StepEntry, workspace: Workspace) => void;
+	onLog?: (entry: LogEntry, workspace: Workspace) => void;
 };
 
 export class Session {
@@ -102,7 +100,12 @@ export class Session {
 	}
 
 	private logMove(move: HistoryMove): void {
-		this.log.push({ kind: "moved", checkpointId: move.checkpointId });
+		this.pushLog({ kind: "moved", checkpointId: move.checkpointId });
+	}
+
+	private pushLog(entry: LogEntry): void {
+		this.log.push(entry);
+		this.options.onLog?.(structuredClone(entry), this.workspace);
 	}
 
 	private restoreQuietly(checkpoint: string): HistoryMove {
@@ -310,16 +313,14 @@ export class Session {
 		this.steps.push(step);
 		this.position++;
 		const note = isBatch ? label : singleCallNote(recorded[0]?.input);
-		const entry: StepEntry = {
+		this.pushLog({
 			kind: "step",
 			checkpointId: step.checkpointId,
 			op: step.journalEntry.op,
 			input: structuredClone(step.journalEntry.input),
 			...(note === undefined ? {} : { note }),
 			sprites: [...touched.keys()],
-		};
-		this.log.push(entry);
-		this.options.onStep?.(structuredClone(entry), this.workspace);
+		});
 		return { results, checkpointId: step.checkpointId };
 	}
 

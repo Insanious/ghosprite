@@ -9,7 +9,7 @@ type Created = { spriteId: string; layerId: string };
 function pictureSession() {
 	const pictures = new StepPictures();
 	const session = new Session({
-		onStep: (entry, workspace) => pictures.record(entry, workspace),
+		onLog: (entry, workspace) => pictures.record(entry, workspace),
 	});
 	return { session, pictures };
 }
@@ -102,6 +102,18 @@ describe("StepPictures", () => {
 		});
 		expect(result.checkpointId).toBe("checkpoint-1");
 		expect(pictures.get("checkpoint-1")).toBeUndefined();
+	});
+
+	test("a moved entry records no picture", () => {
+		const { session, pictures } = pictureSession();
+		session.run("sprite.create", { width: 2, height: 2 });
+		session.undo();
+		pictures.record(
+			{ kind: "moved", checkpointId: "checkpoint-9" },
+			session.workspace,
+		);
+		expect(pictures.get("checkpoint-9")).toBeUndefined();
+		expect(pictures.get("checkpoint-0")).toBeUndefined();
 	});
 
 	test("an unknown checkpoint has no picture", () => {

@@ -90,7 +90,7 @@ export async function serveStdio(viewerPort?: number): Promise<void> {
 	}
 	const pictures = new StepPictures();
 	const session = new Session({
-		onStep: (entry, workspace) => pictures.record(entry, workspace),
+		onLog: (entry, workspace) => pictures.record(entry, workspace),
 	});
 	const viewer = startViewer(session, pictures, viewerPort);
 	process.stdin.once("end", viewer.stop);

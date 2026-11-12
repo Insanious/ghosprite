@@ -13,7 +13,7 @@ import {
 } from "./core/index.ts";
 import { OpError } from "./errors.ts";
 import type { MutationResult } from "./ops/registry.ts";
-import { type Call, Session } from "./session.ts";
+import { type Call, type LogEntry, Session } from "./session.ts";
 
 function pixelsOf(sprite: Sprite): string {
 	return Buffer.from(encodePng(renderFrame(sprite, 0), deflateSync)).toString(
@@ -773,11 +773,9 @@ describe("Session step log", () => {
 		expect(session.stepLog().at(-1)).not.toHaveProperty("note");
 	});
 
-	test("onStep fires once per change and per batch, not for anything else", () => {
-		const seen: string[] = [];
-		const session = new Session({
-			onStep: (entry) => seen.push(entry.checkpointId),
-		});
+	test("onLog fires once per log entry, in order, and not for anything else", () => {
+		const seen: LogEntry[] = [];
+		const session = new Session({ onLog: (entry) => seen.push(entry) });
 		const { spriteId } = session.run("sprite.create", {
 			width: 4,
 			height: 4,
@@ -786,7 +784,7 @@ describe("Session step log", () => {
 			spriteId,
 			name: "L",
 		}) as unknown as Created;
-		expect(seen).toEqual(["checkpoint-1", "checkpoint-2"]);
+		expect(seen).toHaveLength(2);
 		session.apply([
 			{ op: "sprite.create", input: { width: 1, height: 1 } },
 			{
@@ -801,13 +799,20 @@ describe("Session step log", () => {
 				},
 			},
 		]);
-		expect(seen).toEqual(["checkpoint-1", "checkpoint-2", "checkpoint-3"]);
+		expect(seen).toHaveLength(3);
 		session.run("sprite.render", { spriteId, frames: [0] });
 		expect(() => session.run("draw.rect", { spriteId })).toThrow();
+		expect(seen).toHaveLength(3);
 		session.undo();
 		session.redo();
 		session.restore("checkpoint-1");
-		expect(seen).toHaveLength(3);
+		session.restore("checkpoint-1");
+		expect(seen.slice(3)).toEqual([
+			{ kind: "moved", checkpointId: "checkpoint-2" },
+			{ kind: "moved", checkpointId: "checkpoint-3" },
+			{ kind: "moved", checkpointId: "checkpoint-1" },
+		]);
+		expect(seen).toEqual(session.stepLog());
 	});
 
 	test("the returned log is a copy", () => {

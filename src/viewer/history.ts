@@ -1,12 +1,13 @@
 import { type Image, renderFrame } from "../core/index.ts";
 import { renderPng } from "../ops/render-output.ts";
-import type { LogEntry, StepEntry } from "../session.ts";
+import type { LogEntry } from "../session.ts";
 import type { Workspace } from "../workspace.ts";
 
 export class StepPictures {
 	private readonly pictures = new Map<string, Uint8Array>();
 
-	record(entry: StepEntry, workspace: Workspace): void {
+	record(entry: LogEntry, workspace: Workspace): void {
+		if (entry.kind !== "step") return;
 		try {
 			const images: Image[] = entry.sprites.flatMap((id) => {
 				const sprite = workspace.getSprite(id);

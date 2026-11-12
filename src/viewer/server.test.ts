@@ -14,7 +14,7 @@ afterEach(() => {
 function start(port = 0) {
 	const pictures = new StepPictures();
 	const session = new Session({
-		onStep: (entry, workspace) => pictures.record(entry, workspace),
+		onLog: (entry, workspace) => pictures.record(entry, workspace),
 	});
 	const viewer = startViewer(session, pictures, port);
 	cleanups.push(viewer.stop);
