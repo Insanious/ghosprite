@@ -85,6 +85,26 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": ["**", "!src/core/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/core/**", "!**/core/index.ts"],
+										"message": "Outside src/core, import core only from src/core/index.ts."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
 		}
 	],
 	"assist": {

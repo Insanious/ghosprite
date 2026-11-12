@@ -8,6 +8,7 @@ A headless pixel-art sprite engine for AI agents, modelled on Aseprite's documen
 
 - Never copy or closely paraphrase code from Aseprite's `src/app/**` or `src/filters`. They are under the Aseprite EULA. Reimplement that behaviour from docs, observed output and the JSON schema. The MIT parts (`src/doc`, `src/render`, `src/dio`, `laf/*`, pixman, and others listed in section 1 of the reference) may be ported line for line.
 - The pixel core (primitives, model, compositor, drawing algorithms, codecs) does no I/O and imports no dependencies, so it can be ported to Rust/WASM later. Codecs that need compression take `inflate`/`deflate` as functions from the caller. A format encoded by a third-party library (such as GIF or WebP) lives outside the core.
+- Code outside `src/core` imports core only from `src/core/index.ts`, which re-exports just what callers use.
 - Core throws `CoreError` (from `src/core/errors.ts`) with a code for errors its caller caused, and a plain `Error` only for bugs and broken invariants.
 - Ops in `src/ops` don't loop over pixels or index `image.data`. Put that work in a core function that takes or returns a whole image or buffer. Looping over strings or index buffers is fine.
 - Each operation's Zod schema is the only definition of its input. Derive types, validation and MCP tools from it, and never hand-write a duplicate.
