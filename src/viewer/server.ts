@@ -1,5 +1,9 @@
 import type { Session } from "../session.ts";
-import { currentPath, type StepPictures } from "./history.ts";
+import {
+	currentCheckpoint,
+	currentPath,
+	type StepPictures,
+} from "./history.ts";
 import { type PageOptions, page } from "./page.ts";
 
 const MAX_TRIES = 20;
@@ -24,12 +28,14 @@ export function startViewer(
 		if (pathname === "/log") {
 			const log = session.stepLog();
 			const onPath = currentPath(log);
+			const current = currentCheckpoint(log);
 			return Response.json(
 				log.map((entry) =>
 					entry.kind === "step"
 						? {
 								...entry,
 								onPath: onPath.has(entry.checkpointId),
+								current: entry.checkpointId === current,
 								hasPicture: pictures.get(entry.checkpointId) !== undefined,
 							}
 						: entry,

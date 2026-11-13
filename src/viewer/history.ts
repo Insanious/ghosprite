@@ -32,7 +32,7 @@ export class StepPictures {
 	}
 }
 
-export function currentPath(log: LogEntry[]): Set<string> {
+function walk(log: LogEntry[]): { stack: string[]; position: number } {
 	let stack: string[] = [];
 	let position = 0;
 	for (const entry of log) {
@@ -47,5 +47,15 @@ export function currentPath(log: LogEntry[]): Set<string> {
 					: stack.indexOf(entry.checkpointId) + 1;
 		}
 	}
+	return { stack, position };
+}
+
+export function currentPath(log: LogEntry[]): Set<string> {
+	const { stack, position } = walk(log);
 	return new Set(stack.slice(0, position));
+}
+
+export function currentCheckpoint(log: LogEntry[]): string | undefined {
+	const { stack, position } = walk(log);
+	return stack[position - 1];
 }

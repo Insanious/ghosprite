@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
 import { decodePng } from "../core/index.ts";
 import { Session } from "../session.ts";
-import { currentPath, StepPictures } from "./history.ts";
+import { currentCheckpoint, currentPath, StepPictures } from "./history.ts";
 
 type Created = { spriteId: string; layerId: string };
 
@@ -30,6 +30,19 @@ function paint(
 		filled: true,
 		color,
 	}).checkpointId as string;
+}
+
+function steps() {
+	const session = new Session();
+	const { spriteId } = session.run("sprite.create", {
+		width: 4,
+		height: 4,
+	}) as unknown as Created;
+	const { layerId } = session.run("layer.create", {
+		spriteId,
+		name: "L",
+	}) as unknown as Created;
+	return { session, spriteId, layerId };
 }
 
 function pixel(
@@ -122,19 +135,6 @@ describe("StepPictures", () => {
 });
 
 describe("currentPath", () => {
-	function steps() {
-		const session = new Session();
-		const { spriteId } = session.run("sprite.create", {
-			width: 4,
-			height: 4,
-		}) as unknown as Created;
-		const { layerId } = session.run("layer.create", {
-			spriteId,
-			name: "L",
-		}) as unknown as Created;
-		return { session, spriteId, layerId };
-	}
-
 	test("linear steps are all on the path", () => {
 		const { session, spriteId, layerId } = steps();
 		paint(session, spriteId, layerId, 0, 0, "#ff0000");
@@ -172,5 +172,47 @@ describe("currentPath", () => {
 		paint(session, spriteId, layerId, 0, 0, "#ff0000");
 		session.restore("checkpoint-0");
 		expect(currentPath(session.stepLog())).toEqual(new Set());
+	});
+});
+
+describe("currentCheckpoint", () => {
+	test("an empty log has no current step", () => {
+		expect(currentCheckpoint([])).toBeUndefined();
+	});
+
+	test("with linear steps it is the last one", () => {
+		const { session, spriteId, layerId } = steps();
+		paint(session, spriteId, layerId, 0, 0, "#ff0000");
+		expect(currentCheckpoint(session.stepLog())).toBe("checkpoint-3");
+	});
+
+	test("after an undo it is the step moved to, not the newest", () => {
+		const { session, spriteId, layerId } = steps();
+		paint(session, spriteId, layerId, 0, 0, "#ff0000");
+		session.undo();
+		expect(currentCheckpoint(session.stepLog())).toBe("checkpoint-2");
+	});
+
+	test("after an undo and a new step it is the new step", () => {
+		const { session, spriteId, layerId } = steps();
+		paint(session, spriteId, layerId, 0, 0, "#ff0000");
+		session.undo();
+		const replacement = paint(session, spriteId, layerId, 0, 1, "#00ff00");
+		expect(currentCheckpoint(session.stepLog())).toBe(replacement);
+	});
+
+	test("a restore to checkpoint-0 has no current step", () => {
+		const { session, spriteId, layerId } = steps();
+		paint(session, spriteId, layerId, 0, 0, "#ff0000");
+		session.restore("checkpoint-0");
+		expect(currentCheckpoint(session.stepLog())).toBeUndefined();
+	});
+
+	test("a redo after an undo gives the redone step", () => {
+		const { session, spriteId, layerId } = steps();
+		paint(session, spriteId, layerId, 0, 0, "#ff0000");
+		session.undo();
+		session.redo();
+		expect(currentCheckpoint(session.stepLog())).toBe("checkpoint-3");
 	});
 });

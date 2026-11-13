@@ -4,7 +4,12 @@ import { StepPictures } from "./history.ts";
 import { startViewer } from "./server.ts";
 
 type Created = { spriteId: string; layerId: string };
-type LogItem = { kind: string; checkpointId: string; onPath?: boolean };
+type LogItem = {
+	kind: string;
+	checkpointId: string;
+	onPath?: boolean;
+	current?: boolean;
+};
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
@@ -113,6 +118,23 @@ describe("startViewer", () => {
 			["step", "checkpoint-3", false],
 			["moved", "checkpoint-2", undefined],
 			["step", "checkpoint-4", true],
+		]);
+		expect(log.filter((e) => e.current).map((e) => e.checkpointId)).toEqual([
+			"checkpoint-4",
+		]);
+	});
+
+	test("/log marks the step moved to as current after an undo", async () => {
+		const { session, viewer } = start();
+		const created = create(session);
+		paint(session, created, 0);
+		session.undo();
+		const log = (await (await fetch(`${viewer.url}log`)).json()) as LogItem[];
+		const steps = log.filter((e) => e.kind === "step");
+		expect(steps.map((e) => [e.checkpointId, e.current])).toEqual([
+			["checkpoint-1", false],
+			["checkpoint-2", true],
+			["checkpoint-3", false],
 		]);
 	});
 
