@@ -17,12 +17,17 @@ export const page = ({
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${runName === undefined ? "" : `${escapeHtml(runName)} · `}ghosprite viewer</title>
 <style>
-body { font: 14px system-ui, sans-serif; margin: 16px; background: #222; color: #eee; }
+* { box-sizing: border-box; }
+body { font: 14px system-ui, sans-serif; margin: 0; padding: 16px; height: 100vh; display: flex; flex-direction: column; background: #222; color: #eee; }
+h1 { margin: 0 0 12px; }
 #warnings { background: #4a3b12; border: 2px solid #c9a227; padding: 6px 10px; margin-bottom: 16px; }
 #warnings p { margin: 4px 0; }
-#timeline { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+#panes { flex: 1; min-height: 0; display: flex; gap: 16px; }
+#main, #timeline { flex: 1 1 0; min-width: 0; overflow-y: auto; }
+#timeline { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; align-content: flex-start; }
 .card { background: #333; border: 2px solid #333; padding: 6px; cursor: pointer; max-width: 200px; }
 .card.selected { border-color: #6cf; }
 .card.off { opacity: 0.35; }
@@ -32,18 +37,37 @@ body { font: 14px system-ui, sans-serif; margin: 16px; background: #222; color: 
 .moved { align-self: center; color: #aaa; font-style: italic; }
 .note { color: #ccc; margin-top: 4px; overflow-wrap: anywhere; }
 .tool { color: #8c8; font-family: monospace; }
-#detail { margin-top: 16px; }
-#detail img { max-width: 100%; image-rendering: pixelated; }
+.view { overflow-x: auto; margin-bottom: 8px; }
+.view .checker { display: inline-block; vertical-align: top; }
+.view img { display: block; max-width: none; image-rendering: pixelated; }
 pre { background: #111; padding: 8px; overflow: auto; }
+@media (max-width: 800px) {
+  body { height: auto; display: block; }
+  #panes { display: block; }
+  #main { overflow-y: visible; margin-bottom: 16px; }
+  #timeline { max-height: 60vh; }
+}
 </style>
 </head>
 <body>
-${runName === undefined ? "" : `<h1 id="run">Run ${escapeHtml(runName)}</h1>\n`}${warnings.length === 0 ? "" : `<div id="warnings">${warnings.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>\n`}<div id="timeline"></div>
-<div id="detail"></div>
+${runName === undefined ? "" : `<h1 id="run">Run ${escapeHtml(runName)}</h1>\n`}${warnings.length === 0 ? "" : `<div id="warnings">${warnings.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>\n`}<div id="panes">
+<div id="main"><button id="follow" hidden>Follow live</button><div id="shown"></div></div>
+<div id="timeline"></div>
+</div>
 <script>
+const timeline = document.getElementById("timeline");
+const main = document.getElementById("main");
+const shown = document.getElementById("shown");
+const followButton = document.getElementById("follow");
+
 let entries = [];
+let renderedCount = 0;
 let signature = "";
-let selected = null;
+let following = true;
+let pinned = null;
+let mainId = null;
+let mainImage = null;
+const cards = new Map();
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -53,6 +77,7 @@ function el(tag, className, text) {
 }
 const stepNumber = (id) => id.replace("checkpoint-", "");
 const toolName = (op) => op.replaceAll(".", "_");
+const isStep = (entry) => entry.kind === "step";
 
 function picture(entry) {
   const img = el("img");
@@ -61,76 +86,118 @@ function picture(entry) {
   return img;
 }
 
-function renderDetail() {
-  const box = document.getElementById("detail");
-  box.replaceChildren();
-  const entry = entries.find((e) => e.kind === "step" && e.checkpointId === selected);
+function shownId() {
+  if (!following) return pinned;
+  const current = entries.find((e) => isStep(e) && e.current);
+  return current ? current.checkpointId : null;
+}
+
+function fitImage() {
+  const img = mainImage;
+  if (!img || !img.naturalWidth) return;
+  const scale = Math.max(1, Math.floor(Math.min(
+    main.clientWidth / img.naturalWidth,
+    (window.innerHeight * 0.7) / img.naturalHeight)));
+  img.style.setProperty("width", img.naturalWidth * scale + "px");
+  img.style.setProperty("height", img.naturalHeight * scale + "px");
+}
+
+function renderMain(id) {
+  shown.replaceChildren();
+  mainImage = null;
+  const entry = entries.find((e) => isStep(e) && e.checkpointId === id);
   if (!entry) return;
-  box.append(el("h2", "", "Step " + stepNumber(entry.checkpointId)));
-  box.append(el("div", "tool", toolName(entry.op)));
-  if (entry.note) box.append(el("div", "note", entry.note));
   if (entry.hasPicture) {
+    const view = el("div", "view");
     const wrap = el("div", "checker");
-    wrap.style.display = "inline-block";
-    wrap.style.marginTop = "8px";
-    const img = picture(entry);
-    img.onload = () => {
-      const scale = Math.max(1, Math.floor(Math.min(
-        (box.clientWidth || img.naturalWidth) / img.naturalWidth,
-        (window.innerHeight * 0.6) / img.naturalHeight)));
-      img.style.setProperty("width", img.naturalWidth * scale + "px");
-      img.style.setProperty("height", img.naturalHeight * scale + "px");
-      img.style.maxWidth = "none";
-    };
-    wrap.append(img);
-    box.append(wrap);
+    mainImage = picture(entry);
+    mainImage.onload = fitImage;
+    wrap.append(mainImage);
+    view.append(wrap);
+    shown.append(view);
   }
+  shown.append(el("h2", "", "Step " + stepNumber(id)));
+  shown.append(el("div", "tool", toolName(entry.op)));
+  if (entry.note) shown.append(el("div", "note", entry.note));
   const details = el("details");
   details.append(el("summary", "", "Input"));
   details.append(el("pre", "", JSON.stringify(entry.input, null, 2)));
-  box.append(details);
+  shown.append(details);
 }
 
-function render() {
-  const timeline = document.getElementById("timeline");
-  timeline.replaceChildren();
-  for (const entry of entries) {
-    if (entry.kind === "moved") {
-      const n = stepNumber(entry.checkpointId);
-      timeline.append(el("div", "moved", "moved to step " + n));
-      continue;
-    }
-    const card = el("div", "card" + (entry.onPath ? "" : " off") + (entry.checkpointId === selected ? " selected" : ""));
-    const thumb = el("div", "thumb checker");
-    if (entry.hasPicture) thumb.append(picture(entry));
-    card.append(thumb);
-    card.append(el("div", "", "Step " + stepNumber(entry.checkpointId)));
-    card.append(el("div", "tool", toolName(entry.op)));
-    if (entry.note) card.append(el("div", "note", entry.note));
-    card.onclick = () => {
-      selected = entry.checkpointId;
-      render();
-      renderDetail();
-    };
-    timeline.append(card);
+function showShown() {
+  const id = shownId();
+  followButton.hidden = following;
+  for (const [cardId, card] of cards) card.classList.toggle("selected", cardId === id);
+  if (id === mainId) return;
+  mainId = id;
+  renderMain(id);
+}
+
+function addEntry(entry) {
+  if (!isStep(entry)) {
+    timeline.append(el("div", "moved", "moved to step " + stepNumber(entry.checkpointId)));
+    return;
   }
+  const card = el("div", "card");
+  const thumb = el("div", "thumb checker");
+  if (entry.hasPicture) thumb.append(picture(entry));
+  card.append(thumb);
+  card.append(el("div", "", "Step " + stepNumber(entry.checkpointId)));
+  card.append(el("div", "tool", toolName(entry.op)));
+  if (entry.note) card.append(el("div", "note", entry.note));
+  card.onclick = () => {
+    const current = entries.find((e) => isStep(e) && e.current);
+    if (current && current.checkpointId === entry.checkpointId) {
+      following = true;
+    } else {
+      pinned = entry.checkpointId;
+      following = false;
+    }
+    showShown();
+  };
+  cards.set(entry.checkpointId, card);
+  timeline.append(card);
+}
+
+function reset() {
+  timeline.replaceChildren();
+  cards.clear();
+  renderedCount = 0;
+  signature = "";
+  pinned = null;
+  following = true;
+  mainId = null;
+  shown.replaceChildren();
 }
 
 async function poll() {
   try {
     const response = await fetch("/log");
     const next = await response.json();
-    const nextSignature = next.length + ":" + next.map((e) => e.onPath ? "1" : "0").join("");
-    if (nextSignature !== signature) {
-      signature = nextSignature;
-      entries = next;
-      render();
-      if (selected) renderDetail();
+    if (next.length < renderedCount) reset();
+    const nextSignature = next.length + ":" + next.map((e) => (e.onPath ? "1" : "0") + (e.current ? "1" : "0")).join("");
+    if (nextSignature === signature) return;
+    signature = nextSignature;
+    entries = next;
+    const appended = next.length > renderedCount;
+    for (const entry of next.slice(renderedCount)) addEntry(entry);
+    renderedCount = next.length;
+    for (const entry of next) {
+      if (isStep(entry)) cards.get(entry.checkpointId).classList.toggle("off", !entry.onPath);
     }
+    showShown();
+    if (following && appended) timeline.scrollTop = timeline.scrollHeight;
   } catch (error) {
     // The server may be gone; keep what is shown.
   }
 }
+
+followButton.onclick = () => {
+  following = true;
+  showShown();
+};
+window.addEventListener("resize", fitImage);
 poll();
 setInterval(poll, 1000);
 </script>

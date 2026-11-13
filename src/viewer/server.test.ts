@@ -53,7 +53,10 @@ describe("startViewer", () => {
 		const { viewer } = start();
 		const response = await fetch(viewer.url);
 		expect(response.headers.get("content-type")).toContain("text/html");
-		expect(await response.text()).toContain("<html");
+		const html = await response.text();
+		expect(html).toContain("<html");
+		expect(html).toContain('id="main"');
+		expect(html).toContain('id="timeline"');
 	});
 
 	test("names the run in the heading and title when given one", async () => {
