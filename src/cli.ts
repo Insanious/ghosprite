@@ -1,8 +1,9 @@
 #!/usr/bin/env bun
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { historyDir } from "./history-dir.ts";
 import { serveStdio } from "./mcp.ts";
 import { type Run, readRun, replayRun, versionWarning } from "./run-replay.ts";
 import { Session } from "./session.ts";
@@ -13,12 +14,16 @@ import { startViewer } from "./viewer/server.ts";
 const USAGE = `Usage:
   ghosprite run [file] [--out <dir>]   run a JSON array of {op, input} calls (stdin if no file or "-")
   ghosprite ops                        print every operation and its input schema as JSON
-  ghosprite mcp [--viewer [port]] [--history <dir>]
+  ghosprite mcp [--viewer [port] | --no-viewer] [--history <dir> | --no-history]
                                        serve every operation and session tool over MCP on stdio;
-                                       --viewer also serves a read-only step timeline on localhost (default port 7357);
-                                       --history writes the run's step log and loaded files to a new folder in <dir>
+                                       the viewer, a read-only step timeline on localhost (default port 7357), is on by default;
+                                       history, which writes the run's step log and loaded files to a new folder, is on by default;
+                                       the history folder is --history <dir>, else $GHOSPRITE_HISTORY, else
+                                       $XDG_STATE_HOME/ghosprite/runs (~/.local/state/ghosprite/runs) on Linux,
+                                       ~/Library/Application Support/ghosprite/runs on macOS,
+                                       %LOCALAPPDATA%\\ghosprite\\runs on Windows
   ghosprite view <run folder> [--port <n>]
-                                       replay a run saved with --history and serve its read-only step timeline
+                                       replay a run saved by ghosprite mcp and serve its read-only step timeline
                                        on localhost (default port 7357)`;
 
 function usageError(message: string): never {
@@ -149,35 +154,52 @@ async function view(args: string[]) {
 	console.log(viewer.url);
 }
 
+const MCP_FLAGS = ["--viewer", "--no-viewer", "--history", "--no-history"];
+
 function parseMcpArgs(args: string[]): {
 	viewerPort?: number;
 	historyDir?: string;
 } {
-	const options: { viewerPort?: number; historyDir?: string } = {};
+	const seen = new Set<string>();
+	let viewerPort: number | undefined;
+	let historyFlag: string | undefined;
 	const isValue = (arg: string | undefined): arg is string =>
 		arg !== undefined && !arg.startsWith("--");
 	for (let i = 0; i < args.length; i++) {
 		const arg = args[i];
-		if (arg === "--viewer" && options.viewerPort === undefined) {
+		if (arg === undefined || !MCP_FLAGS.includes(arg) || seen.has(arg)) {
+			return usageError(
+				"ghosprite mcp takes only --viewer [port], --no-viewer, --history <dir> and --no-history, each once",
+			);
+		}
+		seen.add(arg);
+		if (arg === "--viewer") {
 			const value = args[i + 1];
-			if (!isValue(value)) {
-				options.viewerPort = DEFAULT_VIEWER_PORT;
-				continue;
+			if (isValue(value)) {
+				i++;
+				viewerPort = parsePort(value);
 			}
-			i++;
-			options.viewerPort = parsePort(value);
-		} else if (arg === "--history" && options.historyDir === undefined) {
+		} else if (arg === "--history") {
 			const value = args[i + 1];
 			if (!isValue(value)) return usageError("--history needs a directory");
 			i++;
-			options.historyDir = value;
-		} else {
-			return usageError(
-				"ghosprite mcp takes only --viewer [port] and --history <dir>, each once",
-			);
+			historyFlag = value;
 		}
 	}
-	return options;
+	if (seen.has("--viewer") && seen.has("--no-viewer")) {
+		return usageError("--viewer and --no-viewer can't be used together");
+	}
+	if (seen.has("--history") && seen.has("--no-history")) {
+		return usageError("--history and --no-history can't be used together");
+	}
+	return {
+		viewerPort: seen.has("--no-viewer")
+			? undefined
+			: (viewerPort ?? DEFAULT_VIEWER_PORT),
+		historyDir: seen.has("--no-history")
+			? undefined
+			: historyDir(historyFlag, process.env, process.platform, homedir()),
+	};
 }
 
 const [command, ...rest] = process.argv.slice(2);

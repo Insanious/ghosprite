@@ -26,7 +26,7 @@ export function resumeTool(history?: { dir: string; log: RunLog }): Tool {
 	return defineTool({
 		name: "session.resume",
 		description:
-			"Rebuild a run saved with --history up to one of its steps, with the same sprite, layer and checkpoint ids, then carry on from there. `run` is a folder name inside the history directory, or a path; `step` is the step number, the N of checkpoint-N. Only works before any change has been made in this session.",
+			"Rebuild a saved run up to one of its steps, with the same sprite, layer and checkpoint ids, then carry on from there. `run` is a folder name inside the history directory, or a path; `step` is the step number, the N of checkpoint-N. Only works before any change has been made in this session.",
 		schema: z.object({
 			run: z.string(),
 			step: z.number().int().min(1),

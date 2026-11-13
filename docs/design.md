@@ -2,7 +2,7 @@
 
 ghosprite is a headless pixel-art sprite engine for AI agents. It covers sprites, layers, frames, animation tags, palettes and sprite sheets, and an agent creates and edits them through explicit, schema-described operations over MCP or a CLI.
 
-It follows Aseprite's document model and editing features, with the interactive editor removed. Nobody draws by hand. Humans and agents only look at output: upscaled PNG renders, contact sheets, before/after diffs, and an optional read-only viewer.
+It follows Aseprite's document model and editing features, with the interactive editor removed. Nobody draws by hand. Humans and agents only look at output: upscaled PNG renders, contact sheets, before/after diffs, and a read-only viewer, on by default.
 
 ## Principles
 
@@ -58,10 +58,10 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - Named checkpoints, undo and redo. Undo restores the changed cels from snapshots taken before each change.
 - A journal of operations that can be replayed.
 - The session keeps a step log in memory that never discards anything: each change (a mutating call or one `apply` batch) with its checkpoint id, op, input, note and the sprites it changed, plus an entry each time undo, redo or restore moves to another checkpoint. Step N is `checkpoint-N`.
-- `ghosprite mcp --viewer [port]` serves a read-only localhost page showing the session's steps as a timeline of pictures, each drawn once when its step happens. Moves between checkpoints appear as markers, and steps off the current path are greyed out. The human steers by telling the agent a checkpoint.
-- `ghosprite mcp --history <dir>` writes each server run to its own folder inside `<dir>`, named by its start time: a `log.jsonl` that is only appended to, holding a version line and then every step-log entry as it happens, plus copies of loaded files named by content hash, which the log's load calls point to by relative path (the original path is kept for display). Readers drop an unfinished last line. Written files are not logged or stored. Nothing is cleaned up. With `--viewer` on too, the page shows the folder name. This is not crash recovery: only the log is saved and nothing is restored on start.
+- `ghosprite mcp` serves, by default, a read-only localhost page (`--viewer [port]` picks the port, `--no-viewer` turns it off; passing both is an error) showing the session's steps as a timeline of pictures, each drawn once when its step happens. Moves between checkpoints appear as markers, and steps off the current path are greyed out. The human steers by telling the agent a checkpoint.
+- `ghosprite mcp` writes, by default, each server run to its own folder inside the history folder, named by its start time. The history folder is the `--history <dir>` value, else a non-empty `GHOSPRITE_HISTORY`, else the platform default: `$XDG_STATE_HOME/ghosprite/runs` (`~/.local/state/ghosprite/runs` when `XDG_STATE_HOME` is unset or empty) on Linux and other Unixes, `~/Library/Application Support/ghosprite/runs` on macOS, `%LOCALAPPDATA%\ghosprite\runs` on Windows. `--no-history` turns it off; passing `--history` with `--no-history` is an error. Runs saved elsewhere are not moved. A run folder holds a `log.jsonl` that is only appended to, holding a version line and then every step-log entry as it happens, plus copies of loaded files named by content hash, which the log's load calls point to by relative path (the original path is kept for display). Readers drop an unfinished last line. Written files are not logged or stored. Nothing is cleaned up. With the viewer on, the page shows the folder name. This is not crash recovery: only the log is saved and nothing is restored on start.
 - `ghosprite view <run folder> [--port <n>]` replays a saved run in a fresh session, reading loaded files from the run folder's stored copies, and serves the same read-only page; if the run was saved by another version the page says so, naming both, and still shows the run.
-- `session.resume { run, step }` replays a saved run (a folder name inside the `--history` directory, or a path) up to the call that made that step, including moves before it, into a session that has no steps yet, so ids match the original run; any logged step can be resumed, including abandoned ones. A run saved by another version still resumes, with a `warning` naming both. With `--history` on, the new run's log records the source run and step after its version line, then copies the source entries up to that step and the stored files they use, so it doesn't depend on the old folder. Resuming is asked for by the agent and nothing is restored automatically.
+- `session.resume { run, step }` replays a saved run (a folder name inside the history folder, or a path) up to the call that made that step, including moves before it, into a session that has no steps yet, so ids match the original run; any logged step can be resumed, including abandoned ones. A run saved by another version still resumes, with a `warning` naming both. With history on, the new run's log records the source run and step after its version line, then copies the source entries up to that step and the stored files they use, so it doesn't depend on the old folder. Resuming is asked for by the agent and nothing is restored automatically.
 - `describe(sprite)` returns the whole document's structure as JSON.
 
 ## API conventions
@@ -90,7 +90,7 @@ Compositing and blending match Aseprite pixel for pixel, across all 19 blend mod
 - Any interactive editor: canvas, an editor's frame timeline (not the read-only step timeline of the session viewer), mouse tools, dialogs, themes, preferences, plugins.
 - Legacy formats: FLI, PCX, BMP, CSS, and PSD import.
 - ICC colour management.
-- Aseprite's crash recovery (`--history` saves a log, not a recovery point), updater and extension system.
+- Aseprite's crash recovery (the run history saves a log, not a recovery point), updater and extension system.
 
 ## Not yet
 

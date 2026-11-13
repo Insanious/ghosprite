@@ -31,9 +31,53 @@ const script = [
 	},
 ];
 
-function cli(args: string[], stdin?: string) {
+const initialize = {
+	jsonrpc: "2.0",
+	id: 1,
+	method: "initialize",
+	params: {
+		protocolVersion: LATEST_PROTOCOL_VERSION,
+		capabilities: {},
+		clientInfo: { name: "test", version: "0" },
+	},
+};
+
+function envWith(overrides: Record<string, string>) {
+	return { ...process.env, ...overrides };
+}
+
+function mcp(
+	args: string[],
+	env: Record<string, string | undefined>,
+	messages: object[] = [],
+) {
+	return Bun.spawnSync(["bun", "src/cli.ts", "mcp", ...args], {
+		env,
+		stdin: new TextEncoder().encode(
+			messages.map((m) => `${JSON.stringify(m)}\n`).join(""),
+		),
+		timeout: 10_000,
+	});
+}
+
+function instructionsOf(proc: { stdout: Buffer }): string {
+	const response = proc.stdout
+		.toString()
+		.split("\n")
+		.filter((line) => line !== "")
+		.map((line) => JSON.parse(line))
+		.find((message) => message.id === 1);
+	return response.result.instructions;
+}
+
+function cli(
+	args: string[],
+	stdin?: string,
+	env?: Record<string, string | undefined>,
+) {
 	const proc = Bun.spawnSync(["bun", "src/cli.ts", ...args], {
 		stdin: stdin === undefined ? undefined : new TextEncoder().encode(stdin),
+		env,
 	});
 	const lines = proc.stdout
 		.toString()
@@ -206,9 +250,16 @@ describe("cli mcp", () => {
 		["--history", "--viewer"],
 		["--history", "a", "--history", "b"],
 		["--history", "a", "extra"],
+		["--history", "a", "--no-history"],
+		["--no-history", "--history", "a"],
+		["--viewer", "--no-viewer"],
+		["--no-viewer", "--viewer", "7357"],
+		["--no-viewer", "--no-viewer"],
+		["--no-history", "extra"],
 	]) {
 		test(`mcp ${args.join(" ")} is a usage error`, () => {
-			expect(cli(["mcp", ...args]).status).toBe(2);
+			const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "usage") });
+			expect(cli(["mcp", ...args], undefined, env).status).toBe(2);
 		});
 	}
 
@@ -217,13 +268,67 @@ describe("cli mcp", () => {
 		const port = probe.port;
 		await probe.stop(true);
 		const proc = Bun.spawnSync(
-			["bun", "src/cli.ts", "mcp", "--viewer", `${port}`],
+			["bun", "src/cli.ts", "mcp", "--viewer", `${port}`, "--no-history"],
 			{
 				stdin: new TextEncoder().encode(""),
 				timeout: 10_000,
 			},
 		);
 		expect(proc.exitCode).toBe(0);
+	});
+
+	test("with no history flags the run lands in GHOSPRITE_HISTORY", () => {
+		const dir = join(scratch, "env");
+		const proc = mcp(["--no-viewer"], envWith({ GHOSPRITE_HISTORY: dir }));
+		expect(proc.exitCode).toBe(0);
+		expect(readdirSync(dir)).toHaveLength(1);
+	});
+
+	test("--history wins over GHOSPRITE_HISTORY", () => {
+		const envA = join(scratch, "env-a");
+		const envB = join(scratch, "env-b");
+		const proc = mcp(
+			["--no-viewer", "--history", envB],
+			envWith({ GHOSPRITE_HISTORY: envA }),
+		);
+		expect(proc.exitCode).toBe(0);
+		expect(readdirSync(envB)).toHaveLength(1);
+		expect(existsSync(envA)).toBe(false);
+	});
+
+	test.skipIf(process.platform !== "linux")(
+		"an empty GHOSPRITE_HISTORY falls back to XDG_STATE_HOME",
+		() => {
+			const state = join(scratch, "state");
+			const proc = mcp(
+				["--no-viewer"],
+				envWith({ GHOSPRITE_HISTORY: "", XDG_STATE_HOME: state }),
+			);
+			expect(proc.exitCode).toBe(0);
+			expect(readdirSync(join(state, "ghosprite", "runs"))).toHaveLength(1);
+		},
+	);
+
+	test("--no-history --no-viewer saves nothing", () => {
+		const dir = join(scratch, "off");
+		const proc = mcp(
+			["--no-history", "--no-viewer"],
+			envWith({ GHOSPRITE_HISTORY: dir }),
+		);
+		expect(proc.exitCode).toBe(0);
+		expect(existsSync(dir)).toBe(false);
+	});
+
+	test("the viewer is on by default and --no-viewer turns it off", () => {
+		const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "unused") });
+		const on = instructionsOf(mcp(["--no-history"], env, [initialize]));
+		expect(on).toContain("A read-only viewer");
+		expect(on).toContain("http://127.0.0.1:");
+		const off = instructionsOf(
+			mcp(["--no-history", "--no-viewer"], env, [initialize]),
+		);
+		expect(off).not.toContain("A read-only viewer");
+		expect(off).not.toContain("http://127.0.0.1:");
 	});
 
 	test("--viewer with --history leaves a run folder holding the version line", async () => {
@@ -249,6 +354,7 @@ describe("cli mcp", () => {
 	});
 
 	test("--history records loads, notes and moves, and skips saves", () => {
+		const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "unused") });
 		const dir = join(scratch, "history-e2e");
 		const source = join(scratch, "e2e-source.aseprite");
 		copyFileSync("tests/fixtures/doc/base.aseprite", source);
@@ -260,16 +366,7 @@ describe("cli mcp", () => {
 			params: { name, arguments: args },
 		});
 		const messages = [
-			{
-				jsonrpc: "2.0",
-				id: 1,
-				method: "initialize",
-				params: {
-					protocolVersion: LATEST_PROTOCOL_VERSION,
-					capabilities: {},
-					clientInfo: { name: "test", version: "0" },
-				},
-			},
+			initialize,
 			{ jsonrpc: "2.0", method: "notifications/initialized" },
 			call(2, "sprite_load", { path: source }),
 			call(3, "draw_rect", {
@@ -284,12 +381,7 @@ describe("cli mcp", () => {
 			call(4, "session_undo", {}),
 			call(5, "sprite_save", { spriteId: "sprite-1", path: saved }),
 		];
-		const proc = Bun.spawnSync(["bun", "src/cli.ts", "mcp", "--history", dir], {
-			stdin: new TextEncoder().encode(
-				`${messages.map((m) => JSON.stringify(m)).join("\n")}\n`,
-			),
-			timeout: 10_000,
-		});
+		const proc = mcp(["--no-viewer", "--history", dir], env, messages);
 		expect(proc.exitCode).toBe(0);
 		const runs = readdirSync(dir);
 		expect(runs).toHaveLength(1);
