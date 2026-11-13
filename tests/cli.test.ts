@@ -406,11 +406,11 @@ describe("cli mcp", () => {
 });
 
 describe("cli view", () => {
-	function savedRun(name: string): string {
+	function savedRun(name: string, date?: Date): string {
 		const dir = join(scratch, name);
 		const source = join(scratch, `${name}-source.aseprite`);
 		copyFileSync("tests/fixtures/doc/base.aseprite", source);
-		const runLog = startRunLog(dir);
+		const runLog = startRunLog(dir, date);
 		const session = new Session({ onLog: (entry) => runLog.append(entry) });
 		callTool(session, "sprite.load", { path: source });
 		callTool(session, "draw.rect", {
@@ -428,13 +428,14 @@ describe("cli view", () => {
 	async function serve<T>(
 		args: string[],
 		use: (url: string) => Promise<T>,
+		env?: Record<string, string | undefined>,
 	): Promise<T> {
 		const probe = Bun.serve({ port: 0, fetch: () => new Response() });
 		const port = probe.port;
 		await probe.stop(true);
 		const proc = Bun.spawn(
 			["bun", "src/cli.ts", "view", ...args, "--port", `${port}`],
-			{ stdout: "pipe", stderr: "pipe" },
+			{ stdout: "pipe", stderr: "pipe", env },
 		);
 		try {
 			const reader = proc.stdout.getReader();
@@ -488,7 +489,6 @@ describe("cli view", () => {
 	});
 
 	for (const args of [
-		[],
 		["a", "b"],
 		["a", "--port", "abc"],
 		["a", "--port", "0"],
@@ -497,6 +497,44 @@ describe("cli view", () => {
 			expect(cli(["view", ...args]).status).toBe(2);
 		});
 	}
+
+	test("with no folder it serves the newest run in the history folder", async () => {
+		const history = join(scratch, "view-latest");
+		const newer = savedRun("view-latest", new Date("2026-01-02T00:00:00Z"));
+		const older = savedRun("view-latest", new Date("2026-01-01T00:00:00Z"));
+		await serve(
+			[],
+			async (url) => {
+				const html = await (await fetch(url)).text();
+				expect(html).toContain(basename(newer));
+				expect(html).not.toContain(basename(older));
+			},
+			envWith({ GHOSPRITE_HISTORY: history }),
+		);
+	});
+
+	test("with no folder and no runs in the history folder it exits 2 naming it", () => {
+		const empty = join(scratch, "view-history-empty");
+		mkdirSync(empty);
+		for (const dir of [empty, join(scratch, "view-history-missing")]) {
+			const { status, stderr } = cli(
+				["view"],
+				undefined,
+				envWith({ GHOSPRITE_HISTORY: dir }),
+			);
+			expect(status).toBe(2);
+			expect(stderr).toContain(dir);
+		}
+	});
+
+	test("view --port 0 with no folder is a usage error", () => {
+		const { status } = cli(
+			["view", "--port", "0"],
+			undefined,
+			envWith({ GHOSPRITE_HISTORY: join(scratch, "view-history-port") }),
+		);
+		expect(status).toBe(2);
+	});
 
 	test("a folder with no log.jsonl exits 1", () => {
 		const empty = join(scratch, "view-empty");

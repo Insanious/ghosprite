@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { historyDir } from "./history-dir.ts";
+import { historyDir, latestRun } from "./history-dir.ts";
 import { serveStdio } from "./mcp.ts";
 import { type Run, readRun, replayRun, versionWarning } from "./run-replay.ts";
 import { Session } from "./session.ts";
@@ -22,9 +22,10 @@ const USAGE = `Usage:
                                        $XDG_STATE_HOME/ghosprite/runs (~/.local/state/ghosprite/runs) on Linux,
                                        ~/Library/Application Support/ghosprite/runs on macOS,
                                        %LOCALAPPDATA%\\ghosprite\\runs on Windows
-  ghosprite view <run folder> [--port <n>]
+  ghosprite view [run folder] [--port <n>]
                                        replay a run saved by ghosprite mcp and serve its read-only step timeline
-                                       on localhost (default port 7357)`;
+                                       on localhost (default port 7357); with no run folder, opens the latest run
+                                       in the history folder ($GHOSPRITE_HISTORY, else the platform default above)`;
 
 function usageError(message: string): never {
 	process.stderr.write(`${message}\n${USAGE}\n`);
@@ -104,6 +105,18 @@ function parsePort(value: string): number {
 	return port;
 }
 
+function latestRunFolder(): string {
+	const dir = historyDir(undefined, process.env, process.platform, homedir());
+	let latest: string | undefined;
+	try {
+		latest = latestRun(dir);
+	} catch (error) {
+		process.stderr.write(`${(error as Error).message}\n`);
+		process.exit(1);
+	}
+	return latest ?? usageError(`No runs in ${dir}`);
+}
+
 async function view(args: string[]) {
 	let values: { port?: string };
 	let positionals: string[];
@@ -116,13 +129,13 @@ async function view(args: string[]) {
 	} catch (error) {
 		return usageError((error as Error).message);
 	}
-	const [folderArg] = positionals;
-	if (folderArg === undefined || positionals.length > 1) {
-		return usageError("ghosprite view takes exactly one run folder");
+	if (positionals.length > 1) {
+		return usageError("ghosprite view takes at most one run folder");
 	}
 	const port =
 		values.port === undefined ? DEFAULT_VIEWER_PORT : parsePort(values.port);
-	const folder = resolve(folderArg);
+	const [folderArg] = positionals;
+	const folder = resolve(folderArg ?? latestRunFolder());
 
 	let run: Run;
 	try {
