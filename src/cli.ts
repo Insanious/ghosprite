@@ -14,7 +14,9 @@ const USAGE = `Usage:
   ghosprite ops                        print every operation and its input schema as JSON
   ghosprite mcp [--viewer [port] | --no-viewer] [--history <dir> | --no-history]
                                        serve every operation and session tool over MCP on stdio;
-                                       the viewer, a read-only step timeline on localhost (default port 7357), is on by default;
+                                       it serves no page: results of sprite_create and sprite_load carry a link to the
+                                       ghosprite view gallery, on by default, on port 7357 unless --viewer <port> says
+                                       otherwise, and needing history (--no-viewer or --no-history turns links off);
                                        history, which writes the run's step log and loaded files to a new folder, is on by default;
                                        the history folder is --history <dir>, else $GHOSPRITE_HISTORY, else
                                        $XDG_STATE_HOME/ghosprite/runs (~/.local/state/ghosprite/runs) on Linux,
@@ -169,10 +171,16 @@ function parseMcpArgs(args: string[]): {
 	if (seen.has("--history") && seen.has("--no-history")) {
 		return usageError("--history and --no-history can't be used together");
 	}
+	if (seen.has("--viewer") && seen.has("--no-history")) {
+		return usageError(
+			"--viewer needs history: --no-history turns the viewer links off",
+		);
+	}
 	return {
-		viewerPort: seen.has("--no-viewer")
-			? undefined
-			: (viewerPort ?? DEFAULT_VIEWER_PORT),
+		viewerPort:
+			seen.has("--no-viewer") || seen.has("--no-history")
+				? undefined
+				: (viewerPort ?? DEFAULT_VIEWER_PORT),
 		historyDir: seen.has("--no-history")
 			? undefined
 			: historyDir(historyFlag, process.env, process.platform, homedir()),

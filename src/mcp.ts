@@ -9,8 +9,6 @@ import { type RunLog, startRunLog, writePidFile } from "./run-log.ts";
 import { resumeTool } from "./run-resume.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
-import { StepPictures } from "./viewer/history.ts";
-import { startViewer } from "./viewer/server.ts";
 
 const INSTRUCTIONS =
 	"Ids are explicit: creating ops return them, and later calls pass them back. Frames are 0-based. " +
@@ -136,26 +134,15 @@ export async function serveStdio(
 			});
 		}
 	}
-	const pictures = new StepPictures();
-	const session = new Session({
-		onLog: (entry, workspace) => {
-			if (viewerPort !== undefined) pictures.record(entry, workspace);
-			runLog?.append(entry);
-		},
-	});
-	const viewer =
-		viewerPort === undefined
-			? undefined
-			: startViewer(session, pictures, viewerPort, { runName: runLog?.name });
-	if (viewer !== undefined) process.stdin.once("end", viewer.stop);
+	const session = new Session({ onLog: (entry) => runLog?.append(entry) });
 	const history =
 		historyDir === undefined || runLog === undefined
 			? undefined
 			: { dir: historyDir, log: runLog };
 	await createMcpServer(
 		session,
-		viewer !== undefined && runLog !== undefined
-			? { url: viewer.url, run: runLog.name }
+		viewerPort !== undefined && runLog !== undefined
+			? { url: `http://127.0.0.1:${viewerPort}/`, run: runLog.name }
 			: undefined,
 		history,
 	).connect(new StdioServerTransport());

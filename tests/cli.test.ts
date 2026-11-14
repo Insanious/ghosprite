@@ -57,14 +57,17 @@ function mcp(
 	});
 }
 
-function instructionsOf(proc: { stdout: Buffer }): string {
-	const response = proc.stdout
+function responseOf(proc: { stdout: Buffer }, id: number) {
+	return proc.stdout
 		.toString()
 		.split("\n")
 		.filter((line) => line !== "")
 		.map((line) => JSON.parse(line))
-		.find((message) => message.id === 1);
-	return response.result.instructions;
+		.find((message) => message.id === id);
+}
+
+function instructionsOf(proc: { stdout: Buffer }): string {
+	return responseOf(proc, 1).result.instructions;
 }
 
 function cli(
@@ -253,6 +256,8 @@ describe("cli mcp", () => {
 		["--no-viewer", "--viewer", "7357"],
 		["--no-viewer", "--no-viewer"],
 		["--no-history", "extra"],
+		["--viewer", "--no-history"],
+		["--no-history", "--viewer", "7357"],
 	]) {
 		test(`mcp ${args.join(" ")} is a usage error`, () => {
 			const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "usage") });
@@ -260,18 +265,33 @@ describe("cli mcp", () => {
 		});
 	}
 
-	test("--viewer exits when stdin closes", async () => {
+	test("--viewer <port> leaves the port free while mcp runs", async () => {
 		const probe = Bun.serve({ port: 0, fetch: () => new Response() });
 		const port = probe.port;
 		await probe.stop(true);
-		const proc = Bun.spawnSync(
-			["bun", "src/cli.ts", "mcp", "--viewer", `${port}`, "--no-history"],
-			{
-				stdin: new TextEncoder().encode(""),
-				timeout: 10_000,
-			},
+		const proc = Bun.spawn(
+			[
+				"bun",
+				"src/cli.ts",
+				"mcp",
+				"--viewer",
+				`${port}`,
+				"--history",
+				join(scratch, "port-free"),
+			],
+			{ stdin: "pipe", stdout: "pipe", stderr: "ignore" },
 		);
-		expect(proc.exitCode).toBe(0);
+		proc.stdin.write(`${JSON.stringify(initialize)}\n`);
+		await proc.stdin.flush();
+		await proc.stdout.getReader().read();
+		const server = Bun.serve({
+			hostname: "127.0.0.1",
+			port,
+			fetch: () => new Response(),
+		});
+		await server.stop(true);
+		await proc.stdin.end();
+		expect(await proc.exited).toBe(0);
 	});
 
 	test("with no history flags the run lands in GHOSPRITE_HISTORY", () => {
@@ -316,13 +336,43 @@ describe("cli mcp", () => {
 		expect(existsSync(dir)).toBe(false);
 	});
 
-	test("the viewer is on by default and --no-viewer turns it off", () => {
-		const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "unused") });
-		const on = instructionsOf(mcp([], env, [initialize]));
-		expect(on).toContain("http://127.0.0.1:");
-		expect(on).toContain("ghosprite view");
-		const off = instructionsOf(mcp(["--no-viewer"], env, [initialize]));
-		expect(off).not.toContain("http://127.0.0.1:");
+	test("links are on by default, --viewer sets the port, --no-viewer and --no-history turn them off", () => {
+		const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "links") });
+		const instructions = (args: string[]) =>
+			instructionsOf(mcp(args, env, [initialize]));
+		expect(instructions([])).toContain("http://127.0.0.1:7357/");
+		expect(instructions(["--viewer", "8123"])).toContain(
+			"http://127.0.0.1:8123/",
+		);
+		expect(instructions(["--no-viewer"])).not.toContain("http://127.0.0.1:");
+		expect(instructions(["--no-history"])).not.toContain("http://127.0.0.1:");
+	});
+
+	test("a created sprite's result links to its page in the run, and not without history", () => {
+		const dir = join(scratch, "links-create");
+		const messages = [
+			initialize,
+			{ jsonrpc: "2.0", method: "notifications/initialized" },
+			{
+				jsonrpc: "2.0",
+				id: 2,
+				method: "tools/call",
+				params: { name: "sprite_create", arguments: { width: 2, height: 2 } },
+			},
+		];
+		const viewerOf = (proc: { stdout: Buffer }) =>
+			JSON.parse(responseOf(proc, 2).result.content[0].text).viewer;
+		const withHistory = mcp(
+			["--history", dir],
+			envWith({ GHOSPRITE_HISTORY: join(scratch, "unused") }),
+			messages,
+		);
+		const [run] = readdirSync(dir);
+		expect(viewerOf(withHistory)).toBe(
+			`http://127.0.0.1:7357/${run}/checkpoint-1`,
+		);
+		const without = mcp(["--no-history"], process.env, messages);
+		expect(viewerOf(without)).toBeUndefined();
 	});
 
 	test("--viewer with --history leaves a run folder holding the version line", async () => {
