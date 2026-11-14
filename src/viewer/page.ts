@@ -38,6 +38,7 @@ h1 { margin: 0 0 12px; }
 #index-link { color: #6cf; }
 #warnings { background: #4a3b12; border: 2px solid #c9a227; padding: 6px 10px; margin-bottom: 16px; }
 #warnings p { margin: 4px 0; }
+#follow[hidden] { display: inline-block; visibility: hidden; }
 #panes { flex: 1; min-height: 0; display: flex; gap: 16px; }
 #main, #timeline { flex: 1 1 0; min-width: 0; overflow-y: auto; }
 #timeline { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; align-content: flex-start; }
