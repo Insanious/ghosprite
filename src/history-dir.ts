@@ -4,28 +4,32 @@ import { join, posix, win32 } from "node:path";
 const RUN_FOLDER = /^(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})(?:-(\d+))?$/;
 
 export function latestRun(dir: string): string | undefined {
+	const [latest] = listRuns(dir);
+	return latest === undefined ? undefined : join(dir, latest);
+}
+
+export function listRuns(dir: string): string[] {
 	let entries: Dirent[];
 	try {
 		entries = readdirSync(dir, { withFileTypes: true });
 	} catch (error) {
-		if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+		if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
 		throw error;
 	}
-	let latest: { name: string; stamp: string; n: number } | undefined;
+	const runs: { name: string; stamp: string; n: number }[] = [];
 	for (const entry of entries) {
 		const match = entry.isDirectory() ? RUN_FOLDER.exec(entry.name) : null;
 		if (match === null) continue;
-		const stamp = match[1] as string;
-		const n = match[2] === undefined ? 1 : Number(match[2]);
-		if (
-			latest === undefined ||
-			stamp > latest.stamp ||
-			(stamp === latest.stamp && n > latest.n)
-		) {
-			latest = { name: entry.name, stamp, n };
-		}
+		runs.push({
+			name: entry.name,
+			stamp: match[1] as string,
+			n: match[2] === undefined ? 1 : Number(match[2]),
+		});
 	}
-	return latest === undefined ? undefined : join(dir, latest.name);
+	runs.sort((a, b) =>
+		a.stamp === b.stamp ? b.n - a.n : a.stamp < b.stamp ? 1 : -1,
+	);
+	return runs.map((run) => run.name);
 }
 
 export function historyDir(

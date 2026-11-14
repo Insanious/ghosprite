@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { historyDir, latestRun } from "./history-dir.ts";
+import { historyDir, latestRun, listRuns } from "./history-dir.ts";
 
 const scratch = mkdtempSync(join(tmpdir(), "ghosprite-history-dir-test-"));
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
@@ -57,6 +57,33 @@ describe("latestRun", () => {
 		const file = join(scratch, "a-file");
 		writeFileSync(file, "");
 		expect(() => latestRun(file)).toThrow();
+	});
+});
+
+describe("listRuns", () => {
+	test("a missing folder and an empty folder give []", () => {
+		expect(listRuns(join(scratch, "missing-list"))).toEqual([]);
+		expect(listRuns(historyWith("empty-list", []))).toEqual([]);
+	});
+
+	test("runs come newest first, suffixes as numbers, other entries ignored", () => {
+		const dir = historyWith(
+			"list",
+			[
+				"2026-01-01T10-20-30",
+				"2026-01-01T10-20-30-10",
+				"2026-01-01T10-20-30-2",
+				"2026-01-02T00-00-00",
+				"notes",
+			],
+			["2026-03-01T00-00-00"],
+		);
+		expect(listRuns(dir)).toEqual([
+			"2026-01-02T00-00-00",
+			"2026-01-01T10-20-30-10",
+			"2026-01-01T10-20-30-2",
+			"2026-01-01T10-20-30",
+		]);
 	});
 });
 
