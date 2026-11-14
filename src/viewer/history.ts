@@ -1,7 +1,19 @@
-import { type Image, renderFrame } from "../core/index.ts";
+import { type Image, renderFrame, type Sprite } from "../core/index.ts";
 import { renderPng } from "../ops/render-output.ts";
 import type { LogEntry } from "../session.ts";
 import type { Workspace } from "../workspace.ts";
+
+export function renderSprites(sprites: Sprite[]): Uint8Array {
+	const images: Image[] = sprites.flatMap((sprite) =>
+		sprite.frameDurations.map((_, frame) => renderFrame(sprite, frame)),
+	);
+	return renderPng(
+		images,
+		{ scale: 1, grid: false },
+		{ columns: images.length, gap: 1 },
+		"sprites",
+	).png;
+}
 
 export class StepPictures {
 	private readonly pictures = new Map<string, Uint8Array>();
@@ -9,19 +21,10 @@ export class StepPictures {
 	record(entry: LogEntry, workspace: Workspace): void {
 		if (entry.kind !== "step") return;
 		try {
-			const images: Image[] = entry.sprites.flatMap((id) => {
-				const sprite = workspace.getSprite(id);
-				return sprite.frameDurations.map((_, frame) =>
-					renderFrame(sprite, frame),
-				);
-			});
-			const { png } = renderPng(
-				images,
-				{ scale: 1, grid: false },
-				{ columns: images.length, gap: 1 },
-				"sprites",
+			this.pictures.set(
+				entry.checkpointId,
+				renderSprites(entry.sprites.map((id) => workspace.getSprite(id))),
 			);
-			this.pictures.set(entry.checkpointId, png);
 		} catch {
 			// The tool call already succeeded; a missing picture must not fail it.
 		}

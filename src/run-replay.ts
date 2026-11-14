@@ -9,6 +9,7 @@ export type Run = {
 	version: string;
 	resumedFrom?: { run: string; step: number };
 	entries: LogEntry[];
+	size: number;
 };
 
 export function versionWarning(runVersion: string): string | undefined {
@@ -70,6 +71,7 @@ export function readRun(folder: string): Run {
 		version: header.version,
 		...(resumedFrom && { resumedFrom }),
 		entries: entries as LogEntry[],
+		size: Buffer.byteLength(text),
 	};
 }
 
