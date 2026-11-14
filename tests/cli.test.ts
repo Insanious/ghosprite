@@ -2,18 +2,15 @@ import { afterAll, describe, expect, test } from "bun:test";
 import {
 	copyFileSync,
 	existsSync,
-	mkdirSync,
 	mkdtempSync,
 	readdirSync,
 	readFileSync,
 	rmSync,
-	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 import { LATEST_PROTOCOL_VERSION } from "@modelcontextprotocol/sdk/types.js";
-import { version } from "../package.json";
 import { decodePng } from "../src/core/index.ts";
 import { startRunLog } from "../src/run-log.ts";
 import { Session } from "../src/session.ts";
@@ -434,37 +431,27 @@ describe("cli mcp", () => {
 });
 
 describe("cli view", () => {
-	function savedRun(name: string, date?: Date): string {
-		const dir = join(scratch, name);
-		const source = join(scratch, `${name}-source.aseprite`);
+	function savedRun(dir: string, date: Date) {
+		const source = join(scratch, "view-source.aseprite");
 		copyFileSync("tests/fixtures/doc/base.aseprite", source);
 		const runLog = startRunLog(dir, date);
 		const session = new Session({ onLog: (entry) => runLog.append(entry) });
 		callTool(session, "sprite.load", { path: source });
-		callTool(session, "draw.rect", {
-			spriteId: "sprite-1",
-			layerId: "layer-2",
-			frame: 0,
-			color: "#ff0000",
-			rect: { x: 0, y: 0, width: 1, height: 1 },
-			filled: true,
-		});
-		session.undo();
-		return join(dir, runLog.name);
+		return runLog.name;
 	}
 
 	async function serve<T>(
-		args: string[],
+		history: string,
 		use: (url: string) => Promise<T>,
-		env?: Record<string, string | undefined>,
 	): Promise<T> {
 		const probe = Bun.serve({ port: 0, fetch: () => new Response() });
 		const port = probe.port;
 		await probe.stop(true);
-		const proc = Bun.spawn(
-			["bun", "src/cli.ts", "view", ...args, "--port", `${port}`],
-			{ stdout: "pipe", stderr: "pipe", env },
-		);
+		const proc = Bun.spawn(["bun", "src/cli.ts", "view", "--port", `${port}`], {
+			stdout: "pipe",
+			stderr: "pipe",
+			env: envWith({ GHOSPRITE_HISTORY: history }),
+		});
 		try {
 			const reader = proc.stdout.getReader();
 			const { value } = await reader.read();
@@ -475,101 +462,45 @@ describe("cli view", () => {
 		}
 	}
 
-	test("serves the saved run with pictures and the abandoned step off the path", async () => {
-		const folder = savedRun("view-run");
-		await serve([folder], async (url) => {
-			const log = (await (await fetch(`${url}log`)).json()) as {
-				kind: string;
-				checkpointId: string;
-				op?: string;
-				onPath?: boolean;
-				hasPicture?: boolean;
+	test("serves every saved run in the history folder, newest first", async () => {
+		const history = join(scratch, "view-history");
+		const older = savedRun(history, new Date("2026-01-01T00:00:00Z"));
+		const newer = savedRun(history, new Date("2026-01-02T00:00:00Z"));
+		await serve(history, async (url) => {
+			const runs = (await (await fetch(`${url}runs`)).json()) as {
+				name: string;
 			}[];
-			expect(log.map((e) => [e.kind, e.checkpointId, e.op])).toEqual([
-				["step", "checkpoint-1", "sprite.load"],
-				["step", "checkpoint-2", "draw.rect"],
-				["moved", "checkpoint-1", undefined],
-			]);
-			const steps = log.filter((e) => e.kind === "step");
-			expect(steps.map((e) => e.hasPicture)).toEqual([true, true]);
-			expect(steps.map((e) => e.onPath)).toEqual([true, false]);
-			const html = await (await fetch(url)).text();
-			expect(html).toContain(basename(folder));
-			expect(html).not.toContain("saved by ghosprite");
+			expect(runs.map((r) => r.name)).toEqual([newer, older]);
 		});
 	});
 
-	test("a log from another version puts both versions on the page", async () => {
-		const folder = savedRun("view-version");
-		const path = join(folder, "log.jsonl");
-		const lines = readFileSync(path, "utf8").split("\n");
-		lines[0] = JSON.stringify({
-			...JSON.parse(lines[0] as string),
-			version: "9.9.9",
-		});
-		writeFileSync(path, lines.join("\n"));
-		await serve([`${folder}/`], async (url) => {
-			const html = await (await fetch(url)).text();
-			expect(html).toContain("ghosprite 9.9.9");
-			expect(html).toContain(`this is ghosprite ${version}`);
-			expect(html).toContain(basename(folder));
+	test("a missing history folder serves an empty gallery", async () => {
+		await serve(join(scratch, "view-missing"), async (url) => {
+			expect(await (await fetch(`${url}runs`)).json()).toEqual([]);
 		});
 	});
 
-	for (const args of [
-		["a", "b"],
-		["a", "--port", "abc"],
-		["a", "--port", "0"],
-	]) {
+	for (const args of [["a"], ["--port", "abc"], ["--port", "0"]]) {
 		test(`view ${args.join(" ")} is a usage error`, () => {
 			expect(cli(["view", ...args]).status).toBe(2);
 		});
 	}
 
-	test("with no folder it serves the newest run in the history folder", async () => {
-		const history = join(scratch, "view-latest");
-		const newer = savedRun("view-latest", new Date("2026-01-02T00:00:00Z"));
-		const older = savedRun("view-latest", new Date("2026-01-01T00:00:00Z"));
-		await serve(
-			[],
-			async (url) => {
-				const html = await (await fetch(url)).text();
-				expect(html).toContain(basename(newer));
-				expect(html).not.toContain(basename(older));
-			},
-			envWith({ GHOSPRITE_HISTORY: history }),
-		);
-	});
-
-	test("with no folder and no runs in the history folder it exits 2 naming it", () => {
-		const empty = join(scratch, "view-history-empty");
-		mkdirSync(empty);
-		for (const dir of [empty, join(scratch, "view-history-missing")]) {
-			const { status, stderr } = cli(
-				["view"],
-				undefined,
-				envWith({ GHOSPRITE_HISTORY: dir }),
+	test("a port that is taken exits 2 naming the port", async () => {
+		const probe = Bun.serve({ port: 0, fetch: () => new Response() });
+		try {
+			const proc = Bun.spawnSync(
+				["bun", "src/cli.ts", "view", "--port", `${probe.port}`],
+				{
+					env: envWith({ GHOSPRITE_HISTORY: join(scratch, "view-taken") }),
+					timeout: 10_000,
+				},
 			);
-			expect(status).toBe(2);
-			expect(stderr).toContain(dir);
+			expect(proc.exitCode).toBe(2);
+			expect(proc.stderr.toString()).toContain(`${probe.port}`);
+		} finally {
+			await probe.stop(true);
 		}
-	});
-
-	test("view --port 0 with no folder is a usage error", () => {
-		const { status } = cli(
-			["view", "--port", "0"],
-			undefined,
-			envWith({ GHOSPRITE_HISTORY: join(scratch, "view-history-port") }),
-		);
-		expect(status).toBe(2);
-	});
-
-	test("a folder with no log.jsonl exits 1", () => {
-		const empty = join(scratch, "view-empty");
-		mkdirSync(empty);
-		const { status, stderr } = cli(["view", empty]);
-		expect(status).toBe(1);
-		expect(stderr).toContain(empty);
 	});
 });
 

@@ -1,12 +1,7 @@
 import { type Dirent, readdirSync } from "node:fs";
-import { join, posix, win32 } from "node:path";
+import { posix, win32 } from "node:path";
 
 const RUN_FOLDER = /^(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})(?:-(\d+))?$/;
-
-export function latestRun(dir: string): string | undefined {
-	const [latest] = listRuns(dir);
-	return latest === undefined ? undefined : join(dir, latest);
-}
 
 export function listRuns(dir: string): string[] {
 	let entries: Dirent[];

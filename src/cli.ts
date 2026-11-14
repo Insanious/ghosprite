@@ -1,15 +1,13 @@
 #!/usr/bin/env bun
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { historyDir, latestRun } from "./history-dir.ts";
+import { historyDir } from "./history-dir.ts";
 import { serveStdio } from "./mcp.ts";
-import { type Run, readRun, replayRun, versionWarning } from "./run-replay.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
-import { StepPictures } from "./viewer/history.ts";
-import { startViewer } from "./viewer/server.ts";
+import { startGallery } from "./viewer/gallery.ts";
 
 const USAGE = `Usage:
   ghosprite run [file] [--out <dir>]   run a JSON array of {op, input} calls (stdin if no file or "-")
@@ -22,10 +20,10 @@ const USAGE = `Usage:
                                        $XDG_STATE_HOME/ghosprite/runs (~/.local/state/ghosprite/runs) on Linux,
                                        ~/Library/Application Support/ghosprite/runs on macOS,
                                        %LOCALAPPDATA%\\ghosprite\\runs on Windows
-  ghosprite view [run folder] [--port <n>]
-                                       replay a run saved by ghosprite mcp and serve its read-only step timeline
-                                       on localhost (default port 7357); with no run folder, opens the latest run
-                                       in the history folder ($GHOSPRITE_HISTORY, else the platform default above)`;
+  ghosprite view [--port <n>]
+                                       serve a read-only gallery of every run saved by ghosprite mcp on localhost
+                                       (default port 7357, no fallback port), from the history folder
+                                       ($GHOSPRITE_HISTORY, else the platform default above)`;
 
 function usageError(message: string): never {
 	process.stderr.write(`${message}\n${USAGE}\n`);
@@ -105,19 +103,7 @@ function parsePort(value: string): number {
 	return port;
 }
 
-function latestRunFolder(): string {
-	const dir = historyDir(undefined, process.env, process.platform, homedir());
-	let latest: string | undefined;
-	try {
-		latest = latestRun(dir);
-	} catch (error) {
-		process.stderr.write(`${(error as Error).message}\n`);
-		process.exit(1);
-	}
-	return latest ?? usageError(`No runs in ${dir}`);
-}
-
-async function view(args: string[]) {
+function view(args: string[]) {
 	let values: { port?: string };
 	let positionals: string[];
 	try {
@@ -129,42 +115,20 @@ async function view(args: string[]) {
 	} catch (error) {
 		return usageError((error as Error).message);
 	}
-	if (positionals.length > 1) {
-		return usageError("ghosprite view takes at most one run folder");
+	if (positionals.length > 0) {
+		return usageError("ghosprite view takes only --port <n>");
 	}
 	const port =
 		values.port === undefined ? DEFAULT_VIEWER_PORT : parsePort(values.port);
-	const [folderArg] = positionals;
-	const folder = resolve(folderArg ?? latestRunFolder());
-
-	let run: Run;
+	const dir = historyDir(undefined, process.env, process.platform, homedir());
 	try {
-		run = readRun(folder);
+		console.log(startGallery(dir, port).url);
 	} catch (error) {
-		process.stderr.write(`${(error as Error).message}\n`);
-		process.exit(1);
+		if ((error as NodeJS.ErrnoException).code === "EADDRINUSE") {
+			return usageError(`Port ${port} is already in use`);
+		}
+		throw error;
 	}
-
-	const pictures = new StepPictures();
-	const session = new Session({
-		onLog: (entry, workspace) => pictures.record(entry, workspace),
-	});
-	const { stopped } = replayRun(session, folder, run.entries);
-
-	const warnings: string[] = [];
-	const versionNote = versionWarning(run.version);
-	if (versionNote !== undefined) warnings.push(versionNote);
-	if (stopped !== undefined) {
-		const step = stopped.checkpointId.replace(/^checkpoint-/, "");
-		const warning = `Replay stopped at step ${step}: ${stopped.message}`;
-		warnings.push(warning);
-		process.stderr.write(`${warning}\n`);
-	}
-	const viewer = startViewer(session, pictures, port, {
-		runName: basename(folder),
-		warnings,
-	});
-	console.log(viewer.url);
 }
 
 const MCP_FLAGS = ["--viewer", "--no-viewer", "--history", "--no-history"];
