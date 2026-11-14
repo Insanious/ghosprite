@@ -122,6 +122,69 @@ describe("GalleryRun", () => {
 		expect(pngSize(two)).toEqual({ width: 6, height: 5 });
 	});
 
+	test("each step carries the durations and tags as they were at that step", () => {
+		const folder = buildRun((session) => {
+			session.run("sprite.create", { width: 4, height: 4 });
+			session.run("frame.create", { spriteId: "sprite-1" });
+			session.run("frame.create", { spriteId: "sprite-1", duration: 40 });
+			session.run("tag.create", {
+				spriteId: "sprite-1",
+				name: "run",
+				from: 1,
+				to: 2,
+				direction: "ping-pong",
+			});
+			session.run("frame.create", { spriteId: "sprite-1", at: 0 });
+		});
+		const items = new GalleryRun(folder).log("checkpoint-1") ?? [];
+		const frames = (index: number) => {
+			const { durations, tags } = items[index] as {
+				durations: number[];
+				tags: unknown[];
+			};
+			return { durations, tags };
+		};
+		expect(frames(0)).toEqual({ durations: [100], tags: [] });
+		expect(frames(3)).toEqual({
+			durations: [100, 100, 40],
+			tags: [{ name: "run", from: 1, to: 2, direction: "ping-pong" }],
+		});
+		expect(frames(4)).toEqual({
+			durations: [100, 100, 100, 40],
+			tags: [{ name: "run", from: 2, to: 3, direction: "ping-pong" }],
+		});
+	});
+
+	test("a step over the render limit has no picture, durations or tags", () => {
+		const folder = buildRun((session) => {
+			session.run("sprite.create", { width: 4097, height: 4096 });
+		});
+		const item = new GalleryRun(folder).log("checkpoint-1")?.[0];
+		expect(item).toMatchObject({ hasPicture: false });
+		expect(item).not.toHaveProperty("durations");
+		expect(item).not.toHaveProperty("tags");
+	});
+
+	test("a batch has each page's own durations", () => {
+		const folder = buildRun((session) => {
+			twoSprites(session);
+			session.apply([
+				{
+					op: "frame.create",
+					input: { spriteId: "sprite-1", duration: 40 },
+				},
+				{ op: "layer.create", input: { spriteId: "sprite-2", name: "b" } },
+			]);
+		});
+		const run = new GalleryRun(folder);
+		expect(run.log("checkpoint-1")?.at(-1)).toMatchObject({
+			durations: [100, 40],
+		});
+		expect(run.log("checkpoint-2")?.at(-1)).toMatchObject({
+			durations: [100],
+		});
+	});
+
 	test("every page carries the moves, and an undone step is off the path", () => {
 		const folder = buildRun((session) => {
 			twoSprites(session);

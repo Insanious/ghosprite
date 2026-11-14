@@ -17,6 +17,17 @@ export type GallerySprite = {
 	onPath: boolean;
 };
 
+export type GalleryTag = Pick<
+	Sprite["tags"][number],
+	"name" | "from" | "to" | "direction"
+>;
+
+type StepPicture = {
+	png: Uint8Array;
+	durations: number[];
+	tags: GalleryTag[];
+};
+
 export type GalleryLogItem =
 	| Extract<LogEntry, { kind: "moved" }>
 	| (StepEntry & {
@@ -24,6 +35,8 @@ export type GalleryLogItem =
 			current: boolean;
 			hasPicture: boolean;
 			others?: string[];
+			durations?: number[];
+			tags?: GalleryTag[];
 	  });
 
 type Page = { key: string; spriteId: string; sprite: Sprite };
@@ -34,7 +47,7 @@ export class GalleryRun {
 	private readonly pages: Page[] = [];
 	private readonly pageOf = new Map<Sprite, Page>();
 	private readonly stepPages = new Map<string, Page[]>();
-	private readonly pictures = new Map<string, Uint8Array>();
+	private readonly pictures = new Map<string, StepPicture>();
 	private readonly session = new Session({
 		onLog: (entry, workspace) => this.record(entry, workspace),
 	});
@@ -111,13 +124,18 @@ export class GalleryRun {
 			if (entry.kind === "moved") return [entry];
 			if (!this.stepPages.get(entry.checkpointId)?.includes(page)) return [];
 			const others = entry.sprites.filter((id) => id !== page.spriteId);
+			const picture = this.pictures.get(`${page.key}/${entry.checkpointId}`);
 			return [
 				{
 					...entry,
 					onPath: onPath.has(entry.checkpointId),
 					current: entry.checkpointId === current,
-					hasPicture: this.pictures.has(`${page.key}/${entry.checkpointId}`),
+					hasPicture: picture !== undefined,
 					...(others.length > 0 && { others }),
+					...(picture && {
+						durations: picture.durations,
+						tags: picture.tags,
+					}),
 				},
 			];
 		});
@@ -125,7 +143,7 @@ export class GalleryRun {
 
 	picture(pageKey: string, checkpointId: string): Uint8Array | undefined {
 		this.refresh();
-		return this.pictures.get(`${pageKey}/${checkpointId}`);
+		return this.pictures.get(`${pageKey}/${checkpointId}`)?.png;
 	}
 
 	warnings(): string[] {
@@ -179,10 +197,17 @@ export class GalleryRun {
 			}
 			touched.push(page);
 			try {
-				this.pictures.set(
-					`${page.key}/${entry.checkpointId}`,
-					renderSprites([sprite]),
-				);
+				const png = renderSprites([sprite]);
+				this.pictures.set(`${page.key}/${entry.checkpointId}`, {
+					png,
+					durations: [...sprite.frameDurations],
+					tags: sprite.tags.map(({ name, from, to, direction }) => ({
+						name,
+						from,
+						to,
+						direction,
+					})),
+				});
 			} catch {
 				// A sprite over the render limit has no picture; the replay goes on.
 			}
