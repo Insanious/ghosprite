@@ -31,6 +31,22 @@ describe("page", () => {
 		expect(() => new Function(script)).not.toThrow();
 	});
 
+	test("has the animate controls", () => {
+		const html = page();
+		expect(html).toContain('id="animate"');
+		expect(html).toContain('id="tag"');
+		expect(html).toMatch(
+			/<input id="speed" type="range" min="0.1" max="4" step="0.1" value="1">/,
+		);
+	});
+
+	test("embeds the playback functions under fixed names", () => {
+		const html = page();
+		expect(html).toContain("const playRange = ");
+		expect(html).toContain("const frameOrder = ");
+		expect(html).toContain("const resumeIndex = ");
+	});
+
 	test("links back to the index only when asked", () => {
 		expect(page()).not.toContain('id="index-link"');
 		expect(page({ indexLink: true })).toContain('id="index-link"');
