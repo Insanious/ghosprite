@@ -8,21 +8,34 @@ const escapeHtml = (text: string): string =>
 export interface PageOptions {
 	runName?: string;
 	warnings?: string[];
+	basePath?: string;
+	heading?: string;
+	indexLink?: boolean;
 }
+
+const scriptString = (text: string): string =>
+	JSON.stringify(text).replaceAll("<", "\\u003c");
 
 export const page = ({
 	runName,
 	warnings = [],
-}: PageOptions = {}): string => `<!doctype html>
+	basePath = "/",
+	heading,
+	indexLink = false,
+}: PageOptions = {}): string => {
+	const titleName = heading ?? runName;
+	const h1 = heading ?? (runName === undefined ? undefined : `Run ${runName}`);
+	return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${runName === undefined ? "" : `${escapeHtml(runName)} · `}ghosprite viewer</title>
+<title>${titleName === undefined ? "" : `${escapeHtml(titleName)} · `}ghosprite viewer</title>
 <style>
 * { box-sizing: border-box; }
 body { font: 14px system-ui, sans-serif; margin: 0; padding: 16px; height: 100vh; display: flex; flex-direction: column; background: #222; color: #eee; }
 h1 { margin: 0 0 12px; }
+#index-link { color: #6cf; }
 #warnings { background: #4a3b12; border: 2px solid #c9a227; padding: 6px 10px; margin-bottom: 16px; }
 #warnings p { margin: 4px 0; }
 #panes { flex: 1; min-height: 0; display: flex; gap: 16px; }
@@ -50,11 +63,12 @@ pre { background: #111; padding: 8px; overflow: auto; }
 </style>
 </head>
 <body>
-${runName === undefined ? "" : `<h1 id="run">Run ${escapeHtml(runName)}</h1>\n`}${warnings.length === 0 ? "" : `<div id="warnings">${warnings.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>\n`}<div id="panes">
+${indexLink ? `<p><a id="index-link" href="/">All runs</a></p>\n` : ""}${h1 === undefined ? "" : `<h1 id="run">${escapeHtml(h1)}</h1>\n`}${warnings.length === 0 ? "" : `<div id="warnings">${warnings.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>\n`}<div id="panes">
 <div id="main"><button id="follow" hidden>Follow live</button><div id="shown"></div></div>
 <div id="timeline"></div>
 </div>
 <script>
+const base = ${scriptString(basePath)};
 const timeline = document.getElementById("timeline");
 const main = document.getElementById("main");
 const shown = document.getElementById("shown");
@@ -78,10 +92,11 @@ function el(tag, className, text) {
 const stepNumber = (id) => id.replace("checkpoint-", "");
 const toolName = (op) => op.replaceAll(".", "_");
 const isStep = (entry) => entry.kind === "step";
+const alsoChanged = (entry) => "Also changed " + entry.others.join(", ");
 
 function picture(entry) {
   const img = el("img");
-  img.src = "/steps/" + entry.checkpointId + ".png";
+  img.src = base + "steps/" + entry.checkpointId + ".png";
   img.alt = "";
   return img;
 }
@@ -119,6 +134,7 @@ function renderMain(id) {
   shown.append(el("h2", "", "Step " + stepNumber(id)));
   shown.append(el("div", "tool", toolName(entry.op)));
   if (entry.note) shown.append(el("div", "note", entry.note));
+  if (entry.others && entry.others.length) shown.append(el("div", "note", alsoChanged(entry)));
   const details = el("details");
   details.append(el("summary", "", "Input"));
   details.append(el("pre", "", JSON.stringify(entry.input, null, 2)));
@@ -146,6 +162,7 @@ function addEntry(entry) {
   card.append(el("div", "", "Step " + stepNumber(entry.checkpointId)));
   card.append(el("div", "tool", toolName(entry.op)));
   if (entry.note) card.append(el("div", "note", entry.note));
+  if (entry.others && entry.others.length) card.append(el("div", "note", alsoChanged(entry)));
   card.onclick = () => {
     const current = entries.find((e) => isStep(e) && e.current);
     if (current && current.checkpointId === entry.checkpointId) {
@@ -173,7 +190,7 @@ function reset() {
 
 async function poll() {
   try {
-    const response = await fetch("/log");
+    const response = await fetch(base + "log");
     const next = await response.json();
     if (next.length < renderedCount) reset();
     const nextSignature = next.length + ":" + next.map((e) => (e.onPath ? "1" : "0") + (e.current ? "1" : "0")).join("");
@@ -204,3 +221,4 @@ setInterval(poll, 1000);
 </body>
 </html>
 `;
+};
