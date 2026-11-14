@@ -353,6 +353,34 @@ describe("cli mcp", () => {
 		expect(JSON.parse(lines[0] as string).kind).toBe("run");
 	});
 
+	test("a run with stdin closed leaves no pid file", () => {
+		const dir = join(scratch, "history-pid-closed");
+		const proc = mcp(["--no-viewer", "--history", dir], process.env);
+		expect(proc.exitCode).toBe(0);
+		const runs = readdirSync(dir);
+		expect(runs).toHaveLength(1);
+		expect(existsSync(join(dir, runs[0] as string, "pid"))).toBe(false);
+	});
+
+	test("a running server holds a pid file that goes on a clean exit", async () => {
+		const dir = join(scratch, "history-pid-live");
+		const proc = Bun.spawn(
+			["bun", "src/cli.ts", "mcp", "--no-viewer", "--history", dir],
+			{ stdin: "pipe", stdout: "pipe", stderr: "ignore" },
+		);
+		proc.stdin.write(`${JSON.stringify(initialize)}\n`);
+		await proc.stdin.flush();
+		const reader = proc.stdout.getReader();
+		await reader.read();
+		const runs = readdirSync(dir);
+		expect(runs).toHaveLength(1);
+		const pidFile = join(dir, runs[0] as string, "pid");
+		expect(readFileSync(pidFile, "utf8")).toBe(String(proc.pid));
+		await proc.stdin.end();
+		expect(await proc.exited).toBe(0);
+		expect(existsSync(pidFile)).toBe(false);
+	});
+
 	test("--history records loads, notes and moves, and skips saves", () => {
 		const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "unused") });
 		const dir = join(scratch, "history-e2e");

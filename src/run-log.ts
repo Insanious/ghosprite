@@ -5,6 +5,7 @@ import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
+	rmSync,
 	writeFileSync,
 } from "node:fs";
 import { basename, extname, isAbsolute, join, resolve } from "node:path";
@@ -69,6 +70,30 @@ function createRunFolder(dir: string, now: Date): string {
 		} catch (error) {
 			if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
 		}
+	}
+}
+
+export const PID_FILE = "pid";
+
+export function writePidFile(folder: string): () => void {
+	const path = join(folder, PID_FILE);
+	writeFileSync(path, String(process.pid));
+	return () => rmSync(path, { force: true });
+}
+
+export function runIsLive(folder: string): boolean {
+	let text: string;
+	try {
+		text = readFileSync(join(folder, PID_FILE), "utf8").trim();
+	} catch {
+		return false;
+	}
+	if (!/^\d+$/.test(text)) return false;
+	try {
+		process.kill(Number(text), 0);
+		return true;
+	} catch (error) {
+		return (error as NodeJS.ErrnoException).code === "EPERM";
 	}
 }
 

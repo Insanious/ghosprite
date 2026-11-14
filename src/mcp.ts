@@ -5,7 +5,7 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { OpError, toOpError } from "./errors.ts";
-import { type RunLog, startRunLog } from "./run-log.ts";
+import { type RunLog, startRunLog, writePidFile } from "./run-log.ts";
 import { resumeTool } from "./run-resume.ts";
 import { Session } from "./session.ts";
 import { callTool, describeTools, replaceImages } from "./tools.ts";
@@ -98,6 +98,17 @@ export async function serveStdio(
 ): Promise<void> {
 	const { viewerPort, historyDir } = options;
 	const runLog = historyDir === undefined ? undefined : startRunLog(historyDir);
+	if (runLog !== undefined) {
+		const removePidFile = writePidFile(runLog.folder);
+		process.stdin.once("end", removePidFile);
+		process.once("exit", removePidFile);
+		for (const signal of ["SIGINT", "SIGTERM"] as const) {
+			process.once(signal, () => {
+				removePidFile();
+				process.exit();
+			});
+		}
+	}
 	const pictures = new StepPictures();
 	const session = new Session({
 		onLog: (entry, workspace) => {

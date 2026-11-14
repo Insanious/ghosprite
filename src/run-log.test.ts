@@ -8,7 +8,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startRunLog } from "./run-log.ts";
+import { PID_FILE, runIsLive, startRunLog, writePidFile } from "./run-log.ts";
 import type { LogEntry } from "./session.ts";
 
 const NOW = new Date("2026-11-12T14:03:22.456Z");
@@ -60,6 +60,42 @@ describe("startRunLog", () => {
 			version: expect.any(String),
 			started: NOW.toISOString(),
 		});
+	});
+});
+
+describe("pid file", () => {
+	test("holds the current pid and the run is live until removed", () => {
+		const { folder } = startRunLog(root, NOW);
+		const remove = writePidFile(folder);
+		expect(readFileSync(join(folder, PID_FILE), "utf8")).toBe(
+			String(process.pid),
+		);
+		expect(runIsLive(folder)).toBe(true);
+		remove();
+		expect(runIsLive(folder)).toBe(false);
+		expect(() => remove()).not.toThrow();
+	});
+
+	test("startRunLog writes none", () => {
+		const { folder } = startRunLog(root, NOW);
+		expect(existsSync(join(folder, PID_FILE))).toBe(false);
+	});
+
+	test("a dead process is not live", async () => {
+		const proc = Bun.spawn(["bun", "-e", ""]);
+		await proc.exited;
+		const { folder } = startRunLog(root, NOW);
+		writeFileSync(join(folder, PID_FILE), String(proc.pid));
+		expect(runIsLive(folder)).toBe(false);
+	});
+
+	test("a missing folder, an empty file or junk is not live", () => {
+		expect(runIsLive(join(root, "missing"))).toBe(false);
+		const { folder } = startRunLog(root, NOW);
+		writeFileSync(join(folder, PID_FILE), "");
+		expect(runIsLive(folder)).toBe(false);
+		writeFileSync(join(folder, PID_FILE), "abc");
+		expect(runIsLive(folder)).toBe(false);
 	});
 });
 
