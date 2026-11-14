@@ -318,13 +318,10 @@ describe("cli mcp", () => {
 
 	test("the viewer is on by default and --no-viewer turns it off", () => {
 		const env = envWith({ GHOSPRITE_HISTORY: join(scratch, "unused") });
-		const on = instructionsOf(mcp(["--no-history"], env, [initialize]));
-		expect(on).toContain("A read-only viewer");
+		const on = instructionsOf(mcp([], env, [initialize]));
 		expect(on).toContain("http://127.0.0.1:");
-		const off = instructionsOf(
-			mcp(["--no-history", "--no-viewer"], env, [initialize]),
-		);
-		expect(off).not.toContain("A read-only viewer");
+		expect(on).toContain("ghosprite view");
+		const off = instructionsOf(mcp(["--no-viewer"], env, [initialize]));
 		expect(off).not.toContain("http://127.0.0.1:");
 	});
 

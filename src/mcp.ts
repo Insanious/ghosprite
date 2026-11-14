@@ -21,13 +21,37 @@ const INSTRUCTIONS =
 	"Pass a short `note` on every change saying what it is for, and a `label` on session_apply. " +
 	"session_* tools handle batches, undo and checkpoints. Tool names use _ where ops use . (session_apply takes dotted op names).";
 
+type Viewer = { url: string; run: string };
+
+const LINKED_OPS = new Set(["sprite.create", "sprite.load"]);
+
 function viewerSentence(url: string): string {
-	return `A read-only viewer showing every step with its checkpoint number is at ${url}: give that address to the user when asked.`;
+	return `A read-only gallery of your sprites is at ${url}. sprite_create and sprite_load return a \`viewer\` link to that sprite's page: give it to the user whenever you create or load a sprite. If the page doesn't open, tell the user to run \`ghosprite view\`.`;
+}
+
+function withViewerLinks(
+	viewer: Viewer,
+	name: string,
+	input: unknown,
+	result: unknown,
+): unknown {
+	if (!LINKED_OPS.has(name) && name !== "session.apply") return result;
+	const { checkpointId } = result as { checkpointId: string };
+	const link = { viewer: `${viewer.url}${viewer.run}/${checkpointId}` };
+	if (LINKED_OPS.has(name)) return { ...(result as object), ...link };
+	const { ops } = input as { ops: { op: string }[] };
+	const { results } = result as { results: object[] };
+	return {
+		...(result as object),
+		results: results.map((entry, index) =>
+			LINKED_OPS.has(ops[index]?.op ?? "") ? { ...entry, ...link } : entry,
+		),
+	};
 }
 
 export function createMcpServer(
 	session: Session,
-	viewerUrl?: string,
+	viewer?: Viewer,
 	history?: { dir: string; log: RunLog },
 ): Server {
 	const extraTools = [resumeTool(history)];
@@ -42,9 +66,9 @@ export function createMcpServer(
 		{
 			capabilities: { tools: {} },
 			instructions:
-				viewerUrl === undefined
+				viewer === undefined
 					? INSTRUCTIONS
-					: `${INSTRUCTIONS} ${viewerSentence(viewerUrl)}`,
+					: `${INSTRUCTIONS} ${viewerSentence(viewer.url)}`,
 		},
 	);
 
@@ -64,8 +88,11 @@ export function createMcpServer(
 				throw new OpError("unknown_op", `Unknown tool "${name}"`);
 			}
 			const images: Uint8Array[] = [];
+			const called = callTool(session, dotted, input, extraTools);
 			const result = replaceImages(
-				callTool(session, dotted, input, extraTools),
+				viewer === undefined
+					? called
+					: withViewerLinks(viewer, dotted, input, called),
 				(png) => {
 					images.push(png);
 					return { key: "image", value: images.length - 1 };
@@ -125,7 +152,11 @@ export async function serveStdio(
 		historyDir === undefined || runLog === undefined
 			? undefined
 			: { dir: historyDir, log: runLog };
-	await createMcpServer(session, viewer?.url, history).connect(
-		new StdioServerTransport(),
-	);
+	await createMcpServer(
+		session,
+		viewer !== undefined && runLog !== undefined
+			? { url: viewer.url, run: runLog.name }
+			: undefined,
+		history,
+	).connect(new StdioServerTransport());
 }
