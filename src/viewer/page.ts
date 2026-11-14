@@ -82,6 +82,7 @@ let following = true;
 let pinned = null;
 let mainId = null;
 let mainImage = null;
+let renderCount = 0;
 const cards = new Map();
 
 function el(tag, className, text) {
@@ -108,8 +109,7 @@ function shownId() {
   return current ? current.checkpointId : null;
 }
 
-function fitImage() {
-  const img = mainImage;
+function fitImage(img) {
   if (!img || !img.naturalWidth) return;
   const scale = Math.max(1, Math.floor(Math.min(
     main.clientWidth / img.naturalWidth,
@@ -119,27 +119,44 @@ function fitImage() {
 }
 
 function renderMain(id) {
-  shown.replaceChildren();
-  mainImage = null;
+  const number = ++renderCount;
+  const swap = (nodes, img) => {
+    if (number !== renderCount) return;
+    mainImage = img;
+    shown.replaceChildren(...nodes);
+  };
   const entry = entries.find((e) => isStep(e) && e.checkpointId === id);
-  if (!entry) return;
+  if (!entry) {
+    swap([], null);
+    return;
+  }
+  const nodes = [];
+  let img = null;
   if (entry.hasPicture) {
     const view = el("div", "view");
     const wrap = el("div", "checker");
-    mainImage = picture(entry);
-    mainImage.onload = fitImage;
-    wrap.append(mainImage);
+    img = picture(entry);
+    wrap.append(img);
     view.append(wrap);
-    shown.append(view);
+    nodes.push(view);
   }
-  shown.append(el("h2", "", "Step " + stepNumber(id)));
-  shown.append(el("div", "tool", toolName(entry.op)));
-  if (entry.note) shown.append(el("div", "note", entry.note));
-  if (entry.others && entry.others.length) shown.append(el("div", "note", alsoChanged(entry)));
+  nodes.push(el("h2", "", "Step " + stepNumber(id)));
+  nodes.push(el("div", "tool", toolName(entry.op)));
+  if (entry.note) nodes.push(el("div", "note", entry.note));
+  if (entry.others && entry.others.length) nodes.push(el("div", "note", alsoChanged(entry)));
   const details = el("details");
   details.append(el("summary", "", "Input"));
   details.append(el("pre", "", JSON.stringify(entry.input, null, 2)));
-  shown.append(details);
+  nodes.push(details);
+  if (img) {
+    img.onload = () => {
+      fitImage(img);
+      swap(nodes, img);
+    };
+    img.onerror = () => swap(nodes, img);
+  } else {
+    swap(nodes, null);
+  }
 }
 
 function showShown() {
@@ -186,6 +203,8 @@ function reset() {
   pinned = null;
   following = true;
   mainId = null;
+  renderCount++;
+  mainImage = null;
   shown.replaceChildren();
 }
 
@@ -215,7 +234,7 @@ followButton.onclick = () => {
   following = true;
   showShown();
 };
-window.addEventListener("resize", fitImage);
+window.addEventListener("resize", () => fitImage(mainImage));
 poll();
 setInterval(poll, 1000);
 </script>

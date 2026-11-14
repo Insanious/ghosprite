@@ -22,6 +22,15 @@ describe("page", () => {
 		expect(html).not.toContain("<b>x</b>");
 	});
 
+	test("embeds a script that parses", () => {
+		const html = page();
+		const script = html.slice(
+			html.indexOf("<script>") + "<script>".length,
+			html.indexOf("</script>"),
+		);
+		expect(() => new Function(script)).not.toThrow();
+	});
+
 	test("links back to the index only when asked", () => {
 		expect(page()).not.toContain('id="index-link"');
 		expect(page({ indexLink: true })).toContain('id="index-link"');
