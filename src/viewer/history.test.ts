@@ -2,17 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { inflateSync } from "node:zlib";
 import { decodePng } from "../core/index.ts";
 import { Session } from "../session.ts";
-import { currentCheckpoint, currentPath, StepPictures } from "./history.ts";
+import { currentPath, renderSprites } from "./history.ts";
 
 type Created = { spriteId: string; layerId: string };
-
-function pictureSession() {
-	const pictures = new StepPictures();
-	const session = new Session({
-		onLog: (entry, workspace) => pictures.record(entry, workspace),
-	});
-	return { session, pictures };
-}
 
 function paint(
 	session: Session,
@@ -58,79 +50,43 @@ function decode(png: Uint8Array | undefined) {
 	return decodePng(png as Uint8Array, inflateSync);
 }
 
-describe("StepPictures", () => {
-	function twoFrameSprite(session: Session) {
-		const sprite = session.run("sprite.create", {
+describe("renderSprites", () => {
+	test("a two frame sprite is one row with a gap", () => {
+		const session = new Session();
+		const { spriteId } = session.run("sprite.create", {
 			width: 4,
 			height: 3,
 			frameCount: 2,
 		}) as unknown as Created;
 		const { layerId } = session.run("layer.create", {
-			spriteId: sprite.spriteId,
+			spriteId,
 			name: "L",
 		}) as unknown as Created;
-		return { spriteId: sprite.spriteId, layerId };
-	}
-
-	test("a step on a two frame sprite is one row with a gap", () => {
-		const { session, pictures } = pictureSession();
-		const { spriteId, layerId } = twoFrameSprite(session);
-		const first = paint(session, spriteId, layerId, 0, 1, "#ff0000");
-		const image = decode(pictures.get(first));
+		paint(session, spriteId, layerId, 0, 1, "#ff0000");
+		paint(session, spriteId, layerId, 1, 2, "#00ff00");
+		const image = decode(
+			renderSprites([session.workspace.getSprite(spriteId)]),
+		);
 		expect([image.width, image.height]).toEqual([9, 3]);
 		expect(pixel(image, 1, 0)).toEqual([255, 0, 0, 255]);
-		expect(pixel(image, 5, 0)[3]).toBe(0);
 		expect(pixel(image, 4, 0)[3]).toBe(0);
-
-		const second = paint(session, spriteId, layerId, 1, 2, "#00ff00");
-		const both = decode(pictures.get(second));
-		expect(pixel(both, 1, 0)).toEqual([255, 0, 0, 255]);
-		expect(pixel(both, 5 + 2, 0)).toEqual([0, 255, 0, 255]);
+		expect(pixel(image, 5 + 2, 0)).toEqual([0, 255, 0, 255]);
 	});
 
-	test("a step touching two sprites holds both", () => {
-		const { session, pictures } = pictureSession();
-		const { checkpointId } = session.apply([
+	test("sprites side by side share cells of the widest frame", () => {
+		const session = new Session();
+		const { results } = session.apply([
 			{ op: "sprite.create", input: { width: 2, height: 2 } },
 			{ op: "sprite.create", input: { width: 3, height: 2 } },
 		]);
-		const image = decode(pictures.get(checkpointId));
-		expect([image.width, image.height]).toEqual([3 + 1 + 3, 2]);
-	});
-
-	test("the picture keeps the sprite as it was at that step", () => {
-		const { session, pictures } = pictureSession();
-		const { spriteId, layerId } = twoFrameSprite(session);
-		const first = paint(session, spriteId, layerId, 0, 1, "#ff0000");
-		paint(session, spriteId, layerId, 0, 1, "#0000ff");
-		expect(pixel(decode(pictures.get(first)), 1, 0)).toEqual([255, 0, 0, 255]);
-	});
-
-	test("a sprite over the render limit records no picture and the call succeeds", () => {
-		const { session, pictures } = pictureSession();
-		const result = session.run("sprite.create", {
-			width: 4097,
-			height: 4096,
-			frameCount: 1,
-		});
-		expect(result.checkpointId).toBe("checkpoint-1");
-		expect(pictures.get("checkpoint-1")).toBeUndefined();
-	});
-
-	test("a moved entry records no picture", () => {
-		const { session, pictures } = pictureSession();
-		session.run("sprite.create", { width: 2, height: 2 });
-		session.undo();
-		pictures.record(
-			{ kind: "moved", checkpointId: "checkpoint-9" },
-			session.workspace,
+		const image = decode(
+			renderSprites(
+				results.map((result) =>
+					session.workspace.getSprite((result as unknown as Created).spriteId),
+				),
+			),
 		);
-		expect(pictures.get("checkpoint-9")).toBeUndefined();
-		expect(pictures.get("checkpoint-0")).toBeUndefined();
-	});
-
-	test("an unknown checkpoint has no picture", () => {
-		expect(new StepPictures().get("checkpoint-9")).toBeUndefined();
+		expect([image.width, image.height]).toEqual([3 + 1 + 3, 2]);
 	});
 });
 
@@ -172,47 +128,5 @@ describe("currentPath", () => {
 		paint(session, spriteId, layerId, 0, 0, "#ff0000");
 		session.restore("checkpoint-0");
 		expect(currentPath(session.stepLog())).toEqual(new Set());
-	});
-});
-
-describe("currentCheckpoint", () => {
-	test("an empty log has no current step", () => {
-		expect(currentCheckpoint([])).toBeUndefined();
-	});
-
-	test("with linear steps it is the last one", () => {
-		const { session, spriteId, layerId } = steps();
-		paint(session, spriteId, layerId, 0, 0, "#ff0000");
-		expect(currentCheckpoint(session.stepLog())).toBe("checkpoint-3");
-	});
-
-	test("after an undo it is the step moved to, not the newest", () => {
-		const { session, spriteId, layerId } = steps();
-		paint(session, spriteId, layerId, 0, 0, "#ff0000");
-		session.undo();
-		expect(currentCheckpoint(session.stepLog())).toBe("checkpoint-2");
-	});
-
-	test("after an undo and a new step it is the new step", () => {
-		const { session, spriteId, layerId } = steps();
-		paint(session, spriteId, layerId, 0, 0, "#ff0000");
-		session.undo();
-		const replacement = paint(session, spriteId, layerId, 0, 1, "#00ff00");
-		expect(currentCheckpoint(session.stepLog())).toBe(replacement);
-	});
-
-	test("a restore to checkpoint-0 has no current step", () => {
-		const { session, spriteId, layerId } = steps();
-		paint(session, spriteId, layerId, 0, 0, "#ff0000");
-		session.restore("checkpoint-0");
-		expect(currentCheckpoint(session.stepLog())).toBeUndefined();
-	});
-
-	test("a redo after an undo gives the redone step", () => {
-		const { session, spriteId, layerId } = steps();
-		paint(session, spriteId, layerId, 0, 0, "#ff0000");
-		session.undo();
-		session.redo();
-		expect(currentCheckpoint(session.stepLog())).toBe("checkpoint-3");
 	});
 });
