@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { OpError } from "../errors.ts";
 
 export function readFile(path: string): Uint8Array {
@@ -19,6 +20,7 @@ export function writeFile(
 	field: string,
 ) {
 	try {
+		mkdirSync(dirname(path), { recursive: true });
 		writeFileSync(path, data);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);

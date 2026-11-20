@@ -9,7 +9,7 @@ export const spriteSave = defineOp({
 	name: "sprite.save",
 	sprite: "reads",
 	description:
-		"Write a sprite to an .aseprite file, overwriting any file at path. Changes nothing in the sprite.",
+		"Write a sprite to an .aseprite file, creating missing folders and overwriting any file at path. Changes nothing in the sprite.",
 	input: z.object({ spriteId: z.string(), path: z.string() }),
 	renderOption: false,
 	run: (workspace, input) => {

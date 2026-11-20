@@ -17,7 +17,7 @@ export const spriteExportSheet = defineOp({
 	name: "sprite.exportSheet",
 	sprite: "reads",
 	description:
-		"Export a sprite as a sprite sheet PNG at path with Aseprite-style JSON data at dataPath, overwriting any files there. Changes nothing in the sprite.",
+		"Export a sprite as a sprite sheet PNG at path with Aseprite-style JSON data at dataPath, creating missing folders and overwriting any files there. Changes nothing in the sprite.",
 	input: z
 		.object({
 			spriteId: z.string(),

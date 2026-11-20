@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { paletteAt } from "../core/index.ts";
@@ -178,12 +178,21 @@ describe("palette.save and palette.load", () => {
 		expect(error.path).toBe("path");
 	});
 
+	test("saving creates the missing folders", () => {
+		const { workspace, spriteId } = setup();
+		const path = join(tempDir, "a", "b", "p.hex");
+		registry.callOp(workspace, "palette.save", { spriteId, path });
+		expect(existsSync(path)).toBe(true);
+	});
+
 	test("an unwritable path is invalid_input on path", () => {
 		const { workspace, spriteId } = setup();
+		const file = join(tempDir, "file.txt");
+		writeFileSync(file, "x");
 		const error = failure(() =>
 			registry.callOp(workspace, "palette.save", {
 				spriteId,
-				path: join(tempDir, "no-such-dir", "p.hex"),
+				path: join(file, "p.hex"),
 			}),
 		);
 		expect(error.code).toBe("invalid_input");

@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+	existsSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { OpError } from "../errors.ts";
@@ -48,17 +54,36 @@ describe("sprite.exportSheet", () => {
 		}
 	});
 
-	test("an unwritable path is invalid_input at path", () => {
+	test("creates the missing folders of path and dataPath", () => {
 		const { workspace, input, directory } = setup();
 		try {
+			const path = join(directory, "img", "sheet.png");
+			const dataPath = join(directory, "data", "sheet.json");
+			registry.callOp(workspace, "sprite.exportSheet", {
+				...input,
+				path,
+				dataPath,
+			});
+			expect(existsSync(path)).toBe(true);
+			expect(existsSync(dataPath)).toBe(true);
+		} finally {
+			rmSync(directory, { recursive: true, force: true });
+		}
+	});
+
+	test("a dataPath under an existing file is invalid_input at dataPath", () => {
+		const { workspace, input, directory } = setup();
+		try {
+			const file = join(directory, "file.txt");
+			writeFileSync(file, "x");
 			const error = failure(() =>
 				registry.callOp(workspace, "sprite.exportSheet", {
 					...input,
-					path: join(directory, "missing", "sheet.png"),
+					dataPath: join(file, "sheet.json"),
 				}),
 			);
 			expect(error.code).toBe("invalid_input");
-			expect(error.path).toBe("path");
+			expect(error.path).toBe("dataPath");
 		} finally {
 			rmSync(directory, { recursive: true, force: true });
 		}

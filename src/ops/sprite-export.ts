@@ -58,7 +58,7 @@ export const spriteExport = defineOp({
 	name: "sprite.export",
 	sprite: "reads",
 	description:
-		"Export a sprite as a .png (one frame), or an animated .gif or .webp (every frame or a tag's frames, with their durations), chosen by the extension of path, overwriting any file there. Changes nothing in the sprite.",
+		"Export a sprite as a .png (one frame), or an animated .gif or .webp (every frame or a tag's frames, with their durations), chosen by the extension of path, creating missing folders and overwriting any file there. Changes nothing in the sprite.",
 	input: z.object({
 		spriteId: z.string(),
 		path: z.string(),

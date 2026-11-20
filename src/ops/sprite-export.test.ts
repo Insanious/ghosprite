@@ -84,6 +84,14 @@ describe("sprite.export", () => {
 		});
 	});
 
+	test("creates the missing folders of path", () => {
+		withSetup(({ workspace, spriteId, directory }) => {
+			const path = join(directory, "a", "b", "out.png");
+			call(workspace, "sprite.export", { spriteId, path });
+			expect(readFileSync(path).subarray(1, 4).toString()).toBe("PNG");
+		});
+	});
+
 	test("a .GIF with a tag writes only the tag's frames and delays", () => {
 		withSetup(({ workspace, spriteId, directory }) => {
 			const path = join(directory, "t.GIF");

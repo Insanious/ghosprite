@@ -103,7 +103,7 @@ export const paletteSave = defineOp({
 	name: "palette.save",
 	sprite: "reads",
 	description:
-		"Write the palette in effect at a frame to a .gpl, .hex or .pal file, overwriting any file at path. The format comes from the file extension. Changes nothing in the sprite.",
+		"Write the palette in effect at a frame to a .gpl, .hex or .pal file, creating missing folders and overwriting any file at path. The format comes from the file extension. Changes nothing in the sprite.",
 	input: z.object({
 		spriteId: z.string(),
 		path: z.string(),

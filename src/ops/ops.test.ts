@@ -291,13 +291,32 @@ describe("sprite.load and sprite.save", () => {
 		expect(existsSync(path)).toBe(false);
 	});
 
-	test("an unwritable path is invalid_input at path", () => {
+	test("saving creates the missing folders", () => {
 		const { workspace, spriteId } = setup();
+		const path = join(scratch, "a", "b", "out.aseprite");
+		call(workspace, "sprite.save", { spriteId, path });
+		const loaded = call(new Workspace(), "sprite.load", { path });
+		expect(loaded.spriteId).toBeDefined();
+	});
+
+	test("a path under an existing file is invalid_input at path", () => {
+		const { workspace, spriteId } = setup();
+		const file = join(scratch, "file.txt");
+		writeFileSync(file, "x");
 		const error = failure(() =>
 			call(workspace, "sprite.save", {
 				spriteId,
-				path: join(scratch, "no-dir", "out.aseprite"),
+				path: join(file, "out.aseprite"),
 			}),
+		);
+		expect(error.code).toBe("invalid_input");
+		expect(error.path).toBe("path");
+	});
+
+	test("a path naming an existing folder is invalid_input at path", () => {
+		const { workspace, spriteId } = setup();
+		const error = failure(() =>
+			call(workspace, "sprite.save", { spriteId, path: scratch }),
 		);
 		expect(error.code).toBe("invalid_input");
 		expect(error.path).toBe("path");
