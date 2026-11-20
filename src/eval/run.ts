@@ -18,6 +18,7 @@ import { listRuns } from "../history-dir.ts";
 import { type Replay, readRun, replayRun } from "../run-replay.ts";
 import { type LogEntry, Session } from "../session.ts";
 import { callTool } from "../tools.ts";
+import { CLAUDE_ENV } from "./assign.ts";
 import { type EvalDefinition, runChecks } from "./checks.ts";
 import { computeMetrics, type ToolSchema } from "./metrics.ts";
 
@@ -230,11 +231,7 @@ async function runOnce(
 			["claude", ...claudeArgs(prompt, model, caps, runFolder)],
 			{
 				cwd,
-				env: {
-					...process.env,
-					CLAUDE_CODE_DISABLE_CLAUDE_MDS: "1",
-					CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1",
-				},
+				env: { ...process.env, ...CLAUDE_ENV },
 				stdin: "ignore",
 				stdout: Bun.file(transcriptPath),
 				stderr: Bun.file(join(runFolder, "claude-stderr.log")),
