@@ -340,7 +340,8 @@ const cases: Case[] = [
 	{
 		name: "filter.replaceColor",
 		linked: true,
-		input: (ids) => onFrames(ids, { from: "#ff0000", to: "#ffff00" }),
+		input: (ids) =>
+			onFrames(ids, { pairs: [{ from: "#ff0000", to: "#ffff00" }] }),
 	},
 	{
 		name: "filter.colorCurve",

@@ -8,19 +8,25 @@ export const filterReplaceColor = defineOp({
 	name: "filter.replaceColor",
 	sprite: "edits",
 	description:
-		"Replace one colour with another on a layer's cels, like Aseprite's Replace Color. A pixel matches when every targeted channel is within the tolerance of `from`; targeted channels then take `to`'s values. Targets red, green, blue and alpha by default.",
+		"Replace colours on a layer's cels: each `from` becomes its `to`, like Aseprite's Replace Color for one pair. Swapping two colours works in one call. A pixel matches a pair when every targeted channel is within the tolerance of `from`; targeted channels then take `to`'s values. Targets red, green, blue and alpha by default.",
 	input: z.object({
 		...filterFields,
-		from: colorSchema,
-		to: colorSchema,
+		pairs: z
+			.array(z.object({ from: colorSchema, to: colorSchema }))
+			.min(1)
+			.describe(
+				"Colour pairs, matched against the pixels as they were before the call. The first matching pair wins.",
+			),
 		tolerance: z.number().int().min(0).max(255).default(0),
 	}),
 	run(workspace, input) {
 		const sprite = workspace.getSprite(input.spriteId);
 		const palette = paletteAt(sprite.palettes, input.frames[0]);
 		const filter = replaceColor(
-			toRgba(input.from, "from", palette),
-			toRgba(input.to, "to", palette),
+			input.pairs.map((pair, i) => ({
+				from: toRgba(pair.from, `pairs.${i}.from`, palette),
+				to: toRgba(pair.to, `pairs.${i}.to`, palette),
+			})),
 			input.tolerance,
 		);
 		return runFilter(workspace, input, filter, ["r", "g", "b", "a"]);

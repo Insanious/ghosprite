@@ -339,7 +339,10 @@ local function apply_op(sprite, layer, call)
   elseif call.op == "filter.outline" then
     run_filter(sprite, layer, "Outline", input, { color = color(input.color), bgColor = color(input.bgColor or "#00000000"), place = input.place, matrix = input.matrix, tiledMode = input.tiled and TILED[input.tiled] })
   elseif call.op == "filter.replaceColor" then
-    run_filter(sprite, layer, "ReplaceColor", input, { from = color(input.from), to = color(input.to), tolerance = input.tolerance or 0 })
+    if #input.pairs ~= 1 then
+      error("filter.replaceColor can be recorded with one pair only")
+    end
+    run_filter(sprite, layer, "ReplaceColor", input, { from = color(input.pairs[1].from), to = color(input.pairs[1].to), tolerance = input.tolerance or 0 })
   elseif call.op == "filter.colorCurve" then
     local curve = {}
     for _, point in ipairs(input.points) do curve[#curve + 1] = Point(point.x, point.y) end

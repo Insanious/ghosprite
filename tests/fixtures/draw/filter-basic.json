@@ -195,8 +195,7 @@
 				"op": "filter.replaceColor",
 				"input": {
 					"frames": [0],
-					"from": "#e03020",
-					"to": "#2060ff",
+					"pairs": [{ "from": "#e03020", "to": "#2060ff" }],
 					"tolerance": 0
 				}
 			}
@@ -231,8 +230,7 @@
 				"op": "filter.replaceColor",
 				"input": {
 					"frames": [0],
-					"from": "#e03020",
-					"to": "#2060ff",
+					"pairs": [{ "from": "#e03020", "to": "#2060ff" }],
 					"tolerance": 30
 				}
 			}
@@ -267,8 +265,7 @@
 				"op": "filter.replaceColor",
 				"input": {
 					"frames": [0],
-					"from": "#e03020",
-					"to": "#2060ff",
+					"pairs": [{ "from": "#e03020", "to": "#2060ff" }],
 					"tolerance": 255
 				}
 			}
@@ -303,8 +300,7 @@
 				"op": "filter.replaceColor",
 				"input": {
 					"frames": [0],
-					"from": "#e0302080",
-					"to": "#00ff0040",
+					"pairs": [{ "from": "#e0302080", "to": "#00ff0040" }],
 					"tolerance": 10
 				}
 			}
@@ -339,8 +335,7 @@
 				"op": "filter.replaceColor",
 				"input": {
 					"frames": [0],
-					"from": "#e0302080",
-					"to": "#00ff0040",
+					"pairs": [{ "from": "#e0302080", "to": "#00ff0040" }],
 					"tolerance": 0,
 					"channels": ["a"]
 				}
@@ -369,8 +364,7 @@
 				"op": "filter.replaceColor",
 				"input": {
 					"frames": [0],
-					"from": "#00000000",
-					"to": "#ffffff",
+					"pairs": [{ "from": "#00000000", "to": "#ffffff" }],
 					"tolerance": 0
 				}
 			}
@@ -405,8 +399,7 @@
 				"op": "filter.replaceColor",
 				"input": {
 					"frames": [0],
-					"from": "#e03020",
-					"to": "#2060ff",
+					"pairs": [{ "from": "#e03020", "to": "#2060ff" }],
 					"tolerance": 255,
 					"mask": {
 						"x": 0,
