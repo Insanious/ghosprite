@@ -336,6 +336,7 @@ const cases: Case[] = [
 		name: "palette.quantize",
 		input: (ids) => sprite(ids, { maxColors: 4 }),
 	},
+	{ name: "palette.ramp", input: (ids) => sprite(ids, { color: "#e8c030" }) },
 	{ name: "filter.invert", linked: true, input: (ids) => onFrames(ids) },
 	{
 		name: "filter.replaceColor",

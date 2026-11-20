@@ -27,7 +27,12 @@ import { layerCreate } from "./layer-create.ts";
 import { layerDelete } from "./layer-delete.ts";
 import { layerMergeDown } from "./layer-merge-down.ts";
 import { layerMove } from "./layer-move.ts";
-import { paletteLoad, paletteSave, paletteSet } from "./palette.ts";
+import {
+	paletteLoad,
+	paletteRamp,
+	paletteSave,
+	paletteSet,
+} from "./palette.ts";
 import { paletteQuantize } from "./palette-quantize.ts";
 import { regionFlip } from "./region-flip.ts";
 import { regionMove } from "./region-move.ts";
@@ -115,6 +120,7 @@ export const operations: Operation[] = [
 	paletteLoad,
 	paletteSave,
 	paletteQuantize,
+	paletteRamp,
 	filterInvert,
 	filterReplaceColor,
 	filterColorCurve,

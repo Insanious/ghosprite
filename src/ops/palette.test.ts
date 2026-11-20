@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { paletteAt } from "../core/index.ts";
+import { paletteAt, rgbaHex } from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Session } from "../session.ts";
 import { Workspace } from "../workspace.ts";
@@ -98,6 +98,98 @@ describe("palette.set", () => {
 		expect(paletteAt(sprite().palettes, 0).colors).toEqual(expected);
 		session.undo();
 		expect(sprite().palettes).toEqual(before);
+	});
+});
+
+describe("palette.ramp", () => {
+	const ramp = (workspace: Workspace, input: Record<string, unknown>) =>
+		registry.callOp(workspace, "palette.ramp", input) as unknown as {
+			colors: { index: number; color: string }[];
+		};
+
+	test("appends the ramp and lists it with indices", () => {
+		const { workspace, spriteId, sprite } = setup();
+		const before = paletteAt(sprite.palettes, 0).colors;
+		const { colors: listed } = ramp(workspace, {
+			spriteId,
+			color: "#e8c030",
+		});
+		expect(listed.map((c) => c.index)).toEqual(
+			[0, 1, 2, 3, 4].map((i) => before.length + i),
+		);
+		expect(listed[2]?.color).toBe("#e8c030ff");
+		const after = paletteAt(sprite.palettes, 0).colors;
+		expect(after.slice(0, before.length)).toEqual(before);
+		expect(after.slice(before.length).map((c) => rgbaHex(c))).toEqual(
+			listed.map((c) => c.color),
+		);
+	});
+
+	test("at a later frame extends the palette in effect", () => {
+		const { workspace, spriteId, sprite } = setup();
+		const { colors: listed } = ramp(workspace, {
+			spriteId,
+			color: "#e8c030",
+			frame: 2,
+		});
+		expect(sprite.palettes).toHaveLength(1);
+		for (const frame of [0, 2]) {
+			expect(paletteAt(sprite.palettes, frame).colors.at(-1)).toEqual(
+				expect.objectContaining({ r: 0xf1, g: 0xf1, b: 0xc0 }),
+			);
+		}
+		expect(listed).toHaveLength(5);
+	});
+
+	test("extends only the palette that starts at or before the frame", () => {
+		const { workspace, spriteId, sprite } = setup();
+		registry.callOp(workspace, "palette.set", {
+			spriteId,
+			frame: 2,
+			colors: ["#ff0000"],
+		});
+		const first = structuredClone(paletteAt(sprite.palettes, 0).colors);
+		const { colors: listed } = ramp(workspace, {
+			spriteId,
+			color: "#e8c030",
+			frame: 3,
+		});
+		expect(paletteAt(sprite.palettes, 0).colors).toEqual(first);
+		expect(paletteAt(sprite.palettes, 2).colors).toHaveLength(6);
+		expect(listed[0]?.index).toBe(1);
+	});
+
+	test("a palette index is the base colour", () => {
+		const { workspace, spriteId } = setup();
+		registry.callOp(workspace, "palette.set", {
+			spriteId,
+			colors: ["#000000", "#e8c030"],
+		});
+		const { colors: listed } = ramp(workspace, {
+			spriteId,
+			color: { index: 1 },
+		});
+		expect(listed[2]?.color).toBe("#e8c030ff");
+	});
+
+	test("a ramp that does not fit is out_of_range and changes nothing", () => {
+		const { workspace, spriteId, sprite } = setup();
+		const full = Array.from({ length: 254 }, () => "#102030");
+		registry.callOp(workspace, "palette.set", { spriteId, colors: full });
+		const error = failure(() =>
+			ramp(workspace, { spriteId, color: "#e8c030" }),
+		);
+		expect(error.code).toBe("out_of_range");
+		expect(paletteAt(sprite.palettes, 0).colors).toHaveLength(254);
+	});
+
+	test("an indexed sprite is unsupported", () => {
+		const { workspace, spriteId, sprite } = setup();
+		sprite.mode = "indexed";
+		const error = failure(() =>
+			ramp(workspace, { spriteId, color: "#e8c030" }),
+		);
+		expect(error.code).toBe("unsupported");
 	});
 });
 
@@ -255,7 +347,12 @@ describe("describeOps", () => {
 	test("lists the palette ops", () => {
 		const names = operations.map((op) => op.name);
 		expect(names).toEqual(
-			expect.arrayContaining(["palette.set", "palette.load", "palette.save"]),
+			expect.arrayContaining([
+				"palette.set",
+				"palette.load",
+				"palette.save",
+				"palette.ramp",
+			]),
 		);
 	});
 });

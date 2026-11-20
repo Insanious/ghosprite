@@ -2,11 +2,13 @@ import { extname } from "node:path";
 import { z } from "zod";
 import {
 	CoreError,
+	colorRamp,
 	paletteAt,
 	type Rgba,
 	readGpl,
 	readHex,
 	readPal,
+	rgbaHex,
 	setPalette,
 	writeGpl,
 	writeHex,
@@ -58,6 +60,71 @@ export const paletteSet = defineOp({
 			input.colors.map((color, i) => toRgba(color, `colors.${i}`, current)),
 		);
 		return {};
+	},
+});
+
+export const paletteRamp = defineOp({
+	name: "palette.ramp",
+	sprite: "edits",
+	description:
+		"Append a shading ramp built from a base colour to the end of the palette in effect at a frame, and list the ramp dark to light with the palette index of each colour. Shadows turn towards blue and gain saturation, highlights turn towards yellow and lose saturation, and lightness is evenly spaced without reaching black or white. The base colour is included unchanged. Every colour is appended, even one the palette already holds.",
+	input: z.object({
+		spriteId: z.string(),
+		color: colorSchema.describe(
+			"The base colour. A palette index is resolved against the palette in effect at frame.",
+		),
+		frame: z
+			.number()
+			.int()
+			.min(0)
+			.default(0)
+			.describe("The frame whose palette is extended."),
+		darker: z
+			.number()
+			.int()
+			.min(0)
+			.max(16)
+			.default(2)
+			.describe("How many shadow colours to add below the base."),
+		lighter: z
+			.number()
+			.int()
+			.min(0)
+			.max(16)
+			.default(2)
+			.describe("How many highlight colours to add above the base."),
+		hueShift: z
+			.number()
+			.min(0)
+			.max(60)
+			.default(10)
+			.describe("Degrees the hue turns per step."),
+	}),
+	run(workspace, input) {
+		const sprite = workspace.getSprite(input.spriteId);
+		requireRgba(sprite);
+		checkFrame(sprite, input.frame);
+		const current = paletteAt(sprite.palettes, input.frame);
+		const ramp = colorRamp(toRgba(input.color, "color", current), input);
+		const first = current.colors.length;
+		const free = MAX_COLORS - first;
+		if (ramp.length > free) {
+			throw new OpError(
+				"out_of_range",
+				`The ramp has ${ramp.length} colours but the palette has room for ${free}`,
+				{
+					path: "darker",
+					hint: `${free} colours are free: lower darker or lighter, or remove colours with palette.set`,
+				},
+			);
+		}
+		setPalette(sprite, current.startFrame, [...current.colors, ...ramp]);
+		return {
+			colors: ramp.map((color, i) => ({
+				index: first + i,
+				color: rgbaHex(color),
+			})),
+		};
 	},
 });
 
