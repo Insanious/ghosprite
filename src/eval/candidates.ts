@@ -5,13 +5,19 @@ import type { FrictionFile } from "./friction.ts";
 import { isObject } from "./metrics.ts";
 import { EVALS, readJson } from "./report.ts";
 
-type RunFindings = Pick<FrictionFile, "findings" | "callTokens">;
+type RunFindings = Pick<FrictionFile, "callTokens"> & {
+	findings: (Omit<FrictionFile["findings"][number], "kind"> & {
+		kind?: "missing" | "exists";
+	})[];
+};
 
 type Finding = {
 	run: string;
 	part: string;
 	work: string;
+	kind?: "missing" | "exists";
 	tool: string;
+	tools?: string[];
 	calls: string[];
 };
 
@@ -32,7 +38,11 @@ export type Candidate = {
 	findings: Finding[];
 };
 
-export type Candidates = { model: string; candidates: Candidate[] };
+export type Candidates = {
+	model: string | null;
+	candidates: Candidate[];
+	unusedTools: Candidate[];
+};
 
 type Source = { finding: Finding; eval: string; model: string | null };
 
@@ -146,26 +156,38 @@ function resolveGroups(sources: Source[], answered: Group[]): Group[] {
 	return groups;
 }
 
-function candidate(
-	group: Group,
-	sources: Source[],
-	tokens: Map<string, Record<string, number>>,
-): Candidate {
-	const members = group.members.map((index) => sources[index] as Source);
+function citedCalls(findings: Finding[]): Map<string, Set<string>> {
 	const idsByRun = new Map<string, Set<string>>();
-	for (const { finding } of members) {
+	for (const finding of findings) {
 		const ids = idsByRun.get(finding.run) ?? new Set<string>();
 		for (const id of finding.calls) ids.add(id);
 		idsByRun.set(finding.run, ids);
 	}
-	let calls = 0;
-	let outputTokens = 0;
-	for (const [run, ids] of idsByRun) {
-		for (const id of ids) {
-			calls += 1;
-			outputTokens += tokens.get(run)?.[id] ?? 0;
+	return idsByRun;
+}
+
+function groupExists(sources: Source[]): Group[] {
+	const byTools = new Map<string, Group>();
+	sources.forEach(({ finding }, index) => {
+		const name = [...(finding.tools ?? [])].sort().join(" + ");
+		const group = byTools.get(name);
+		if (group) group.members.push(index);
+		else {
+			byTools.set(name, {
+				name,
+				description: finding.tool,
+				members: [index],
+			});
 		}
-	}
+	});
+	return [...byTools.values()];
+}
+
+function candidate(group: Group, sources: Source[]): Candidate {
+	const members = group.members.map((index) => sources[index] as Source);
+	const idsByRun = citedCalls(members.map(({ finding }) => finding));
+	let calls = 0;
+	for (const ids of idsByRun.values()) calls += ids.size;
 	const models = members.flatMap(({ model }) => (model ? [model] : []));
 	return {
 		name: group.name,
@@ -174,9 +196,47 @@ function candidate(
 		evals: [...new Set(members.map((member) => member.eval))].sort(),
 		models: [...new Set(models)].sort(),
 		calls,
-		outputTokens,
+		outputTokens: 0,
 		findings: members.map(({ finding }) => finding),
 	};
+}
+
+function splitTokens(
+	lists: Candidate[][],
+	tokens: Map<string, Record<string, number>>,
+): void {
+	const citations = new Map<string, number>();
+	const key = (run: string, id: string) => `${run}\0${id}`;
+	const all = lists.flat();
+	for (const entry of all) {
+		for (const [run, ids] of citedCalls(entry.findings)) {
+			for (const id of ids) {
+				citations.set(key(run, id), (citations.get(key(run, id)) ?? 0) + 1);
+			}
+		}
+	}
+	for (const entry of all) {
+		for (const [run, ids] of citedCalls(entry.findings)) {
+			for (const id of ids) {
+				entry.outputTokens +=
+					(tokens.get(run)?.[id] ?? 0) / (citations.get(key(run, id)) ?? 1);
+			}
+		}
+	}
+}
+
+function rank(entries: Candidate[]): Candidate[] {
+	return entries.sort(
+		(a, b) => b.outputTokens - a.outputTokens || b.runs - a.runs,
+	);
+}
+
+function printList(entries: Candidate[]): void {
+	entries.forEach((entry, index) => {
+		console.log(
+			`${index + 1}. ${entry.name}: ${Math.round(entry.outputTokens)} output tokens, ${entry.calls} calls, ${entry.runs} runs`,
+		);
+	});
 }
 
 export async function buildCandidates(
@@ -188,20 +248,34 @@ export async function buildCandidates(
 		console.log("No findings to group. Run eval-friction first.");
 		return undefined;
 	}
-	const reply = await ask(groupPrompt(sources), GROUPS_SCHEMA);
-	const candidates = resolveGroups(sources, parseGroups(reply.answer))
-		.map((group) => candidate(group, sources, tokens))
-		.sort((a, b) => b.outputTokens - a.outputTokens || b.runs - a.runs);
-	const result = { model: reply.model, candidates };
+	const missing = sources.filter(
+		({ finding }) => (finding.kind ?? "missing") === "missing",
+	);
+	const exists = sources.filter(({ finding }) => finding.kind === "exists");
+	let model: string | null = null;
+	let missingGroups: Group[] = [];
+	if (missing.length > 0) {
+		const reply = await ask(groupPrompt(missing), GROUPS_SCHEMA);
+		model = reply.model;
+		missingGroups = resolveGroups(missing, parseGroups(reply.answer));
+	}
+	const candidates = missingGroups.map((group) => candidate(group, missing));
+	const unusedTools = groupExists(exists).map((group) =>
+		candidate(group, exists),
+	);
+	splitTokens([candidates, unusedTools], tokens);
+	rank(candidates);
+	rank(unusedTools);
+	const result = { model, candidates, unusedTools };
 	writeFileSync(
 		join(resultsFolder, "candidates.json"),
 		`${JSON.stringify(result, null, "\t")}\n`,
 	);
-	candidates.forEach((entry, index) => {
-		console.log(
-			`${index + 1}. ${entry.name}: ${Math.round(entry.outputTokens)} output tokens, ${entry.calls} calls, ${entry.runs} runs`,
-		);
-	});
+	printList(candidates);
+	if (unusedTools.length > 0) {
+		console.log("Tools the agent had but didn't use:");
+		printList(unusedTools);
+	}
 	return result;
 }
 

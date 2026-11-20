@@ -19,7 +19,14 @@ afterEach(() => {
 	}
 });
 
-type F = { part: string; work: string; tool: string; calls: string[] };
+type F = {
+	part: string;
+	work: string;
+	tool: string;
+	calls: string[];
+	kind?: "missing" | "exists";
+	tools?: string[];
+};
 
 function finding(tool: string, calls: string[]): F {
 	return { part: "head", work: `work for ${tool}`, tool, calls };
@@ -140,4 +147,101 @@ test("with no findings nothing is asked or written", async () => {
 	expect(await buildCandidates(root, ask)).toBeUndefined();
 	expect(prompts).toHaveLength(0);
 	expect(existsSync(join(root, "candidates.json"))).toBe(false);
+});
+
+function exists(tools: string[], calls: string[]): F {
+	return {
+		part: "head",
+		work: "by hand",
+		tool: `use ${tools.join(", ")}`,
+		calls,
+		kind: "exists",
+		tools,
+	};
+}
+
+function emptyRoot(): string {
+	const root = mkdtempSync(join(tmpdir(), "ghosprite-candidates-"));
+	folders.push(root);
+	return root;
+}
+
+test("exists findings go to unusedTools, grouped by sorted tool set, and are not asked about", async () => {
+	const root = fixture();
+	writeRun(
+		root,
+		"scientist/a/run3",
+		"sonnet",
+		[exists(["draw_ellipse", "region_rotate"], ["e1"])],
+		{ e1: 10 },
+	);
+	writeRun(
+		root,
+		"scientist/a/run4",
+		"sonnet",
+		[
+			exists(["region_rotate", "draw_ellipse"], ["e1"]),
+			exists(["draw_ellipse"], ["e2"]),
+		],
+		{ e1: 10, e2: 20 },
+	);
+	const { ask, prompts } = fakeAsk([]);
+	const result = await buildCandidates(root, ask);
+	expect(prompts[0]).not.toContain("draw_ellipse");
+	expect(result?.candidates.map((c) => c.name)).not.toContain("draw_ellipse");
+	expect(result?.unusedTools.map((c) => c.name).sort()).toEqual([
+		"draw_ellipse",
+		"draw_ellipse + region_rotate",
+	]);
+	const combined = result?.unusedTools.find((c) => c.name.includes("+"));
+	expect(combined?.runs).toBe(2);
+	expect(combined?.description).toBe("use draw_ellipse, region_rotate");
+});
+
+test("a call cited by a missing and an unused-tool candidate is split", async () => {
+	const root = emptyRoot();
+	writeRun(
+		root,
+		"scientist/a/run1",
+		"sonnet",
+		[finding("circle", ["c1", "c2"]), exists(["draw_ellipse"], ["c2"])],
+		{ c1: 100, c2: 50 },
+	);
+	const result = await buildCandidates(root, fakeAsk([]).ask);
+	expect(result?.candidates[0]?.outputTokens).toBe(125);
+	expect(result?.candidates[0]?.calls).toBe(2);
+	expect(result?.unusedTools[0]?.outputTokens).toBe(25);
+	expect(result?.unusedTools[0]?.calls).toBe(1);
+});
+
+test("two missing-tool candidates citing the same call split it", async () => {
+	const result = await buildCandidates(fixture(), fakeAsk([]).ask);
+	expect(result?.candidates[0]?.outputTokens).toBe(125);
+	expect(result?.candidates.find((c) => c.name === "ring")?.outputTokens).toBe(
+		25,
+	);
+});
+
+test("with only exists findings the model is not asked", async () => {
+	const root = emptyRoot();
+	writeRun(
+		root,
+		"scientist/a/run1",
+		"sonnet",
+		[exists(["draw_rect"], ["c1"])],
+		{ c1: 40 },
+	);
+	const { ask, prompts } = fakeAsk([]);
+	const result = await buildCandidates(root, ask);
+	expect(prompts).toHaveLength(0);
+	expect(result?.model).toBeNull();
+	expect(result?.candidates).toEqual([]);
+	expect(result?.unusedTools[0]?.outputTokens).toBe(40);
+});
+
+test("a finding without kind is treated as missing", async () => {
+	const { ask, prompts } = fakeAsk([]);
+	const result = await buildCandidates(fixture(), ask);
+	expect(prompts).toHaveLength(1);
+	expect(result?.unusedTools).toEqual([]);
 });
