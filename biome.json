@@ -10,6 +10,7 @@
 		"includes": [
 			"**",
 			"!**/*.md",
+			"!evals/results",
 			"!tests/fixtures/doc/sheet",
 			"!tests/fixtures/doc/sheet-clear",
 			"!tests/fixtures/doc/sheet-props"

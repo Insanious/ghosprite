@@ -3,5 +3,9 @@ dist/
 plans/
 *.log
 .DS_Store
+evals/results/**/transcript.jsonl
+evals/results/**/ghosprite/
+evals/results/**/*.aseprite
+evals/results/**/mcp.json
 .claude/worktrees/
 .claude/briefs/
