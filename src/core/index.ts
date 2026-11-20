@@ -120,6 +120,7 @@ export {
 	type GroupLayer,
 	type ImageLayer,
 	imageLayers,
+	isLayerVisible,
 	type Layer,
 	type LayerInit,
 	linkCels,
