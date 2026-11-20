@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import {
+	copyFileSync,
 	existsSync,
 	mkdtempSync,
 	readFileSync,
@@ -8,10 +9,16 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { inflateSync } from "node:zlib";
+import { crc32, deflateSync, inflateSync } from "node:zlib";
 import { z } from "zod";
 import { buildFile, layerChunk } from "../../tests/helpers/ase-build.ts";
-import { decodePng, findLayer, walkRenderOrder } from "../core/index.ts";
+import {
+	decodePng,
+	findLayer,
+	type ImageLayer,
+	readPng,
+	walkRenderOrder,
+} from "../core/index.ts";
 import { OpError } from "../errors.ts";
 import { Workspace } from "../workspace.ts";
 import { operations } from "./index.ts";
@@ -225,6 +232,104 @@ describe("sprite.load and sprite.save", () => {
 		expect(second.getSprite(reloaded.spriteId)).toEqual(
 			first.getSprite(spriteId),
 		);
+	});
+
+	describe("a png", () => {
+		const indexedPng = "tests/fixtures/png/indexed.png";
+		const rgbaPng = "tests/fixtures/png/rgba.png";
+
+		function loaded(path: string) {
+			const workspace = new Workspace();
+			const { spriteId } = call(workspace, "sprite.load", { path });
+			return workspace.getSprite(spriteId);
+		}
+
+		test("an indexed png loads as one rgba layer with its palette", () => {
+			const sprite = loaded(indexedPng);
+			expect(sprite.width).toBe(10);
+			expect(sprite.height).toBe(7);
+			expect(sprite.mode).toBe("rgba");
+			expect(sprite.frameDurations).toEqual([100]);
+			expect(sprite.root.children).toHaveLength(1);
+			const layer = sprite.root.children[0] as ImageLayer;
+			expect(layer.name).toBe("Layer 1");
+			expect(layer.cels.size).toBe(1);
+			const cel = layer.cels.get(0);
+			expect([cel?.data.x, cel?.data.y]).toEqual([0, 0]);
+			expect(cel?.data.image).toEqual(
+				readPng(readFileSync(indexedPng), inflateSync).image,
+			);
+			expect(sprite.palettes[0]?.colors).toEqual([
+				{ r: 255, g: 255, b: 255, a: 0 },
+				{ r: 255, g: 0, b: 0, a: 255 },
+				{ r: 0, g: 255, b: 0, a: 255 },
+				{ r: 0, g: 0, b: 255, a: 255 },
+			]);
+		});
+
+		test("an rgba png gets an empty palette and its pixels", () => {
+			const sprite = loaded(rgbaPng);
+			expect(sprite.palettes[0]?.colors).toEqual([]);
+			const image = (sprite.root.children[0] as ImageLayer).cels.get(0)?.data
+				.image;
+			const at = (1 * 10 + 1) * 4;
+			expect(Array.from(image?.data.subarray(at, at + 4) ?? [])).toEqual([
+				255, 0, 0, 128,
+			]);
+		});
+
+		test("the extension is matched in any case", () => {
+			const path = join(scratch, "upper.PNG");
+			copyFileSync(indexedPng, path);
+			expect(loaded(path).width).toBe(10);
+		});
+
+		test("a file that is not a png is invalid_input at path", () => {
+			const path = join(scratch, "bad.png");
+			writeFileSync(path, "not a png file");
+			const error = failure(() =>
+				call(new Workspace(), "sprite.load", { path }),
+			);
+			expect(error.code).toBe("invalid_input");
+			expect(error.path).toBe("path");
+			expect(error.message).toBe("Not a PNG file");
+		});
+
+		test("a png wider than 65535 is unsupported at path", () => {
+			const width = 65536;
+			const chunk = (type: string, data: Uint8Array) => {
+				const out = new Uint8Array(12 + data.length);
+				const view = new DataView(out.buffer);
+				view.setUint32(0, data.length);
+				out.set(Buffer.from(type), 4);
+				out.set(data, 8);
+				view.setUint32(
+					8 + data.length,
+					crc32(out.subarray(4, 8 + data.length)),
+				);
+				return out;
+			};
+			const header = new Uint8Array(13);
+			const headerView = new DataView(header.buffer);
+			headerView.setUint32(0, width);
+			headerView.setUint32(4, 1);
+			header[8] = 1;
+			const path = join(scratch, "wide.png");
+			writeFileSync(
+				path,
+				Buffer.concat([
+					Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+					chunk("IHDR", header),
+					chunk("IDAT", deflateSync(new Uint8Array(1 + width / 8))),
+					chunk("IEND", new Uint8Array(0)),
+				]),
+			);
+			const error = failure(() =>
+				call(new Workspace(), "sprite.load", { path }),
+			);
+			expect(error.code).toBe("unsupported");
+			expect(error.path).toBe("path");
+		});
 	});
 
 	test("a missing file is not_found at path", () => {

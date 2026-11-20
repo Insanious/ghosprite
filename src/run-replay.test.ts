@@ -66,6 +66,22 @@ describe("replayRun", () => {
 		);
 	});
 
+	test("a loaded png is read from the run folder after the original is gone", () => {
+		const copy = join(root, "base.png");
+		copyFileSync("tests/fixtures/png/indexed.png", copy);
+		const { log, session } = recorded();
+		session.run("sprite.load", { path: copy });
+		rmSync(copy);
+
+		const { entries } = readRun(log.folder);
+		const fresh = new Session();
+		expect(replayRun(fresh, log.folder, entries)).toEqual({});
+		const step = fresh.stepLog()[0] as Extract<LogEntry, { kind: "step" }>;
+		expect((step.input as { path: string }).path.startsWith(log.folder)).toBe(
+			true,
+		);
+	});
+
 	test("a load whose stored file is missing stops the replay and keeps earlier steps", () => {
 		const copy = join(root, "base.aseprite");
 		copyFileSync("tests/fixtures/doc/base.aseprite", copy);
