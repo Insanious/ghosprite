@@ -19,7 +19,9 @@ type Mcp = { instructions?: string; tools: ToolSchema[] };
 export type Finding = {
 	part: string;
 	work: string;
+	kind: "missing" | "exists";
 	tool: string;
+	tools?: string[];
 	calls: string[];
 	effort: { calls: number; outputTokens: number };
 };
@@ -43,9 +45,11 @@ function schema(parts: string[]): unknown {
 						part: { type: "string", enum: parts },
 						work: { type: "string" },
 						calls: { type: "array", items: { type: "string" } },
+						kind: { type: "string", enum: ["missing", "exists"] },
 						tool: { type: "string" },
+						tools: { type: "array", items: { type: "string" } },
 					},
-					required: ["part", "work", "calls", "tool"],
+					required: ["part", "work", "calls", "kind", "tool"],
 				},
 			},
 		},
@@ -79,7 +83,7 @@ function analysisPrompt(
 		inputSchema: tool.inputSchema,
 	}));
 	return [
-		"An agent was given the drawing prompt below and drew a sprite with the ghosprite tools. Find work the agent worked out or made by hand that a tool or option ghosprite does not have could have done. Examples: counting or placing pixels for a shape, working out the coordinates of an angled shape, building a soft edge from stacked shapes, or retrying after errors. Do not report misuse of a tool that already does the job. Each finding names the part, what the agent worked out or made by hand, the tool or option that would have removed the work, and the ids of the calls that show the work. Cite ids exactly as given. Ids of ops inside a session_apply look like <id>#<n>. If nothing qualifies, return no findings.",
+		'An agent was given the drawing prompt below and drew a sprite with the ghosprite tools. Find work the agent worked out or made by hand that a tool could have done. Examples: counting or placing pixels for a shape, working out the coordinates of an angled shape, building a soft edge from stacked shapes, or retrying after errors. Each finding has a kind. Kind "missing": a tool or option ghosprite does not have would have removed the work, and tool names that tool or option. Kind "exists": one or more of the listed MCP tools would have done the work had the agent used them, tools lists those tool names spelled exactly as in the MCP tool list, and tool says in a short phrase how they would have done it (for example "draw_ellipse with filled: true"). Each finding also names the part, what the agent worked out or made by hand, and the ids of the calls that show the work. Cite ids exactly as given. Ids of ops inside a session_apply look like <id>#<n>. If nothing qualifies, return no findings.',
 		`Prompt:\n${evalPrompt}`,
 		`Parts: ${[...parts, OTHER].join(", ")}`,
 		`MCP instructions:\n${mcp.instructions ?? "(none recorded)"}`,
@@ -117,6 +121,7 @@ export async function analyseRun(
 	const list = isObject(reply.answer) ? reply.answer.findings : undefined;
 	const findings: Finding[] = [];
 	const callTokens: Record<string, number> = {};
+	const toolNames = new Set(mcp.tools.map((tool) => tool.name));
 	let dropped = 0;
 	for (const entry of Array.isArray(list) ? list : []) {
 		const calls =
@@ -129,18 +134,34 @@ export async function analyseRun(
 			!parts.includes(entry.part) ||
 			typeof entry.work !== "string" ||
 			typeof entry.tool !== "string" ||
+			(entry.kind !== "missing" && entry.kind !== "exists") ||
 			calls.length === 0 ||
 			!calls.every((id) => tokens.has(id))
 		) {
 			dropped++;
 			continue;
 		}
+		let tools: string[] | undefined;
+		if (entry.kind === "exists") {
+			const named: unknown = entry.tools;
+			if (
+				!Array.isArray(named) ||
+				named.length === 0 ||
+				!named.every((n) => typeof n === "string" && toolNames.has(n))
+			) {
+				dropped++;
+				continue;
+			}
+			tools = [...new Set<string>(named)];
+		}
 		const distinct = [...new Set(calls)];
 		for (const id of distinct) callTokens[id] = tokens.get(id) ?? 0;
 		findings.push({
 			part: entry.part,
 			work: entry.work,
+			kind: entry.kind,
 			tool: entry.tool,
+			...(tools ? { tools } : {}),
 			calls: distinct,
 			effort: {
 				calls: distinct.length,

@@ -98,7 +98,17 @@ function reply(findings: unknown[], model = "claude-opus-test"): Ask {
 }
 
 function finding(calls: string[], part = "head") {
-	return { part, work: "placed pixels", tool: "draw_shape", calls };
+	return {
+		part,
+		work: "placed pixels",
+		kind: "missing",
+		tool: "draw_shape",
+		calls,
+	};
+}
+
+function exists(tools: unknown) {
+	return { ...finding(["t1"]), kind: "exists", tool: "a phrase", tools };
 }
 
 function read(run: string): FrictionFile {
@@ -230,6 +240,82 @@ describe("analyseRun", () => {
 		expect(prompt).toContain("head, legs, other");
 		expect(prompt).toContain(".XXXXXX.");
 		expect(prompt).toContain("Drawing the head by hand.");
+	});
+
+	test("keeps an exists finding with its tools, deduplicated", async () => {
+		const run = tempRun();
+		await analyseRun(
+			run,
+			definition,
+			"Draw.",
+			mcp,
+			reply([exists(["draw_image", "draw_image"])]),
+		);
+		const file = read(run);
+		expect(file.findings[0]?.kind).toBe("exists");
+		expect(file.findings[0]?.tools).toEqual(["draw_image"]);
+		expect(file.dropped).toBe(0);
+	});
+
+	test("drops an exists finding with an unlisted tool or no tools", async () => {
+		const run = tempRun();
+		await analyseRun(
+			run,
+			definition,
+			"Draw.",
+			mcp,
+			reply([
+				exists(["draw_image", "draw_ellipse"]),
+				exists([]),
+				exists(undefined),
+				exists([1]),
+			]),
+		);
+		const file = read(run);
+		expect(file.findings).toEqual([]);
+		expect(file.dropped).toBe(4);
+	});
+
+	test("drops a finding with no or an unknown kind", async () => {
+		const run = tempRun();
+		const { kind: _kind, ...noKind } = finding(["t1"]);
+		await analyseRun(
+			run,
+			definition,
+			"Draw.",
+			mcp,
+			reply([noKind, { ...finding(["t1"]), kind: "other" }]),
+		);
+		const file = read(run);
+		expect(file.findings).toEqual([]);
+		expect(file.dropped).toBe(2);
+	});
+
+	test("writes a missing finding without tools", async () => {
+		const run = tempRun();
+		await analyseRun(
+			run,
+			definition,
+			"Draw.",
+			mcp,
+			reply([{ ...finding(["t1"]), tools: ["draw_image"] }]),
+		);
+		const kept = read(run).findings[0];
+		expect(kept?.kind).toBe("missing");
+		expect(kept).not.toHaveProperty("tools");
+	});
+
+	test("prompt covers both kinds and no longer says misuse is not reported", async () => {
+		const run = tempRun();
+		let prompt = "";
+		const ask: Ask = async (text) => {
+			prompt = text;
+			return { answer: { findings: [] }, model: "m" };
+		};
+		await analyseRun(run, definition, "Draw.", mcp, ask);
+		expect(prompt).not.toContain("Do not report misuse");
+		expect(prompt).toContain('Kind "missing"');
+		expect(prompt).toContain('Kind "exists"');
 	});
 
 	test("records the model the reply reports", async () => {
