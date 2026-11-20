@@ -80,6 +80,7 @@ export {
 } from "./palette-file.ts";
 export { decodePng, encodePng, readPng } from "./png.ts";
 export { quantizeSprite } from "./quantize-sprite.ts";
+export { colorRamp } from "./ramp.ts";
 export {
 	dropRegion,
 	growCanvas,

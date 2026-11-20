@@ -14,8 +14,41 @@ export type HueSaturationAdjust = {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
+/** Writes the hue (degrees), saturation and lightness (or value) of a colour into `out`. */
+export function fromRgb(
+	hsv: boolean,
+	r: number,
+	g: number,
+	b: number,
+	out: number[],
+) {
+	const max = Math.max(r, g, b);
+	const min = Math.min(r, g, b);
+	const spread = max - min;
+	const chroma = spread / 255;
+	const level = hsv ? max / 255 : (max + min) / 255 / 2;
+	let hue = 0;
+	let saturation = 0;
+	if (spread !== 0) {
+		if (max === r) {
+			hue = (g / 255 - b / 255) / chroma;
+			while (hue < 0) hue += 6;
+			hue %= 6;
+		} else if (max === g) {
+			hue = (b / 255 - r / 255) / chroma + 2;
+		} else {
+			hue = (r / 255 - g / 255) / chroma + 4;
+		}
+		hue *= 60;
+		saturation = hsv ? chroma / level : chroma / (1 - Math.abs(2 * level - 1));
+	}
+	out[0] = hue;
+	out[1] = saturation;
+	out[2] = level;
+}
+
 /** Writes the RGB of the given hue, saturation and lightness (or value) into `out`. */
-function toRgb(
+export function toRgb(
 	hsv: boolean,
 	hue: number,
 	saturation: number,
@@ -67,6 +100,7 @@ export function hueSaturation(adjust: HueSaturationAdjust): Filter {
 	const hsv = adjust.mode.startsWith("hsv");
 	const multiply = adjust.mode.endsWith("Mul");
 	const rgb = [0, 0, 0];
+	const hsl = [0, 0, 0];
 	return (src, dst, area, channels) => {
 		const targeted = targetedBytes(channels);
 		for (let y = area.y; y < area.y + area.height; y++) {
@@ -75,28 +109,8 @@ export function hueSaturation(adjust: HueSaturationAdjust): Filter {
 				const [r, g, b] = src.data.subarray(at, at + 3);
 				let a = src.data[at + 3];
 
-				const max = Math.max(r, g, b);
-				const min = Math.min(r, g, b);
-				const spread = max - min;
-				const chroma = spread / 255;
-				const level = hsv ? max / 255 : (max + min) / 255 / 2;
-				let hue = 0;
-				let saturation = 0;
-				if (spread !== 0) {
-					if (max === r) {
-						hue = (g / 255 - b / 255) / chroma;
-						while (hue < 0) hue += 6;
-						hue %= 6;
-					} else if (max === g) {
-						hue = (b / 255 - r / 255) / chroma + 2;
-					} else {
-						hue = (r / 255 - g / 255) / chroma + 4;
-					}
-					hue *= 60;
-					saturation = hsv
-						? chroma / level
-						: chroma / (1 - Math.abs(2 * level - 1));
-				}
+				fromRgb(hsv, r, g, b, hsl);
+				const [hue, saturation, level] = hsl;
 
 				let newHue = hue + adjust.hue;
 				while (newHue < 0) newHue += 360;
