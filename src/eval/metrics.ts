@@ -8,7 +8,7 @@ export type Metrics = {
 		input: number;
 		cacheWrite: number;
 		cacheRead: number;
-		output: number;
+		output: number | null;
 	};
 	costUsd: number | null;
 	toolCalls: Record<string, number>;
@@ -127,6 +127,22 @@ function findUnknown(schema: unknown, value: unknown, path: string): string[] {
 	});
 }
 
+// Per-request output_tokens on assistant lines are start-of-stream values, so
+// only the result line holds real output totals.
+export function resultTokens(
+	events: unknown[],
+): { output: number; thinking: number } | undefined {
+	const last = events.filter(isObject).findLast((e) => e.type === "result");
+	const usage = last && isObject(last.usage) ? last.usage : undefined;
+	if (!usage || typeof usage.output_tokens !== "number") return undefined;
+	const details = isObject(usage.output_tokens_details)
+		? usage.output_tokens_details
+		: {};
+	const thinking =
+		typeof details.thinking_tokens === "number" ? details.thinking_tokens : 0;
+	return { output: usage.output_tokens, thinking };
+}
+
 export function computeMetrics(
 	events: unknown[],
 	tools: ToolSchema[],
@@ -171,14 +187,18 @@ export function computeMetrics(
 		}
 	}
 
-	const tokens = { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
+	const tokens = {
+		input: 0,
+		cacheWrite: 0,
+		cacheRead: 0,
+		output: resultTokens(events)?.output ?? null,
+	};
 	const number = (usage: Json, key: string) =>
 		typeof usage[key] === "number" ? usage[key] : 0;
 	for (const usage of usageById.values()) {
 		tokens.input += number(usage, "input_tokens");
 		tokens.cacheWrite += number(usage, "cache_creation_input_tokens");
 		tokens.cacheRead += number(usage, "cache_read_input_tokens");
-		tokens.output += number(usage, "output_tokens");
 	}
 
 	const toolCalls: Record<string, number> = {};

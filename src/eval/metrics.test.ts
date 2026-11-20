@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { type LogEntry, Session } from "../session.ts";
 import { describeTools } from "../tools.ts";
-import { computeMetrics } from "./metrics.ts";
+import { computeMetrics, resultTokens } from "./metrics.ts";
 
 const tools = describeTools(new Session()).map((tool) => ({
 	name: tool.name.replaceAll(".", "_"),
@@ -72,11 +72,35 @@ describe("computeMetrics", () => {
 			input: 3,
 			cacheWrite: 4,
 			cacheRead: 5,
-			output: 6,
+			output: null,
 		});
 		expect(metrics.costUsd).toBe(0.5);
 		expect(metrics.bash).toEqual({ calls: 1, commands: ["ls"] });
 		expect(computeMetrics([init], tools, []).costUsd).toBeNull();
+	});
+
+	test("output tokens come from the result line", () => {
+		const assistant = {
+			type: "assistant",
+			message: { id: "m1", usage: { output_tokens: 5 }, content: [] },
+		};
+		const withUsage = (usage: unknown) => [
+			init,
+			assistant,
+			{ type: "result", usage },
+		];
+		const full = withUsage({
+			output_tokens: 900,
+			output_tokens_details: { thinking_tokens: 600 },
+		});
+		expect(computeMetrics(full, tools, []).tokens.output).toBe(900);
+		expect(resultTokens(full)).toEqual({ output: 900, thinking: 600 });
+		const plain = withUsage({ output_tokens: 900 });
+		expect(resultTokens(plain)).toEqual({ output: 900, thinking: 0 });
+		const none = [init, assistant];
+		expect(computeMetrics(none, tools, []).tokens.output).toBeNull();
+		expect(resultTokens(none)).toBeUndefined();
+		expect(resultTokens([{ type: "result" }])).toBeUndefined();
 	});
 
 	test("errors are counted by code, plain text as claude_code", () => {
