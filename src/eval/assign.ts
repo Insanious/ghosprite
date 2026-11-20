@@ -173,6 +173,7 @@ export async function assignParts(
 export async function askClaude(
 	prompt: string,
 	schema: unknown,
+	model = "haiku",
 ): Promise<{ answer: unknown; model: string }> {
 	const cwd = mkdtempSync(join(tmpdir(), "ghosprite-assign-"));
 	try {
@@ -180,9 +181,8 @@ export async function askClaude(
 			[
 				"claude",
 				"-p",
-				prompt,
 				"--model",
-				"haiku",
+				model,
 				"--output-format",
 				"json",
 				"--json-schema",
@@ -198,7 +198,7 @@ export async function askClaude(
 			{
 				cwd,
 				env: { ...process.env, ...CLAUDE_ENV },
-				stdin: "ignore",
+				stdin: Buffer.from(prompt),
 				stdout: "pipe",
 				stderr: "pipe",
 			},
@@ -221,3 +221,6 @@ export async function askClaude(
 		rmSync(cwd, { recursive: true, force: true });
 	}
 }
+
+export const askOpus: Ask = (prompt, schema) =>
+	askClaude(prompt, schema, "opus");

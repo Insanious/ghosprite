@@ -1,6 +1,10 @@
 import type { LogEntry } from "../session.ts";
 
-export type ToolSchema = { name: string; inputSchema: unknown };
+export type ToolSchema = {
+	name: string;
+	description?: string;
+	inputSchema: unknown;
+};
 
 export type Metrics = {
 	requests: number;

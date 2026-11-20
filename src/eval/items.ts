@@ -20,6 +20,7 @@ export type Item = {
 	input: unknown;
 	text: string;
 	error: boolean;
+	errorText?: string;
 	changed: { layerId: string; frame: number; rect: Rect }[];
 	rendered: boolean;
 	unknown: string[];
@@ -167,6 +168,7 @@ function buildDrafts(
 			request: request.id,
 			text,
 			error: result?.isError === true,
+			errorText: result?.isError === true ? result.text : undefined,
 			rendered: result?.hasImage === true,
 		};
 		const parsed = result ? parseJson(result.text) : undefined;
@@ -210,6 +212,7 @@ function buildDrafts(
 				label,
 				input,
 				error: base.error && i === errorOp,
+				errorText: base.error && i === errorOp ? base.errorText : undefined,
 				changed: base.error ? [] : changedOf(opResults[i]),
 				rendered: base.rendered && i === ops.length - 1,
 				unknown: [

@@ -176,7 +176,11 @@ async function probeServer(): Promise<{
 		const { tools } = await client.listTools();
 		return {
 			instructions: client.getInstructions(),
-			tools: tools.map((t) => ({ name: t.name, inputSchema: t.inputSchema })),
+			tools: tools.map((t) => ({
+				name: t.name,
+				description: t.description,
+				inputSchema: t.inputSchema,
+			})),
 		};
 	} finally {
 		await client.close();

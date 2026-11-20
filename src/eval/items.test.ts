@@ -125,6 +125,45 @@ describe("extractItems", () => {
 		expect(items.map((i) => i.error)).toEqual([true, false]);
 	});
 
+	test("a failed plain call carries its error text, a passing one has none", () => {
+		const events = [
+			init,
+			...request("r1", use("e", "mcp__ghosprite__draw_ellipse", ellipse)),
+			result("e", { code: "bad", message: "no layer" }, true),
+			...request("r2", use("f", "mcp__ghosprite__draw_ellipse", ellipse)),
+			result("f", { changed: [change("L1")] }),
+		];
+		const { items } = extractItems(events, tools);
+		expect(items[0]?.errorText).toContain("no layer");
+		expect(items[1]?.errorText).toBeUndefined();
+	});
+
+	test("an apply error text goes to the named op, or the first op without a path", () => {
+		const ops = [0, 1].map(() => ({ op: "draw.ellipse", input: ellipse }));
+		const withPath = extractItems(
+			[
+				init,
+				...request("r1", apply(ops)),
+				result("a", { code: "bad", message: "m1", path: "ops.1.x" }, true),
+			],
+			tools,
+		).items;
+		expect(withPath.map((i) => i.errorText !== undefined)).toEqual([
+			false,
+			true,
+		]);
+		expect(withPath[1]?.errorText).toContain("m1");
+		const noPath = extractItems(
+			[
+				init,
+				...request("r1", apply(ops)),
+				result("a", { code: "bad", message: "m2" }, true),
+			],
+			tools,
+		).items;
+		expect(noPath.map((i) => i.errorText !== undefined)).toEqual([true, false]);
+	});
+
 	test("an image marks a call rendered, and only the last op of an apply", () => {
 		const image = { type: "image", source: {} };
 		const ops = [0, 1].map(() => ({ op: "draw.ellipse", input: ellipse }));
