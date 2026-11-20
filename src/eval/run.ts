@@ -4,12 +4,11 @@ import {
 	mkdirSync,
 	mkdtempSync,
 	readdirSync,
-	readFileSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -20,10 +19,10 @@ import { type LogEntry, Session } from "../session.ts";
 import { callTool } from "../tools.ts";
 import { CLAUDE_ENV } from "./assign.ts";
 import { type EvalDefinition, runChecks } from "./checks.ts";
+import { parseTranscript } from "./items.ts";
 import { computeMetrics, type ToolSchema } from "./metrics.ts";
+import { EVALS, loadEval, REPO, reportSet } from "./report.ts";
 
-const REPO = resolve(dirname(import.meta.path), "..", "..");
-const EVALS = join(REPO, "evals");
 const CLI = join(REPO, "src", "cli.ts");
 
 export type Caps = { maxTurns: number; maxBudgetUsd: number; minutes: number };
@@ -184,20 +183,6 @@ async function probeServer(): Promise<{
 	}
 }
 
-function parseTranscript(path: string): unknown[] {
-	if (!existsSync(path)) return [];
-	return readFileSync(path, "utf8")
-		.split("\n")
-		.filter((line) => line.trim() !== "")
-		.flatMap((line) => {
-			try {
-				return [JSON.parse(line) as unknown];
-			} catch {
-				return [];
-			}
-		});
-}
-
 type Line = Record<string, unknown>;
 
 function findLine(events: unknown[], type: string, subtype?: string) {
@@ -319,9 +304,7 @@ async function main(): Promise<void> {
 	const { runs, ...caps } = numbers;
 	const model = values.model as string;
 
-	const prompt = readFileSync(join(EVALS, name, "prompt.md"), "utf8");
-	const definition = (await import(join(EVALS, name, "eval.ts")))
-		.default as EvalDefinition;
+	const { prompt, definition } = await loadEval(name);
 
 	const commit = git("rev-parse", "--short", "HEAD");
 	const dirty =
@@ -366,6 +349,14 @@ async function main(): Promise<void> {
 				commit,
 			),
 		);
+	}
+
+	try {
+		await reportSet(set, false);
+	} catch (error) {
+		console.error(error instanceof Error ? error.message : String(error));
+		console.error(`Retry with: bun run eval-report ${set}`);
+		process.exit(1);
 	}
 }
 

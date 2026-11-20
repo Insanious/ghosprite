@@ -24,6 +24,7 @@ A headless pixel-art sprite engine for AI agents, modelled on Aseprite's documen
 - `bun run goldens [group...]`: regenerate the goldens of a group from `tests/fixtures/draw/` or `tests/fixtures/doc/` with the local Aseprite. It runs each group twice and fails unless the second run is byte-identical. With no groups, it runs them all.
 
 - `bun run eval <name> [--model <m>] [--runs <n>]`: has Claude draw an eval prompt through `claude -p` and scores the rebuilt sprites. It costs money and never runs in CI.
+- `bun run eval-report <set folder>... [--force]`: assigns each run's tool calls to the prompt's parts (calls Claude), then writes `parts.json` per run and `report.json` per set. `--force` reassigns runs that have `parts.json`. `bun run eval` does this after its runs.
 
 Iterate with the narrow form, and run the full `bun run check` before committing.
 

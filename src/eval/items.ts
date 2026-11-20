@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import {
 	blocks,
 	findUnknown,
@@ -228,6 +229,20 @@ function shares(drafts: Draft[], total: number): number[] {
 	return weights.map((w) =>
 		sum === 0 ? total / drafts.length : (total * w) / sum,
 	);
+}
+
+export function parseTranscript(path: string): unknown[] {
+	if (!existsSync(path)) return [];
+	return readFileSync(path, "utf8")
+		.split("\n")
+		.filter((line) => line.trim() !== "")
+		.flatMap((line) => {
+			try {
+				return [JSON.parse(line) as unknown];
+			} catch {
+				return [];
+			}
+		});
 }
 
 export function extractItems(
