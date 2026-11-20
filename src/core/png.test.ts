@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { deflateSync, inflateSync } from "node:zlib";
 import { coded } from "../../tests/helpers/coded.ts";
 import { createImage } from "./image.ts";
@@ -196,12 +197,47 @@ describe("readPng colour types and bit depths", () => {
 	});
 });
 
+describe("readPng interlacing", () => {
+	const fixture = (name: string) =>
+		readFileSync(new URL(`../../tests/fixtures/png/${name}`, import.meta.url));
+	const read = (name: string) => readPng(fixture(name), inflateSync);
+
+	test("interlaced RGBA matches its non-interlaced twin", () => {
+		expect(read("rgba-interlaced.png")).toEqual(read("rgba.png"));
+	});
+
+	test("interlaced indexed matches its non-interlaced twin", () => {
+		expect(read("indexed-interlaced.png")).toEqual(read("indexed.png"));
+	});
+
+	test("indexed.png decodes to the known pixels", () => {
+		const { image } = read("indexed.png");
+		const at = (x: number, y: number) => [
+			...image.data.subarray((y * 10 + x) * 4, (y * 10 + x) * 4 + 4),
+		];
+		expect(image.width).toBe(10);
+		expect(image.height).toBe(7);
+		expect(at(0, 0)).toEqual([255, 255, 255, 0]);
+		expect(at(1, 1)).toEqual([255, 0, 0, 255]);
+		expect(at(2, 2)).toEqual([0, 255, 0, 255]);
+		expect(at(9, 6)).toEqual([0, 0, 255, 255]);
+	});
+
+	test("a 1x1 interlaced image has only pass 1", () => {
+		const { image } = readPng(
+			buildPng(ihdr(1, 1, 8, 6, 1), new Uint8Array(5)),
+			inflateSync,
+		);
+		expect([...image.data]).toEqual([0, 0, 0, 0]);
+	});
+});
+
 describe("decodePng rejects", () => {
 	const raw = new Uint8Array(5);
 	const decode = (png: Uint8Array) => () => decodePng(png, inflateSync);
-	test("interlaced", () => {
-		expect(decode(buildPng(ihdr(1, 1, 8, 6, 1), raw))).toThrow(
-			coded("unsupported"),
+	test("interlace method 2", () => {
+		expect(decode(buildPng(ihdr(1, 1, 8, 6, 2), raw))).toThrow(
+			coded("invalid_input"),
 		);
 	});
 	test("indexed colour without PLTE", () => {

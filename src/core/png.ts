@@ -90,6 +90,16 @@ const DEPTHS: Record<number, number[]> = {
 	6: [8, 16],
 };
 
+const ADAM7: [number, number, number, number][] = [
+	[0, 0, 8, 8],
+	[4, 0, 8, 8],
+	[0, 4, 4, 8],
+	[2, 0, 4, 4],
+	[0, 2, 2, 4],
+	[1, 0, 2, 2],
+	[0, 1, 1, 2],
+];
+
 function unfilter(
 	raw: Uint8Array,
 	height: number,
@@ -266,6 +276,7 @@ export function readPng(
 	let header: Header | undefined;
 	let plte: Uint8Array | undefined;
 	let trns: Uint8Array | undefined;
+	let interlaced = false;
 	const idat: Uint8Array[] = [];
 	let sawEnd = false;
 
@@ -295,10 +306,14 @@ export function readPng(
 			if (width === 0 || height === 0) {
 				throw new CoreError("invalid_input", "PNG has a zero width or height");
 			}
-			if (data[12] !== 0) {
-				throw new CoreError("unsupported", "Interlaced PNGs are not supported");
+			if (data[12] !== 0 && data[12] !== 1) {
+				throw new CoreError(
+					"invalid_input",
+					`Unknown PNG interlace method ${data[12]}`,
+				);
 			}
 			header = { width, height, depth, colorType };
+			interlaced = data[12] === 1;
 		} else if (type === "PLTE") {
 			plte = data;
 		} else if (type === "tRNS") {
@@ -326,13 +341,8 @@ export function readPng(
 
 	const { width, height, depth, colorType } = header;
 	const bitsPerPixel = (CHANNELS[colorType] as number) * depth;
-	const stride = Math.ceil((width * bitsPerPixel) / 8);
-	const pixels = unfilter(
-		inflate(joined),
-		height,
-		stride,
-		Math.max(1, bitsPerPixel / 8),
-	);
+	const bpp = Math.max(1, bitsPerPixel / 8);
+	const inflated = inflate(joined);
 
 	let palette: Rgba[] | undefined;
 	if (colorType === 3) {
@@ -340,7 +350,47 @@ export function readPng(
 			throw new CoreError("invalid_input", "Indexed PNG has no PLTE chunk");
 		palette = parsePalette(plte, trns);
 	}
-	const image = expand(pixels, header, stride, palette, trns);
+
+	if (!interlaced) {
+		const stride = Math.ceil((width * bitsPerPixel) / 8);
+		const pixels = unfilter(inflated, height, stride, bpp);
+		const image = expand(pixels, header, stride, palette, trns);
+		return palette ? { image, palette } : { image };
+	}
+
+	const image = createImage(width, height, "rgba");
+	let consumed = 0;
+	for (const [x0, y0, dx, dy] of ADAM7) {
+		const passWidth = Math.ceil((width - x0) / dx);
+		const passHeight = Math.ceil((height - y0) / dy);
+		if (passWidth <= 0 || passHeight <= 0) continue;
+		const stride = Math.ceil((passWidth * bitsPerPixel) / 8);
+		const length = (stride + 1) * passHeight;
+		const pixels = unfilter(
+			inflated.subarray(consumed, consumed + length),
+			passHeight,
+			stride,
+			bpp,
+		);
+		consumed += length;
+		const pass = expand(
+			pixels,
+			{ ...header, width: passWidth, height: passHeight },
+			stride,
+			palette,
+			trns,
+		);
+		for (let y = 0; y < passHeight; y++) {
+			for (let x = 0; x < passWidth; x++) {
+				const from = (y * passWidth + x) * 4;
+				const to = ((y0 + y * dy) * width + x0 + x * dx) * 4;
+				image.data.set(pass.data.subarray(from, from + 4), to);
+			}
+		}
+	}
+	if (consumed !== inflated.length) {
+		throw new CoreError("invalid_input", "PNG pixel data has the wrong length");
+	}
 	return palette ? { image, palette } : { image };
 }
 
