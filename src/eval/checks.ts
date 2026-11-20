@@ -120,6 +120,11 @@ export function hue(r: number, g: number, b: number): number | null {
 	return ((degrees % 360) + 360) % 360;
 }
 
+export function hueDistance(a: number, b: number): number {
+	const apart = Math.abs(a - b) % 360;
+	return Math.min(apart, 360 - apart);
+}
+
 export function opaqueColors(image: Image): Map<string, number> {
 	const counts = new Map<string, number>();
 	for (let i = 0; i < image.data.length; i += 4) {
@@ -186,9 +191,17 @@ export function findShadowLayer(
 	sprite: Sprite,
 	frame = 0,
 ): ImageLayer | undefined {
+	return mostTranslucentLayer(sprite, visibleImageLayers(sprite), frame);
+}
+
+export function mostTranslucentLayer(
+	sprite: Sprite,
+	layers: ImageLayer[],
+	frame = 0,
+): ImageLayer | undefined {
 	let best: ImageLayer | undefined;
 	let bestTranslucent = 0;
-	for (const layer of visibleImageLayers(sprite)) {
+	for (const layer of layers) {
 		const counts = alphaCounts(renderOnly(sprite, layer, frame));
 		if (counts.translucent === 0 || counts.translucent * 2 < counts.nonEmpty) {
 			continue;

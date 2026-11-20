@@ -3,6 +3,7 @@ import {
 	type Check,
 	type EvalDefinition,
 	hue,
+	hueDistance,
 	onSpriteOfSize,
 	opaqueColors,
 } from "../../src/eval/checks.ts";
@@ -14,11 +15,6 @@ const RED_HUE = 0;
 const HUE_TOLERANCE = 40;
 const MIN_GREENS = 3;
 const MIN_GREEN_SHARE = 0.5;
-
-function hueDistance(a: number, b: number): number {
-	const gap = Math.abs(a - b) % 360;
-	return Math.min(gap, 360 - gap);
-}
 
 function isHue(color: string, target: number): boolean {
 	const degrees = hue(
