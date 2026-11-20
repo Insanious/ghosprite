@@ -56,7 +56,11 @@ type PartsFile = {
 	effort: Record<string, Effort>;
 };
 
-function readJson<T>(path: string): T | undefined {
+export function evalName(setFolder: string): string {
+	return basename(dirname(resolve(setFolder)));
+}
+
+export function readJson<T>(path: string): T | undefined {
 	return existsSync(path)
 		? (JSON.parse(readFileSync(path, "utf8")) as T)
 		: undefined;
@@ -123,7 +127,7 @@ export type Report = {
 	runsWithoutParts: string[];
 };
 
-const EFFORT_FIELDS: (keyof Effort)[] = [
+export const EFFORT_FIELDS: (keyof Effort)[] = [
 	"calls",
 	"errors",
 	"outputTokens",
@@ -182,7 +186,7 @@ export function buildReport(
 	}
 
 	return {
-		eval: basename(dirname(resolve(setFolder))),
+		eval: evalName(setFolder),
 		runs: runs.length,
 		parts,
 		checks,
@@ -249,8 +253,7 @@ export async function reportSet(
 	force: boolean,
 	ask: Ask = askClaude,
 ): Promise<Report> {
-	const name = basename(dirname(resolve(setFolder)));
-	const { prompt, definition } = await loadEval(name);
+	const { prompt, definition } = await loadEval(evalName(setFolder));
 	const mcp = readJson<{ tools: ToolSchema[] }>(join(setFolder, "mcp.json"));
 	const tools = mcp?.tools ?? [];
 	for (const run of listRuns(setFolder)) {

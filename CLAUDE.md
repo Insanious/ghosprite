@@ -25,6 +25,7 @@ A headless pixel-art sprite engine for AI agents, modelled on Aseprite's documen
 
 - `bun run eval <name> [--model <m>] [--runs <n>]`: has Claude draw an eval prompt through `claude -p` and scores the rebuilt sprites. It costs money and never runs in CI.
 - `bun run eval-report <set folder>... [--force]`: assigns each run's tool calls to the prompt's parts (calls Claude), then writes `parts.json` per run and `report.json` per set. `--force` reassigns runs that have `parts.json`. `bun run eval` does this after its runs.
+- `bun run eval-compare <set A> <set B> [--new-tool <name>]... [--target <part>]`: prints, part by part, how set B differs from set A in effort, check pass rates and run totals, plus the use of new tools and the target part's change with those flags. Prints only, writes nothing.
 
 Iterate with the narrow form, and run the full `bun run check` before committing.
 
