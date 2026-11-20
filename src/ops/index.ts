@@ -49,6 +49,7 @@ import { spriteExport } from "./sprite-export.ts";
 import { spriteExportSheet } from "./sprite-export-sheet.ts";
 import { spriteFlatten } from "./sprite-flatten.ts";
 import { spriteFlip } from "./sprite-flip.ts";
+import { spriteLint } from "./sprite-lint.ts";
 import { spriteLoad } from "./sprite-load.ts";
 import { spriteMapToPalette } from "./sprite-map-to-palette.ts";
 import { spriteRender } from "./sprite-render.ts";
@@ -99,6 +100,7 @@ export const operations: Operation[] = [
 	spriteCrop,
 	spriteTrim,
 	spriteDescribe,
+	spriteLint,
 	selectionCreate,
 	selectionCombine,
 	selectionDelete,
