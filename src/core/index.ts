@@ -9,7 +9,12 @@ export {
 	commitCel,
 } from "./cel-edit.ts";
 export { tileImages } from "./contact-sheet.ts";
-export { cropImage, cropSprite, trimmedBounds } from "./crop.ts";
+export {
+	contentBounds,
+	cropImage,
+	cropSprite,
+	trimmedBounds,
+} from "./crop.ts";
 export { diffFrames } from "./diff.ts";
 export { bayerMatrix } from "./dither.ts";
 export { type Brush, createBrush, imageBrush } from "./draw/brush.ts";
@@ -60,6 +65,7 @@ export {
 	setPixel,
 	unionRects,
 } from "./image.ts";
+export { colorUsage, nearColorPairs, strayPixels } from "./lint.ts";
 export { mapSpriteToPalette } from "./map-to-palette.ts";
 export { flattenSprite, mergeLayerDown } from "./merge.ts";
 export { modifyMask } from "./modify-selection.ts";
