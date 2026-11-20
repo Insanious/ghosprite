@@ -1,5 +1,5 @@
 import { CoreError } from "./errors.ts";
-import { createImage, type Image } from "./image.ts";
+import { createImage, type Image, type Rgba } from "./image.ts";
 
 export type ZlibFn = (data: Uint8Array) => Uint8Array;
 
@@ -81,13 +81,21 @@ function paeth(a: number, b: number, c: number): number {
 	return pb <= pc ? b : c;
 }
 
+const CHANNELS: Record<number, number> = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 };
+const DEPTHS: Record<number, number[]> = {
+	0: [1, 2, 4, 8, 16],
+	2: [8, 16],
+	3: [1, 2, 4, 8],
+	4: [8, 16],
+	6: [8, 16],
+};
+
 function unfilter(
 	raw: Uint8Array,
-	width: number,
 	height: number,
-	channels: number,
+	stride: number,
+	bpp: number,
 ): Uint8Array {
-	const stride = width * channels;
 	if (raw.length !== (stride + 1) * height) {
 		throw new CoreError("invalid_input", "PNG pixel data has the wrong length");
 	}
@@ -98,12 +106,9 @@ function unfilter(
 		const row = y * stride;
 		for (let i = 0; i < stride; i++) {
 			const x = raw[src + i] as number;
-			const a = i >= channels ? (out[row + i - channels] as number) : 0;
+			const a = i >= bpp ? (out[row + i - bpp] as number) : 0;
 			const b = y > 0 ? (out[row - stride + i] as number) : 0;
-			const c =
-				y > 0 && i >= channels
-					? (out[row - stride + i - channels] as number)
-					: 0;
+			const c = y > 0 && i >= bpp ? (out[row - stride + i - bpp] as number) : 0;
 			let value: number;
 			switch (filter) {
 				case 0:
@@ -133,14 +138,134 @@ function unfilter(
 	return out;
 }
 
-export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
+type Header = {
+	width: number;
+	height: number;
+	depth: number;
+	colorType: number;
+};
+
+function parsePalette(plte: Uint8Array, trns: Uint8Array | undefined): Rgba[] {
+	if (plte.length % 3 !== 0 || plte.length > 768) {
+		throw new CoreError("invalid_input", "PNG has a malformed PLTE chunk");
+	}
+	const count = plte.length / 3;
+	if (trns && trns.length > count) {
+		throw new CoreError("invalid_input", "PNG tRNS has more entries than PLTE");
+	}
+	const palette: Rgba[] = [];
+	for (let i = 0; i < count; i++) {
+		palette.push({
+			r: plte[i * 3] as number,
+			g: plte[i * 3 + 1] as number,
+			b: plte[i * 3 + 2] as number,
+			a: trns && i < trns.length ? (trns[i] as number) : 255,
+		});
+	}
+	return palette;
+}
+
+function colorKey(
+	trns: Uint8Array | undefined,
+	samples: number,
+): number[] | null {
+	if (!trns) return null;
+	if (trns.length < samples * 2) {
+		throw new CoreError("invalid_input", "PNG has a malformed tRNS chunk");
+	}
+	const key: number[] = [];
+	for (let i = 0; i < samples; i++) {
+		key.push(((trns[i * 2] as number) << 8) | (trns[i * 2 + 1] as number));
+	}
+	return key;
+}
+
+function expand(
+	pixels: Uint8Array,
+	{ width, height, depth, colorType }: Header,
+	stride: number,
+	palette: Rgba[] | undefined,
+	trns: Uint8Array | undefined,
+): Image {
+	const channels = CHANNELS[colorType] as number;
+	const image = createImage(width, height, "rgba");
+	const out = image.data;
+	const maxSample = 2 ** depth - 1;
+	const key =
+		colorType === 0
+			? colorKey(trns, 1)
+			: colorType === 2
+				? colorKey(trns, 3)
+				: null;
+
+	const sample = (row: number, index: number): number => {
+		if (depth === 16) {
+			return (
+				((pixels[row + index * 2] as number) << 8) |
+				(pixels[row + index * 2 + 1] as number)
+			);
+		}
+		if (depth === 8) return pixels[row + index] as number;
+		const bit = index * depth;
+		const byte = pixels[row + (bit >> 3)] as number;
+		return (byte >> (8 - depth - (bit & 7))) & maxSample;
+	};
+	const to8 = (v: number): number =>
+		depth === 16 ? v >> 8 : depth < 8 ? Math.round((v * 255) / maxSample) : v;
+
+	for (let y = 0; y < height; y++) {
+		const row = y * stride;
+		for (let x = 0; x < width; x++) {
+			const o = (y * width + x) * 4;
+			const s0 = x * channels;
+			const v: number[] = [];
+			for (let c = 0; c < channels; c++) v.push(sample(row, s0 + c));
+			const [v0, v1, v2, v3] = v as [number, number, number, number];
+			switch (colorType) {
+				case 0:
+				case 2: {
+					const transparent = key?.every((k, c) => k === v[c]) ?? false;
+					const r = to8(v0);
+					const g = colorType === 0 ? r : to8(v1);
+					const b = colorType === 0 ? r : to8(v2);
+					out.set([r, g, b, transparent ? 0 : 255], o);
+					break;
+				}
+				case 3: {
+					const entry = (palette as Rgba[])[v0];
+					if (!entry) {
+						throw new CoreError(
+							"invalid_input",
+							"PNG index is past the end of PLTE",
+						);
+					}
+					out.set([entry.r, entry.g, entry.b, entry.a], o);
+					break;
+				}
+				case 4: {
+					const grey = to8(v0);
+					out.set([grey, grey, grey, to8(v1)], o);
+					break;
+				}
+				default:
+					out.set([to8(v0), to8(v1), to8(v2), to8(v3)], o);
+			}
+		}
+	}
+	return image;
+}
+
+export function readPng(
+	bytes: Uint8Array,
+	inflate: ZlibFn,
+): { image: Image; palette?: Rgba[] } {
 	if (bytes.length < 8 || SIGNATURE.some((b, i) => bytes[i] !== b)) {
 		throw new CoreError("invalid_input", "Not a PNG file");
 	}
 	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-	let width = 0;
-	let height = 0;
-	let channels = 0;
+	let header: Header | undefined;
+	let plte: Uint8Array | undefined;
+	let trns: Uint8Array | undefined;
 	const idat: Uint8Array[] = [];
 	let sawEnd = false;
 
@@ -157,21 +282,27 @@ export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
 			throw new CoreError("invalid_input", `Bad CRC in PNG chunk ${type}`);
 		}
 		if (type === "IHDR") {
-			width = view.getUint32(offset + 8);
-			height = view.getUint32(offset + 12);
-			const depth = data[8];
-			const colorType = data[9];
-			const interlace = data[12];
-			if (depth !== 8 || (colorType !== 6 && colorType !== 2)) {
+			const depth = data[8] as number;
+			const colorType = data[9] as number;
+			const width = view.getUint32(offset + 8);
+			const height = view.getUint32(offset + 12);
+			if (!DEPTHS[colorType]?.includes(depth)) {
 				throw new CoreError(
-					"unsupported",
-					`Unsupported PNG: bit depth ${depth}, colour type ${colorType} (need 8-bit colour type 2 or 6)`,
+					"invalid_input",
+					`Invalid PNG: bit depth ${depth} with colour type ${colorType}`,
 				);
 			}
-			if (interlace !== 0) {
+			if (width === 0 || height === 0) {
+				throw new CoreError("invalid_input", "PNG has a zero width or height");
+			}
+			if (data[12] !== 0) {
 				throw new CoreError("unsupported", "Interlaced PNGs are not supported");
 			}
-			channels = colorType === 6 ? 4 : 3;
+			header = { width, height, depth, colorType };
+		} else if (type === "PLTE") {
+			plte = data;
+		} else if (type === "tRNS") {
+			trns = data;
 		} else if (type === "IDAT") {
 			idat.push(data);
 		} else if (type === "IEND") {
@@ -179,7 +310,7 @@ export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
 		}
 		offset += 12 + length;
 	}
-	if (channels === 0) {
+	if (!header) {
 		throw new CoreError("invalid_input", "PNG has no IHDR chunk");
 	}
 	if (idat.length === 0) {
@@ -192,18 +323,27 @@ export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
 		joined.set(part, at);
 		at += part.length;
 	}
-	const pixels = unfilter(inflate(joined), width, height, channels);
 
-	const image = createImage(width, height, "rgba");
-	if (channels === 4) {
-		image.data.set(pixels);
-		return image;
+	const { width, height, depth, colorType } = header;
+	const bitsPerPixel = (CHANNELS[colorType] as number) * depth;
+	const stride = Math.ceil((width * bitsPerPixel) / 8);
+	const pixels = unfilter(
+		inflate(joined),
+		height,
+		stride,
+		Math.max(1, bitsPerPixel / 8),
+	);
+
+	let palette: Rgba[] | undefined;
+	if (colorType === 3) {
+		if (!plte)
+			throw new CoreError("invalid_input", "Indexed PNG has no PLTE chunk");
+		palette = parsePalette(plte, trns);
 	}
-	for (let i = 0; i < width * height; i++) {
-		image.data[i * 4] = pixels[i * 3] as number;
-		image.data[i * 4 + 1] = pixels[i * 3 + 1] as number;
-		image.data[i * 4 + 2] = pixels[i * 3 + 2] as number;
-		image.data[i * 4 + 3] = 255;
-	}
-	return image;
+	const image = expand(pixels, header, stride, palette, trns);
+	return palette ? { image, palette } : { image };
+}
+
+export function decodePng(bytes: Uint8Array, inflate: ZlibFn): Image {
+	return readPng(bytes, inflate).image;
 }

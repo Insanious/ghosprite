@@ -78,7 +78,7 @@ export {
 	writeHex,
 	writePal,
 } from "./palette-file.ts";
-export { decodePng, encodePng } from "./png.ts";
+export { decodePng, encodePng, readPng } from "./png.ts";
 export { quantizeSprite } from "./quantize-sprite.ts";
 export {
 	dropRegion,
