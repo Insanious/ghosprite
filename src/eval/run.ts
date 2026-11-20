@@ -19,6 +19,7 @@ import { type LogEntry, Session } from "../session.ts";
 import { callTool } from "../tools.ts";
 import { CLAUDE_ENV } from "./assign.ts";
 import { type EvalDefinition, runChecks } from "./checks.ts";
+import { analyseSet } from "./friction.ts";
 import { parseTranscript } from "./items.ts";
 import { computeMetrics, type ToolSchema } from "./metrics.ts";
 import { EVALS, loadEval, REPO, reportSet } from "./report.ts";
@@ -360,6 +361,14 @@ async function main(): Promise<void> {
 	} catch (error) {
 		console.error(error instanceof Error ? error.message : String(error));
 		console.error(`Retry with: bun run eval-report ${set}`);
+		process.exit(1);
+	}
+
+	try {
+		await analyseSet(set, false);
+	} catch (error) {
+		console.error(error instanceof Error ? error.message : String(error));
+		console.error(`Retry with: bun run eval-friction ${set}`);
 		process.exit(1);
 	}
 }

@@ -10,6 +10,7 @@
 		"eval-candidates": "bun src/eval/candidates.ts",
 		"eval-compare": "bun src/eval/compare.ts",
 		"eval-report": "bun src/eval/report.ts",
+		"eval-friction": "bun src/eval/friction.ts",
 		"goldens": "sh scripts/goldens.sh"
 	},
 	"devDependencies": {

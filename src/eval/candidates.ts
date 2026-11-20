@@ -1,18 +1,11 @@
 import { readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { type Ask, askOpus } from "./assign.ts";
+import type { FrictionFile } from "./friction.ts";
 import { isObject } from "./metrics.ts";
 import { EVALS, readJson } from "./report.ts";
 
-type RunFindings = {
-	findings: {
-		part: string;
-		work: string;
-		tool: string;
-		calls: string[];
-	}[];
-	callTokens: Record<string, number>;
-};
+type RunFindings = Pick<FrictionFile, "findings" | "callTokens">;
 
 type Finding = {
 	run: string;

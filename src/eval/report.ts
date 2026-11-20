@@ -10,7 +10,7 @@ import type { ToolSchema } from "./metrics.ts";
 export const REPO = resolve(dirname(import.meta.path), "..", "..");
 export const EVALS = join(REPO, "evals");
 
-const OTHER = "other";
+export const OTHER = "other";
 
 export async function loadEval(
 	name: string,
@@ -44,7 +44,7 @@ export function spread(values: (number | null | undefined)[]): Spread {
 	};
 }
 
-type PartsFile = {
+export type PartsFile = {
 	classifier: string | null;
 	items: {
 		id: string;
