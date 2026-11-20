@@ -32,11 +32,11 @@ type Result = { isError: boolean; text: string; hasImage: boolean };
 const MCP_PREFIX = "mcp__ghosprite__";
 const CLAUDE_CODE_ERROR = "claude_code";
 
-function isObject(value: unknown): value is Json {
+export function isObject(value: unknown): value is Json {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function shortName(name: string): string {
+export function shortName(name: string): string {
 	return name.startsWith(MCP_PREFIX) ? name.slice(MCP_PREFIX.length) : name;
 }
 
@@ -44,13 +44,13 @@ function count(record: Record<string, number>, key: string): void {
 	record[key] = (record[key] ?? 0) + 1;
 }
 
-function blocks(line: Json): Json[] {
+export function blocks(line: Json): Json[] {
 	const message = line.message;
 	if (!isObject(message) || !Array.isArray(message.content)) return [];
 	return message.content.filter(isObject);
 }
 
-function readResult(block: Json): Result {
+export function readResult(block: Json): Result {
 	const content = block.content;
 	const parts = Array.isArray(content) ? content.filter(isObject) : [];
 	const firstText = parts.find((part) => part.type === "text")?.text;
@@ -101,7 +101,11 @@ function bestBranch(branches: unknown[], value: Json): Json | undefined {
 	return best;
 }
 
-function findUnknown(schema: unknown, value: unknown, path: string): string[] {
+export function findUnknown(
+	schema: unknown,
+	value: unknown,
+	path: string,
+): string[] {
 	if (!isObject(schema)) return [];
 	if (Array.isArray(schema.anyOf)) {
 		if (!isObject(value)) return [];
