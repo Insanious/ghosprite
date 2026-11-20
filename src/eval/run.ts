@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import {
+	cpSync,
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
@@ -81,6 +82,11 @@ export function classifyCap(subtype: unknown, killed: boolean): Capped {
 	if (subtype === "error_max_turns") return "turns";
 	if (subtype === "error_max_budget_usd") return "budget";
 	return null;
+}
+
+export function copyEvalFiles(evalDir: string, cwd: string): void {
+	const files = join(evalDir, "files");
+	if (existsSync(files)) cpSync(files, cwd, { recursive: true });
 }
 
 export function setFolder(
@@ -213,6 +219,7 @@ async function runOnce(
 ): Promise<string> {
 	mkdirSync(runFolder, { recursive: true });
 	const cwd = mkdtempSync(join(tmpdir(), "ghosprite-eval-"));
+	copyEvalFiles(join(EVALS, name), cwd);
 	const transcriptPath = join(runFolder, "transcript.jsonl");
 	let killed = false;
 	const started = Date.now();

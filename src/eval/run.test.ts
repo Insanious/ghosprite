@@ -4,13 +4,22 @@ import {
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
+	readdirSync,
+	readFileSync,
 	rmSync,
+	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startRunLog } from "../run-log.ts";
 import { Session } from "../session.ts";
-import { classifyCap, claudeArgs, rebuildRun, setFolder } from "./run.ts";
+import {
+	classifyCap,
+	claudeArgs,
+	copyEvalFiles,
+	rebuildRun,
+	setFolder,
+} from "./run.ts";
 
 let root: string;
 beforeEach(() => {
@@ -21,6 +30,25 @@ afterEach(() => {
 });
 
 const caps = { maxTurns: 150, maxBudgetUsd: 5, minutes: 30 };
+
+describe("copyEvalFiles", () => {
+	test("copies nested files from files/ into the target", () => {
+		const evalDir = join(root, "eval");
+		const cwd = join(root, "cwd");
+		mkdirSync(join(evalDir, "files", "sub"), { recursive: true });
+		mkdirSync(cwd);
+		writeFileSync(join(evalDir, "files", "sub", "a.txt"), "hello");
+		copyEvalFiles(evalDir, cwd);
+		expect(readFileSync(join(cwd, "sub", "a.txt"), "utf8")).toBe("hello");
+	});
+
+	test("does nothing when there is no files/ folder", () => {
+		const cwd = join(root, "cwd");
+		mkdirSync(cwd);
+		copyEvalFiles(join(root, "eval"), cwd);
+		expect(readdirSync(cwd)).toEqual([]);
+	});
+});
 
 describe("claudeArgs", () => {
 	const args = claudeArgs("draw it", "sonnet", caps, "/runs/1");
