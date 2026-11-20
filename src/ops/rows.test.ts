@@ -87,12 +87,53 @@ describe("imageFromRows", () => {
 				expect(error).toBeInstanceOf(OpError);
 				expect((error as OpError).path).toBe(path);
 				expect((error as OpError).message).toBe(
-					"Row has 3 characters, more than width 2",
+					'Row has 3 characters, more than width 2:\n0:"RRR" <- past width',
 				);
 				continue;
 			}
 			throw new Error("Expected an OpError");
 		}
+	});
+
+	const tooLongMessage = (row: string, width: number, path = "") => {
+		try {
+			imageFromRows({ R: "#ff0000" }, [row], palette, path, width);
+		} catch (error) {
+			return error as OpError;
+		}
+		throw new Error("Expected an OpError");
+	};
+
+	test("a too-long row is shown in groups of 8 with the group past width marked", () => {
+		const row = `${"A".repeat(8)}${"B".repeat(8)}${"C".repeat(8)}${"D".repeat(8)}X`;
+		expect(tooLongMessage(row, 32).message).toBe(
+			'Row has 33 characters, more than width 32:\n0:"AAAAAAAA" 8:"BBBBBBBB" 16:"CCCCCCCC" 24:"DDDDDDDD" 32:"X" <- past width',
+		);
+	});
+
+	test("groups after the marked one are still shown", () => {
+		expect(tooLongMessage("ABCDEFGHIJKLMNOPQ", 9).message).toBe(
+			'Row has 17 characters, more than width 9:\n0:"ABCDEFGH" 8:"IJKLMNOP" <- past width 16:"Q"',
+		);
+	});
+
+	test("width not a multiple of 8 marks the group holding column width", () => {
+		expect(tooLongMessage("ABCDEFGHIJ", 9).message).toBe(
+			'Row has 10 characters, more than width 9:\n0:"ABCDEFGH" 8:"IJ" <- past width',
+		);
+	});
+
+	test("spaces and quotes in a too-long row are JSON-quoted", () => {
+		expect(tooLongMessage('R "R', 3).message).toBe(
+			'Row has 4 characters, more than width 3:\n0:"R \\"R" <- past width',
+		);
+	});
+
+	test("the error keeps its code and path, with a path prefix", () => {
+		const plain = tooLongMessage("RRR", 2);
+		expect(plain.code).toBe("invalid_input");
+		expect(plain.path).toBe("rows.0");
+		expect(tooLongMessage("RRR", 2, "cel").path).toBe("cel.rows.0");
 	});
 
 	test("an unmapped other character throws at rows.N with the transparent hint", () => {

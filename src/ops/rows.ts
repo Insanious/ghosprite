@@ -121,6 +121,21 @@ export function rowsFromImage(
 	return { legend: outLegend, rows };
 }
 
+const GROUP_SIZE = 8;
+
+/** The row in quoted groups of 8 labelled with their start column, the group holding column `width` marked. */
+function groupedRow(row: string[], width: number): string {
+	const markedStart = Math.floor(width / GROUP_SIZE) * GROUP_SIZE;
+	const groups: string[] = [];
+	for (let start = 0; start < row.length; start += GROUP_SIZE) {
+		const text = JSON.stringify(row.slice(start, start + GROUP_SIZE).join(""));
+		groups.push(
+			`${start}:${text}${start === markedStart ? " <- past width" : ""}`,
+		);
+	}
+	return groups.join(" ");
+}
+
 /** Splits rows into code points and resolves their width: `width`, or else the longest row. Errors point at `<path>.rows.N`. */
 export function splitRows(
 	rowStrings: string[],
@@ -134,7 +149,7 @@ export function splitRows(
 			if (row.length > width) {
 				throw new OpError(
 					"invalid_input",
-					`Row has ${row.length} characters, more than width ${width}`,
+					`Row has ${row.length} characters, more than width ${width}:\n${groupedRow(row, width)}`,
 					{
 						path: `${prefix}rows.${y}`,
 						hint: "Remove characters from the row, or raise width",
